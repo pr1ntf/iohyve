@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.2.5 2015/05/06 "ALL HAIL LINUS edition"
+# iohyve v0.2.6 2015/05/07 "zomg centos6 hax edition"
 
 # Process command line
 __parse_cmd () {
@@ -91,7 +91,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.2.5 2015/05/06 ALL HAIL LINUS edition'
+  echo 'iohyve v0.2.6 2015/05/07 zomg centos6 hax edition'
 }
 
 # Setup iohyve
