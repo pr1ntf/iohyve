@@ -1,11 +1,13 @@
 # iocage
 FreeBSD bhyve manager utilizing ZFS.
 
-Just read the man page.
+So far FreeBSD guests work with relativly no hassle. Linux guests can be a bit more tricky, but with a little help you can make them persist. 
 
-Or the readme.
+I'm in the middle of writing some man pages for this.
 
-I know, I know, this is also a reamdme. 
+Just read the man page built in for now. 
+
+Or the readme. I know, I know, this is also a reamdme. 
 
 But read that one.
 
