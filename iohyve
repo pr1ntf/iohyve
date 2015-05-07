@@ -208,6 +208,7 @@ __load() {
       grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name &
     else
       grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
+    fi
   else
     echo "I don't understand what loader you are using."
     echo "Use iohyve set loader=bhyveload or loader=grub to set custom loader"
