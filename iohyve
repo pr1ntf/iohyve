@@ -198,13 +198,16 @@ __load() {
   local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
   local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$name)"
+  local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
   echo "Loading $name..."
   if [ $loader == "bhyveload" ]; then
     bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A ioh-$name &
   elif [ $loader == "grub" ]; then
     printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-    # add -d /grub below for centos elif/then
-    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
+    if [ $os == "centos6"]; then
+      grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name &
+    else
+      grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
   else
     echo "I don't understand what loader you are using."
     echo "Use iohyve set loader=bhyveload or loader=grub to set custom loader"
@@ -250,7 +253,7 @@ __start() {
     sleep 12
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-  elif [ $os == "debian" ]; then
+  elif [ $os == "debian" | "ubuntu" ]; then
     printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
     grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
     sleep 8
