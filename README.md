@@ -1,4 +1,13 @@
-iohyve  version
+# iocage
+FreeBSD bhyve manager utilizing ZFS.
+Just read the man page.
+Or the readme.
+I know, I know, this is also a reamdme. 
+But read that one.
+
+
+
+    iohyve  version
         setup [pool]
         list
         isolist
@@ -24,3 +33,4 @@ iohyve  version
         readme
         help
         man 
+
