@@ -254,6 +254,11 @@ __start() {
     sleep 12
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+  elif [ $os == "centos6" ]; then
+    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name &
+    sleep 8
+    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
   elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
     printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
     grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
