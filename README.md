@@ -7,7 +7,7 @@ I'm in the middle of writing some man pages for this.
 
 Just read the man page built in for now. 
 
-Or the readme. I know, I know, this is also a reamdme. 
+Or the readme. I know, I know, this is also a readme. 
 
 But read that one.
 
