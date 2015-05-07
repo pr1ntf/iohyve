@@ -204,7 +204,7 @@ __load() {
     bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A ioh-$name &
   elif [ $loader == "grub" ]; then
     printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-    if [ $os == "centos6"]; then
+    if [ $os == "centos6" ]; then
       grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name &
     else
       grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
