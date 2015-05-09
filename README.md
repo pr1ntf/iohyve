@@ -212,13 +212,13 @@ Console into booloader:
 
 Find kernel and ramfs:
 
-    grub> ls (hd0,msdos1)/
+    grub>ls (hd0,msdos1)/
     lost+found/ grub/ efi/ System.map-2.6.32-504.el6.x86_64 config-2.6.32-504.el6.x
     86_64 symvers-2.6.32-504.el6.x86_64.gz vmlinuz-2.6.32-504.el6.x86_64 initramfs-
     2.6.32-504.el6.x86_64.img
-    grub> linux (hd0,msdos1)/vmlinuz-2.6.32-504.el6.x86_64 root=/dev/mapper/VolGroup-lv_root
-    grub> initrd (hd0,msdos1)/initramfs-2.6.32-504.el6.x86_64.img
-    grub> boot
+    grub>linux (hd0,msdos1)/vmlinuz-2.6.32-504.el6.x86_64 root=/dev/mapper/VolGroup-lv_root
+    grub>initrd (hd0,msdos1)/initramfs-2.6.32-504.el6.x86_64.img
+    grub>boot
     ~~.
 
 Boot the OS:
