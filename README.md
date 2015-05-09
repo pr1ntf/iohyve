@@ -1,15 +1,26 @@
-# iocage
+# iohyve
 FreeBSD bhyve manager utilizing ZFS.
 
-So far FreeBSD guests work with relativly no hassle. Linux guests can be a bit more tricky, but with a little help you can make them persist. 
+iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features including virtio drivers and ZFS. 
+iohyve strives to be much like @pannon's iocage, storing properties in ZFS datasets. [https://github.com/iocage/iocage]
+There is currently support for VIMAGE/VNET just as iocage. Documentation soon to come. For more information on VNET support, run:
 
-Just read the man page 'iohyve man' built in for help. 
+    iohyve readme
+
+Or create a readme file:
+
+    iohyve readme > readme.txt 
+
+Don't forget to check out the built in man page!
+
+    iohyve man 
 
 # Pre-Flight Checklist
 [Taken from the FreeBSD handbook https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html]
 The first step to creating a virtual machine in bhyve is configuring the host system. First, load the bhyve kernel module:
 
     kldload vmm
+    kldload nmdm
 
 Then, create a tap interface for the network device in the virtual machine to attach to. In order for the network device to participate in the network, also create a bridge interface containing the tap 
 interface ane the physical interface as members. In this example, the physical interface is igb0:
