@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.2.7 2015/05/08 "just start already edition"
+# iohyve v0.2.8 2015/05/08 "man page madness edition"
 
 # Process command line
 __parse_cmd () {
@@ -91,7 +91,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.2.7 2015/05/08 just start already edition'
+  echo 'iohyve v0.2.8 2015/05/08 man page madness edition'
 }
 
 # Setup iohyve
@@ -474,10 +474,9 @@ DESCRIPTION
   for the null modem device that helps you connect with  your virtual guest. 
   You can run 'iohyve readme' to learn more about host configuration. 
   
-  You have been warned, iohyve(8) is very beta. Some things do not look
-  pretty or sometimes just do not work. Better looking lists and 
-  support for other BSDs and Linux are coming soon with v0.3
-  Utilization of UUIDs and prepending of ioh- to pids will help. 
+  Make sure you have enough tap devices. Only one guest per tap device.
+  You can always run 'ifconfig tap1' then 'ifconfig bridge0 addm tap1'
+  Then you can set the guest to use it with 'iohyve guest set tap=tap1'
 
 OPTIONS
   version   Prints the current running version of iohyve
@@ -609,7 +608,53 @@ OPTIONS
   man       This man page. 
 
 EXAMPLES
+  Setup iohyve zpool named tank:
+	iohyve setup tank
 
+  Fetch FreeBSD install ISO for later:
+	iohyve fetch ftp://ftp.freebsd.org/pub/FreeBSD/releases/amd64/amd64/ISO-IMAGES/10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+
+  Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
+	iohyve create bsdguest 8G nmdm0
+
+  List ISO's:
+	iohyve isolist
+
+  Install the FreeBSD guest bsdguest:
+	iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+
+  Console into the intallation:
+	iohyve console bsdguest
+
+  Once installation is done, exit console (~~.) and destroy guest:
+	iohyve destroy bsdguest
+
+  Now that the guest is installed, it can be started like usual:
+	iohyve start bsdguest
+
+  Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stopped:
+	iohyve stop bsdguest
+
+  List all guests created with:
+	iohyve list
+
+  List all guests that have resources allocated using:
+	iohyve vmmlist
+
+  List all runnng guests using:
+	iohvye running
+
+  You can change guest properties by using set:
+	iohyve bsdguest set ram=512M	#set ram to 512 Megabytes
+	iohyve bsdguest set cpu=1	#set cpus to 1 core
+	iohyve bsdguest set tap=tap0	#set tap device for ethernet
+	iohyve bsdguest set con=nmdm0	#set the console to attach to
+
+  Get a spcific guest property:
+	iohyve get bsdguest ram
+
+  Get all guest properties:
+	iohyve getall bsdguest
 
 AUTHOR
   Trent -- @pr1ntf
