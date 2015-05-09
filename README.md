@@ -58,6 +58,33 @@ Setup iohyve by telling it what zpool to use
 
     iohyve setup tank
 
+# General Usage
+List all guests created with:
+
+    iohyve list
+
+List all guests that have resources allocated using:
+
+    iohyve vmmlist
+
+List all runnng guests using:
+
+    iohvye running
+
+You can change guest properties by using set:
+
+    iohyve bsdguest set ram=512M    #set ram to 512 Megabytes
+    iohyve bsdguest set cpu=1       #set cpus to 1 core
+    iohyve bsdguest set tap=tap0    #set tap device for ethernet
+    iohyve bsdguest set con=nmdm0   #set the console to attach to
+
+Get a spcific guest property:
+    iohyve get bsdguest ram
+
+Get all guest properties:
+
+    iohyve getall bsdguest
+
 # FreeBSD Guests
 Fetch FreeBSD install ISO for later:
 
