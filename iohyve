@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.2.6 2015/05/07 "zomg centos6 hax edition"
+# iohyve v0.2.7 2015/05/08 "just start already edition"
 
 # Process command line
 __parse_cmd () {
@@ -91,7 +91,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.2.6 2015/05/07 zomg centos6 hax edition'
+  echo 'iohyve v0.2.7 2015/05/08 just start already edition'
 }
 
 # Setup iohyve
@@ -250,19 +250,16 @@ __start() {
   local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
   echo "Starting $name... (Takes 15 seconds for FreeBSD guests, 10 for Debian guests)"
   if [ $os == "freebsd" ]; then
-    bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A ioh-$name &
-    sleep 12
+    bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
   elif [ $os == "centos6" ]; then
-    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name &
-    sleep 8
+    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name > /dev/null
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
   elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
     printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
-    sleep 8
+    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name > /dev/null
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
   else
