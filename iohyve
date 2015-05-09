@@ -685,6 +685,81 @@ EXAMPLES
   Start linux guest like normal:
 	iohyve start jessie
 
+  CentOS 6 guests:
+  Fetch CentOS 6 ISO
+	iohyve fetch http://centos.escapemg.com/.../CentOS-6.6-x86_64-netinstall.iso
+
+  Create CentOS 6 guest:
+	iohyve create centos6 16G nmdm6
+
+  Set correct properties:
+        iohyve set centos6 ram=512M     # Min Sys Requirements
+        iohyve set centos6 loader=grub  # Grub loader
+        iohyve set centos6 os=centos6   # OS type
+ 
+  Attach ISO and load installer:
+        iohyve install centos6 CentOS-6.6-x86_64-netinstall.iso
+ 
+  Console into guest:
+        iohyve console centos6
+ 
+  In the grub console:
+    grub> ls (cd0)/isolinux/                # list isolinux directory
+    boot.cat boot.msg grub.conf initrd.img isolinux.bin isolinux.cfg memtest splash
+    .jpg TRANS.TBL vesamenu.c32 vmlinuz
+    grub> linux (cd0)/isolinux/vmlinuz      # load kernel
+    grub> initrd (cd0)/isolinux/initrd.img  # ramfs
+    grub> boot                              # boot machine
+    ~~.                                     # exit from console
+ 
+  Boot into the installation ISO:
+        iohyve boot centos6 CentOS-6.6-x86_64-netinstall.iso
+ 
+  Console into the guest and install the it:
+        iohyve console centos6
+
+  Destroy guest:
+	iohyve destory centos6
+  
+  Load the centos6 guest:
+	iohyve load centos6
+
+  Console into booloader:
+	iohyve console centos6
+
+  Find kernel and ramfs:
+    grub> ls (hd0,msdos1)/
+    lost+found/ grub/ efi/ System.map-2.6.32-504.el6.x86_64 config-2.6.32-504.el6.x
+    86_64 symvers-2.6.32-504.el6.x86_64.gz vmlinuz-2.6.32-504.el6.x86_64 initramfs-
+    2.6.32-504.el6.x86_64.img
+    grub> linux (hd0,msdos1)/vmlinuz-2.6.32-504.el6.x86_64 root=/dev/mapper/VolGroup-lv_root
+    grub> initrd (hd0,msdos1)/initramfs-2.6.32-504.el6.x86_64.img
+    grub> boot
+    ~~.
+
+  Boot the OS:
+	iohyve boot centos6
+
+  Console into the OS:
+	iohyve console centos6
+
+  Log into root and install grub2:
+    [root@localhost ~]# yum install wget bison gcc flex nano
+    [root@localhost ~]# wget ftp://ftp.gnu.org/gnu/grub/grub-2.00.tar.gz
+    [root@localhost ~]# tar -xzf grub-2.00.tar.gz
+    [root@localhost ~]# cd grub-2.00
+    [root@localhost grub-2.00]# ./configure    
+    [root@localhost grub-2.00]# make install
+    [root@localhost grub-2.00]# /usr/local/sbin/grub-mkconfig -o /boot/grub/grub.cfg
+    [root@localhost grub-2.00]# /usr/local/sbin/grub-install /dev/vda
+    [root@localhost grub-2.00]# init 0
+
+  Destory guest:
+	iohyve destroy centos6
+
+  Start CentOS 6 guest:
+	iohyve start centos6    
+
 AUTHOR
   Trent -- @pr1ntf
 
