@@ -211,6 +211,7 @@ Console into booloader:
     iohyve console centos6
 
 Find kernel and ramfs:
+
     grub> ls (hd0,msdos1)/
     lost+found/ grub/ efi/ System.map-2.6.32-504.el6.x86_64 config-2.6.32-504.el6.x
     86_64 symvers-2.6.32-504.el6.x86_64.gz vmlinuz-2.6.32-504.el6.x86_64 initramfs-
