@@ -250,22 +250,18 @@ __start() {
   local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
   echo "Starting $name... (Takes 15 seconds for FreeBSD guests, 10 for Debian guests)"
   if [ $os == "freebsd" ]; then
-    bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A ioh-$name &
-    sleep 12
+    bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-#   These guys don't work unless attached to console for some reason. 
-#  elif [ $os == "centos6" ]; then
-#    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name &
-#    sleep 12
-#    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-#    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-#  elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
-#    printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-#    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
-#    sleep 12
-#    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-#    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+  elif [ $os == "centos6" ]; then
+    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name > /dev/null
+    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+  elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
+    printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
+    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name > /dev/null
+    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
   else
     echo "iohyve start is not supported for this operating system."
     echo "Use iohyve load and iohyve boot instead."
