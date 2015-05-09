@@ -5,7 +5,7 @@ So far FreeBSD guests work with relativly no hassle. Linux guests can be a bit m
 
 Just read the man page 'iohyve man' built in for help. 
 
-# Pre-FLight Checklist
+# Pre-Flight Checklist
 [Taken from the FreeBSD handbook https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html]
 The first step to creating a virtual machine in bhyve is configuring the host system. First, load the bhyve kernel module:
 
@@ -53,3 +53,39 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
         help
         man 
 
+# Setup
+Setup iohyve by telling it what zpool to use
+
+    iohyve setup tank
+
+# FreeBSD Guests
+Fetch FreeBSD install ISO for later:
+
+    iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+
+Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
+
+    iohyve create bsdguest 8G nmdm0
+
+List ISO's:
+
+    iohyve isolist
+
+Install the FreeBSD guest bsdguest:
+
+    iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+
+Console into the intallation:
+
+    iohyve console bsdguest
+
+Once installation is done, exit console (~~.) and destroy guest:
+
+    iohyve destroy bsdguest
+
+Now that the guest is installed, it can be started like usual:
+
+    iohyve start bsdguest
+
+Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stopped:
+    iohyve stop bsdguest
