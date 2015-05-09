@@ -78,7 +78,8 @@ You can change guest properties by using set:
     iohyve bsdguest set tap=tap0    #set tap device for ethernet
     iohyve bsdguest set con=nmdm0   #set the console to attach to
 
-Get a spcific guest property:
+Get a specific guest property:
+
     iohyve get bsdguest ram
 
 Get all guest properties:
