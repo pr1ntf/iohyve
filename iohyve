@@ -612,7 +612,7 @@ EXAMPLES
 	iohyve setup tank
 
   Fetch FreeBSD install ISO for later:
-	iohyve fetch ftp://ftp.freebsd.org/pub/FreeBSD/releases/amd64/amd64/ISO-IMAGES/10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+	iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
 
   Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
 	iohyve create bsdguest 8G nmdm0
