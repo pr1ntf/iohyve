@@ -118,3 +118,41 @@ Now that the guest is installed, it can be started like usual:
 Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stopped:
 
     iohyve stop bsdguest
+
+# Debian based distros like Ubuntu and obviously Debian:
+Fetch Linux ISO:
+
+    iohyve fetch http://cdimage.debian.org/.../debian-8.0.0-amd64-netinst.iso
+
+Create linux guest:
+
+    iohyve create jessie 8G nmdm1
+
+Set correct properties for linux guest:
+
+    iohyve set jessie loader=grub   # Sets correct bootloader
+    iohyve set jessie os=debian     # Sets correct OS type
+
+Attach ISO and load installer from ISO:
+
+    iohyve install jessie debian-8.0.0-amd64-netinst.iso    # loads grub
+
+Console into grub loader to boot: (once OS is chosen, ~~. to exit)
+
+    iohyve console jessie
+
+Boot into installation ISO:
+
+    iohyve boot jessie debian-8.0.0-amd64-netinst.iso
+
+Console into guest and set up: (~~. to exit)
+
+    iohvye console jessie
+
+Destroy linux guest before booting without installation ISO:
+
+    iohyve destroy jessie
+
+Start linux guest like normal:
+
+    iohyve start jessie
