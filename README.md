@@ -3,15 +3,27 @@ FreeBSD bhyve manager utilizing ZFS.
 
 So far FreeBSD guests work with relativly no hassle. Linux guests can be a bit more tricky, but with a little help you can make them persist. 
 
-I'm in the middle of writing some man pages for this.
+Just read the man page 'iohyve man' built in for help. 
 
-Just read the man page built in for now. 
+# Pre-FLight Checklist
+[Taken from the FreeBSD handbook https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html]
+The first step to creating a virtual machine in bhyve is configuring the host system. First, load the bhyve kernel module:
 
-Or the readme. I know, I know, this is also a readme. 
+    kldload vmm
 
-But read that one.
+Then, create a tap interface for the network device in the virtual machine to attach to. In order for the network device to participate in the network, also create a bridge interface containing the tap 
+interface ane the physical interface as members. In this example, the physical interface is igb0:
 
+    ifconfig tap0 create
+    sysctl net.link.tap.up_on_open=1
+        net.link.tap.up_on_open: 0 -> 1
+    ifconfig bridge0 create
+    ifconfig bridge0 addm igb0 addm tap0
+    ifconfig bridge0 up
 
+The built-in readme 'iohyve readme' has more information on VNET setups. 
+
+# Usage
 
     iohyve  
         version
