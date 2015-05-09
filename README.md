@@ -88,4 +88,5 @@ Now that the guest is installed, it can be started like usual:
     iohyve start bsdguest
 
 Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stopped:
+
     iohyve stop bsdguest
