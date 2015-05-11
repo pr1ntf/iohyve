@@ -1,5 +1,5 @@
 # iohyve
-FreeBSD bhyve manager utilizing ZFS.
+FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools. 
 
 iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features including virtio drivers and ZFS. 
 iohyve strives to be much like @pannon's iocage, storing properties in ZFS datasets. [https://github.com/iocage/iocage]
