@@ -67,137 +67,137 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
 
 **Setup**
 
-Setup iohyve by telling it what zpool to use
+- Setup iohyve by telling it what zpool to use
 
     iohyve setup tank
 
 **General Usage**
 
-List all guests created with:
+- List all guests created with:
 
     iohyve list
 
-List all guests that have resources allocated using:
+- List all guests that have resources allocated using:
 
     iohyve vmmlist
 
-List all runnng guests using:
+- List all runnng guests using:
 
     iohvye running
 
-You can change guest properties by using set:
+- You can change guest properties by using set:
 
     iohyve bsdguest set ram=512M    #set ram to 512 Megabytes
     iohyve bsdguest set cpu=1       #set cpus to 1 core
     iohyve bsdguest set tap=tap0    #set tap device for ethernet
     iohyve bsdguest set con=nmdm0   #set the console to attach to
 
-Get a specific guest property:
+- Get a specific guest property:
 
     iohyve get bsdguest ram
 
-Get all guest properties:
+- Get all guest properties:
 
     iohyve getall bsdguest
 
 **FreeBSD Guests**
 
-Fetch FreeBSD install ISO for later:
+- Fetch FreeBSD install ISO for later:
 
     iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
 
-Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
+- Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
 
     iohyve create bsdguest 8G nmdm0
 
-List ISO's:
+- List ISO's:
 
     iohyve isolist
 
-Install the FreeBSD guest bsdguest:
+- Install the FreeBSD guest bsdguest:
 
     iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
 
-Console into the intallation:
+- Console into the intallation:
 
     iohyve console bsdguest
 
-Once installation is done, exit console (~~.) and destroy guest:
+- Once installation is done, exit console (~~.) and destroy guest:
 
     iohyve destroy bsdguest
 
-Now that the guest is installed, it can be started like usual:
+- Now that the guest is installed, it can be started like usual:
 
     iohyve start bsdguest
 
-Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stopped:
+- Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stopped:
 
     iohyve stop bsdguest
 
 **Debian based distros like Ubuntu and obviously Debian:**
 
-Fetch Linux ISO:
+- Fetch Linux ISO:
 
     iohyve fetch http://cdimage.debian.org/.../debian-8.0.0-amd64-netinst.iso
 
-Create linux guest:
+- Create linux guest:
 
     iohyve create jessie 8G nmdm1
 
-Set correct properties for linux guest:
+- Set correct properties for linux guest:
 
     iohyve set jessie loader=grub   # Sets correct bootloader
     iohyve set jessie os=debian     # Sets correct OS type
 
-Attach ISO and load installer from ISO:
+- Attach ISO and load installer from ISO:
 
     iohyve install jessie debian-8.0.0-amd64-netinst.iso    # loads grub
 
-Console into grub loader to boot: (once OS is chosen, ~~. to exit)
+- Console into grub loader to boot: (once OS is chosen, ~~. to exit)
 
     iohyve console jessie
 
-Boot into installation ISO:
+- Boot into installation ISO:
 
     iohyve boot jessie debian-8.0.0-amd64-netinst.iso
 
-Console into guest and set up: (~~. to exit)
+- Console into guest and set up: (~~. to exit)
 
     iohvye console jessie
 
-Destroy linux guest before booting without installation ISO:
+- Destroy linux guest before booting without installation ISO:
 
     iohyve destroy jessie
 
-Start linux guest like normal:
+- Start linux guest like normal:
 
     iohyve start jessie
 
 **CentOS 6 Guests**
 
-Fetch CentOS 6 ISO
+- Fetch CentOS 6 ISO
 
     iohyve fetch http://centos.escapemg.com/.../CentOS-6.6-x86_64-netinstall.iso
 
-Create CentOS 6 guest:
+- Create CentOS 6 guest:
 
     iohyve create centos6 16G nmdm6
 
-Set correct properties:
+- Set correct properties:
 
     iohyve set centos6 ram=512M     # Min Sys Requirements
     iohyve set centos6 loader=grub  # Grub loader
     iohyve set centos6 os=centos6   # OS type
  
-Attach ISO and load installer:
+- Attach ISO and load installer:
 
     iohyve install centos6 CentOS-6.6-x86_64-netinstall.iso
  
-Console into guest:
+- Console into guest:
 
     iohyve console centos6
  
-In the grub console:
+- In the grub console:
 
     grub> ls (cd0)/isolinux/                # list isolinux directory
     boot.cat boot.msg grub.conf initrd.img isolinux.bin isolinux.cfg memtest splash
@@ -207,27 +207,27 @@ In the grub console:
     grub> boot                              # boot machine
     ~~.                                     # exit from console
  
-Boot into the installation ISO:
+- Boot into the installation ISO:
 
     iohyve boot centos6 CentOS-6.6-x86_64-netinstall.iso
 
-Console into the guest and install the it:
+- Console into the guest and install the it:
 
      iohyve console centos6
 
-Destroy guest:
+- Destroy guest:
 
     iohyve destory centos6
   
-Load the centos6 guest:
+- Load the centos6 guest:
 
     iohyve load centos6
 
-Console into booloader:
+- Console into booloader:
 
     iohyve console centos6
 
-Find kernel and ramfs:
+- Find kernel and ramfs:
 
     grub>ls (hd0,msdos1)/
     lost+found/ grub/ efi/ System.map-2.6.32-504.el6.x86_64 config-2.6.32-504.el6.x
@@ -238,15 +238,15 @@ Find kernel and ramfs:
     grub>boot
     ~~.
 
-Boot the OS:
+- Boot the OS:
 
     iohyve boot centos6
 
-Console into the OS:
+- Console into the OS:
 
     iohyve console centos6
 
-Log into root and install grub2:
+- Log into root and install grub2:
 
     [root@localhost ~]# yum install wget bison gcc flex nano
     [root@localhost ~]# wget ftp://ftp.gnu.org/gnu/grub/grub-2.00.tar.gz
@@ -258,10 +258,10 @@ Log into root and install grub2:
     [root@localhost grub-2.00]# /usr/local/sbin/grub-install /dev/vda
     [root@localhost grub-2.00]# init 0
 
-Destory guest:
+- Destory guest:
 
     iohyve destroy centos6
 
-Start CentOS 6 guest:
+- Start CentOS 6 guest:
 
     iohyve start centos6
