@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# this is dirty and is only to be used as a basis for what iohyve persist will be
+# still testing things. this file will most likely not be in master
+# needs more alive via zfs and maybe persist on and persist off
+
+# to run
+# iohvye start butts1 && iohyve-persist butts1
+
+__persist() {
+sleep 20
+local name="$1"
+local pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
+local alive="1"
+
+printf "Seed PID: "$pid"\n"
+while [ $alive == "1" ]
+do
+	if [ $pid == $(ps | grep ioh-$name | grep -v grep | cut -c1-5) ]; then
+		alive="1"
+		sleep 20
+	else
+		./iohyve destroy $name
+		sleep 5
+		./iohyve start $name
+		sleep 5
+		pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
+		sleep 15
+	fi
+done
+
+}
+
+__persist "$@"
