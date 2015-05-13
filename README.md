@@ -1,5 +1,5 @@
 # iohyve
-FreeBSD bhyve manager utilizing ZFS.
+FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools. 
 
 iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features including virtio drivers and ZFS. 
 iohyve strives to be much like @pannon's iocage, storing properties in ZFS datasets. [https://github.com/iocage/iocage]
@@ -15,7 +15,8 @@ Don't forget to check out the built in man page!
 
     iohyve man 
 
-# Pre-Flight Checklist
+**Pre-Flight Checklist**
+
 [Taken from the FreeBSD handbook https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html]
 The first step to creating a virtual machine in bhyve is configuring the host system. First, load the bhyve kernel module:
 
@@ -34,7 +35,7 @@ interface ane the physical interface as members. In this example, the physical i
 
 The built-in readme 'iohyve readme' has more information on VNET setups. 
 
-# Usage
+**Usage**
 
     iohyve  
         version
@@ -64,12 +65,14 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
         help
         man 
 
-# Setup
+**Setup**
+
 Setup iohyve by telling it what zpool to use
 
     iohyve setup tank
 
-# General Usage
+**General Usage**
+
 List all guests created with:
 
     iohyve list
@@ -97,7 +100,8 @@ Get all guest properties:
 
     iohyve getall bsdguest
 
-# FreeBSD Guests
+**FreeBSD Guests**
+
 Fetch FreeBSD install ISO for later:
 
     iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
@@ -130,7 +134,8 @@ Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stoppe
 
     iohyve stop bsdguest
 
-# Debian based distros like Ubuntu and obviously Debian:
+**Debian based distros like Ubuntu and obviously Debian:**
+
 Fetch Linux ISO:
 
     iohyve fetch http://cdimage.debian.org/.../debian-8.0.0-amd64-netinst.iso
@@ -168,7 +173,8 @@ Start linux guest like normal:
 
     iohyve start jessie
 
-# CentOS 6 Guests
+**CentOS 6 Guests**
+
 Fetch CentOS 6 ISO
 
     iohyve fetch http://centos.escapemg.com/.../CentOS-6.6-x86_64-netinstall.iso
