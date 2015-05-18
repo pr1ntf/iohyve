@@ -135,11 +135,24 @@ Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stoppe
     iohyve stop bsdguest
 
 FreeBSD guests can now persist after the guest reboots or shutdowns. This means if you reboot the guest from console, it 
-will come back up without having to start manually. As of version 2.12, guests still don't persist after host reboot.
+will come back up without having to start manually. As of version 2.12, guests still don't persist after host reboot. It 
+has only been tested using FreeBSD guests, although guests that can utilize start should work as well.
 
 This is done by simply appending '-p &' to the end of the start command:
 
     iohyve start bsdguest -p &
+
+Stop a persistent guest:
+
+    iohyve stop bsdguest
+
+Destroy a hung persistent guest:
+
+    iohyve destroy bsdguest
+
+Turn off persistence flag so guest will shut down instead of reboot:
+
+    iohyve set bsdguest persist=0
 
 **Debian based distros like Ubuntu and obviously Debian:**
 
