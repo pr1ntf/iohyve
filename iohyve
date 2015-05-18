@@ -261,12 +261,12 @@ __start() {
 		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
 		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	elif [ $os == "centos6" ]; then
-		grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name > /dev/null
+		grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram -c /dev/${con}A  ioh-$name
 		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
 		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
 		printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-		grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name > /dev/null
+		grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram -c /dev/${con}A  ioh-$name 
 		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
 		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	else
@@ -289,12 +289,12 @@ __start() {
 				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
 				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 			elif [ $os == "centos6" ]; then
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name > /dev/null
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram -c /dev/${con}A ioh-$name
 				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
 				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 			elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
 				printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name > /dev/null
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram -c /dev/${con}A  ioh-$name
 				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
 				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 			else
