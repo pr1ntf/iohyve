@@ -75,6 +75,9 @@ __parse_cmd () {
       console)  __console "$@"
                 exit
       ;;
+      conreset) __conreset
+                exit
+      ;;
       readme)   __readme
                 exit
       ;;
@@ -338,6 +341,11 @@ __console() {
   echo "Starting console on $name..."
   echo "~~. to escape console [uses cu(1) for console]"
   cu -l /dev/${con}B -s 9600
+}
+
+# Reset all consoles. This kills the cu(1)
+__conreset() {
+  killall cu
 }
 
 # Print readme page
