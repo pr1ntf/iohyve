@@ -254,7 +254,39 @@ __start() {
   local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
   echo "Starting $name... (Takes 15 seconds for FreeBSD guests, 10 for Debian guests)"
   if [ $flag == "-p" ]; then
-	echo "dis where persist code goes"
+	local pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
+	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
+	while [ $persist == "1" ]
+	do
+		persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
+		if [ $pid == $(ps | grep ioh-$name | grep -v grep | cut -c1-5) ]; then
+			sleep 20
+		else
+			bhyvectl --force-poweroff --vm=ioh-$name
+			bhyvectl --destroy --vm=ioh-$name
+			sleep 5
+			if [ $os == "freebsd" ]; then
+				bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
+				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+			elif [ $os == "centos6" ]; then
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name > /dev/null
+				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+			elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
+				printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name > /dev/null
+				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+			else
+				echo "iohyve start is not supported for this operating system."
+				echo "Use iohyve load and iohyve boot instead."
+			fi
+			sleep 15
+			pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
+			sleep 5
+		fi
+	done
   else
 	if [ $os == "freebsd" ]; then
             bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
