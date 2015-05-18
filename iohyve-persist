@@ -11,10 +11,12 @@ __persist() {
 sleep 20
 local name="$1"
 local pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
-local persist="1"
+local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
 
 while [ $persist == "1" ]
 do
+	persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
 	if [ $pid == $(ps | grep ioh-$name | grep -v grep | cut -c1-5) ]; then
 		sleep 20
 	else
