@@ -288,7 +288,6 @@ __destroy() {
   echo "Destroying $name..."
   bhyvectl --force-poweroff --vm=ioh-$name
   bhyvectl --destroy --vm=ioh-$name
-  killall grub-bhyve
 }
 
 # Delete guest
