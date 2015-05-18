@@ -245,6 +245,7 @@ __boot() {
 # Start guest (combine load and boot)
 __start() {
   local name="$2"
+  local flag="$3"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
@@ -252,22 +253,26 @@ __start() {
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
   local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
   echo "Starting $name... (Takes 15 seconds for FreeBSD guests, 10 for Debian guests)"
-  if [ $os == "freebsd" ]; then
-    bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
-    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-  elif [ $os == "centos6" ]; then
-    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name > /dev/null
-    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-  elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
-    printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-    grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name > /dev/null
-    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+  if [ $flag == "-p" ]; then
+	echo "dis where persist code goes"
   else
-    echo "iohyve start is not supported for this operating system."
-    echo "Use iohyve load and iohyve boot instead."
+	if [ $os == "freebsd" ]; then
+            bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
+            bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+            -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+        elif [ $os == "centos6" ]; then
+            grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name > /dev/null
+            bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+            -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+        elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
+            printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
+            grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name > /dev/null
+            bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+            -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+	else
+            echo "iohyve start is not supported for this operating system."
+            echo "Use iohyve load and iohyve boot instead."
+        fi
   fi
 }
 
@@ -277,6 +282,8 @@ __stop() {
   local pid="$(ps | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
   echo "Stopping $name..."
   kill $pid
+  sleep 20
+  bhyvectl --destroy --vm=ioh-$name
 }
 
 # Gracefully shut down all guests via ACPI (Does not destroy)
