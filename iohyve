@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.2.10 2015/05/08 "its just the kernel edition"
+# iohyve v0.2.11 2015/05/18 "persist work"
 
 # Process command line
 __parse_cmd () {
@@ -91,7 +91,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.2.10 2015/05/08 its just the kernel edition'
+  echo 'iohyve v0.2.11 2015/05/18 persist work'
 }
 
 # Setup iohyve
