@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.2.11 2015/05/18 "persist work"
+# iohyve v0.2.12 2015/05/18 "persist docs"
 
 # Process command line
 __parse_cmd () {
@@ -94,7 +94,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.2.11 2015/05/18 persist work'
+  echo 'iohyve v0.2.12 2015/05/18 persist docs'
 }
 
 # Setup iohyve
@@ -517,7 +517,7 @@ SYNOPSIS
   iohyve install [name] [ISO] 
   iohyve load [name]
   iohyve boot [name] [ISO]
-  iohyve start [name]
+  iohyve start [name] [-p]
   iohyve stop [name]
   iohyve off [name]
   iohyve scram
@@ -606,8 +606,9 @@ OPTIONS
   
   start     Starts the guest operating system. (Combines load & boot)
   
-            Usage: 'iohyve start [name]' where [name] is the name
-                    of the guest operating system.
+            Usage: 'iohyve start [name] -p' where [name] is the name
+                    of the guest operating system. Appending the -p
+		    flag will allow the guest to persist.
   
   stop      Gracefully stops guest operating system.
   
@@ -725,6 +726,10 @@ EXAMPLES
 
   Get all guest properties:
 	iohyve getall bsdguest
+
+  Start a FreeBSD guest in persistent mode:
+
+	iohyve start bsdguest -p &
 
   Debian based distros like Ubuntu and obviously Debian:
   Fetch Linux ISO:
@@ -857,7 +862,7 @@ iohyve  version
         install [name] [ISO]
         load [name]
         boot [name] [ISO]
-        start [name]
+        start [name] [-p]
         stop [name]
         off [name]
         scram
