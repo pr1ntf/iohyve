@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.2.12 2015/05/18 "persist docs"
+# iohyve v0.3 2015/06/4 "nixing the other nix"
 
 # Process command line
 __parse_cmd () {
@@ -164,8 +164,6 @@ __create() {
   zfs set iohyve:cpu=1 $pool/iohyve/$name
   zfs set iohyve:tap=tap0 $pool/iohyve/$name
   zfs set iohyve:con=$con $pool/iohyve/$name
-  zfs set iohyve:os=freebsd $pool/iohyve/$name
-  zfs set iohyve:loader=bhyveload $pool/iohyve/$name
   zfs set iohyve:persist=0 $pool/iohyve/$name
 }
 
@@ -178,20 +176,11 @@ __install() {
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
   local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
-  local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$name)"
   echo "Installing $name..."
-  if [ $loader == "bhyveload" ]; then
     bhyveload -m $ram -d /iohyve/ISO/$iso/$iso -c /dev/${con}A ioh-$name &
     sleep 12
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -s4,ahci-cd,/iohyve/ISO/$iso/$iso -lcom1,/dev/${con}A ioh-$name &
-  elif [ $loader == "grub" ]; then
-    printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-    printf '\(cd0\)\ '/iohyve/ISO/$iso/$iso'\n' >> /iohyve/$name/device.map
-    grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name &
-  else
-    echo "I don't understand what OS you are using."
-    echo "Use iohyve set loader=bhyveload or loader=grub to set custom loader"
   fi
 }
 
@@ -201,22 +190,8 @@ __load() {
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-  local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$name)"
-  local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
   echo "Loading $name..."
-  if [ $loader == "bhyveload" ]; then
     bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A ioh-$name &
-  elif [ $loader == "grub" ]; then
-    printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-    if [ $os == "centos6" ]; then
-      grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name &
-    else
-      grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name &
-    fi
-  else
-    echo "I don't understand what loader you are using."
-    echo "Use iohyve set loader=bhyveload or loader=grub to set custom loader"
-  fi
   
 }
 
@@ -229,17 +204,9 @@ __boot() {
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
   local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
-  local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$name)"
   echo "Booting $name..."
-  if [ $loader == "bhyveload" ]; then
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -s4,ahci-cd,/iohyve/ISO/$iso/$iso -lcom1,/dev/${con}A ioh-$name &
-  elif [ $loader == "grub" ]; then
-    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-    -s3,virtio-net,$tap -s4,ahci-cd,/iohyve/ISO/$iso/$iso -lcom1,/dev/${con}A ioh-$name &
-  else
-    echo "I don't understand what loader you are using."
-    echo "Use iohyve set loader=bhyveload or loader=grub to set custom loader"
   fi
 }
 
@@ -252,27 +219,12 @@ __start() {
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
   local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
-  local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
     if [ $flag == "-p" ]; then
 	zfs set iohyve:persist=1 $pool/iohyve/$name
 	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
-	if [ $os == "freebsd" ]; then
-		bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	elif [ $os == "centos6" ]; then
-		grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram -c /dev/${con}A  ioh-$name
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
-		printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-		grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram -c /dev/${con}A  ioh-$name 
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	else
-		echo "iohyve start is not supported for this operating system."
-		echo "Use iohyve load and iohyve boot instead."
-	fi
+	bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
+	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+	-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	sleep 40
 	local pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
 	while [ $persist == "1" ]
@@ -284,23 +236,9 @@ __start() {
 			bhyvectl --force-poweroff --vm=ioh-$name
 			bhyvectl --destroy --vm=ioh-$name
 			sleep 5
-			if [ $os == "freebsd" ]; then
-				bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
-				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-			elif [ $os == "centos6" ]; then
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram -c /dev/${con}A ioh-$name
-				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-			elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
-				printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram -c /dev/${con}A  ioh-$name
-				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-			else
-				echo "iohyve start is not supported for this operating system."
-				echo "Use iohyve load and iohyve boot instead."
-			fi
+			bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
+			bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+			-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 			sleep 15
 			pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
 			sleep 5
@@ -308,23 +246,10 @@ __start() {
 	done
   else
 	echo "Starting $name... (Takes 15 seconds for FreeBSD guests, 10 for Debian guests)"
-	if [ $os == "freebsd" ]; then
-            bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
-            bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-            -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	elif [ $os == "centos6" ]; then
-            grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name > /dev/null
-            bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-            -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	elif [ $os == "debian" ] || [ $os == "ubuntu" ]; then
-            printf '\(hd0\)\ /iohyve/'$name'/'$name'.img\n' > /iohyve/$name/device.map
-            grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name > /dev/null
-            bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-            -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	else
-            echo "iohyve start is not supported for this operating system."
-            echo "Use iohyve load and iohyve boot instead."
-        fi
+        bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
+        bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
+        -s2,virtio-blk,/iohyve/$name/$name.img \
+        -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
   fi
 }
 
@@ -415,14 +340,6 @@ __conreset() {
 __readme() {
 cat << 'EOT'
 ### Welcome! ###
-
-# iohyve is an all in one quick start for utilizing built-in FreeBSD and ZFS
-# tools for managing bhyve guests. iohyve acts much like @pannon's iocage and it's
-# inspiration is drawn from it's ideas. iohyve's aim is to get a solid basis of how bhyve
-# will interact with iocage's ideas. This includes resource limiting/management, store data in
-# zfs proprieties, vnet, and UUID's in addition to creation, starting, stopping, and destroying
-# live guests. Snapshoting and other features might be better saved for iocage integration.
-# Big thanks to @pannon and @skarekrow for all their help, their code, and patience. :)
 
 # If you are just setting up shared networking, just set the guest's IP to a valid IP address
 # on the host's network. If you choose to use VNET, you'll need to set a few more things up. 
@@ -644,8 +561,6 @@ OPTIONS
                     tap=tap0 (tap device for virtio-net)
                     size=size of block device
                     name=name of guest
-                    os=OS type (freebsd, debian, ubuntu, and centos6 supported)
-                    loader=the boot loader (bhyveload or grub)
   
   get       Gets ZFS properties for guests one at a time
             
@@ -733,107 +648,7 @@ EXAMPLES
 
   Debian based distros like Ubuntu and obviously Debian:
   Fetch Linux ISO:
-	iohyve fetch http://cdimage.debian.org/.../debian-8.0.0-amd64-netinst.iso
-
-  Create linux guest:
-	iohyve create jessie 8G nmdm1
-
-  Set correct properties for linux guest:
-	iohyve set jessie loader=grub	# Sets correct bootloader
-	iohyve set jessie os=debian	# Sets correct OS type
-
-  Attach ISO and load installer from ISO:
-	iohyve install jessie debian-8.0.0-amd64-netinst.iso	# loads grub
-
-  Console into grub loader to boot: (once OS is chosen, ~~. to exit)
-	iohyve console jessie
-
-  Boot into installation ISO:
-	iohyve boot jessie debian-8.0.0-amd64-netinst.iso
-
-  Console into guest and set up: (~~. to exit)
-	iohvye console jessie
-
-  Destroy linux guest before booting without installation ISO:
-	iohyve destroy jessie
-
-  Start linux guest like normal:
-	iohyve start jessie
-
-  CentOS 6 guests:
-  Fetch CentOS 6 ISO
-	iohyve fetch http://centos.escapemg.com/.../CentOS-6.6-x86_64-netinstall.iso
-
-  Create CentOS 6 guest:
-	iohyve create centos6 16G nmdm6
-
-  Set correct properties:
-        iohyve set centos6 ram=512M     # Min Sys Requirements
-        iohyve set centos6 loader=grub  # Grub loader
-        iohyve set centos6 os=centos6   # OS type
- 
-  Attach ISO and load installer:
-        iohyve install centos6 CentOS-6.6-x86_64-netinstall.iso
- 
-  Console into guest:
-        iohyve console centos6
- 
-  In the grub console:
-    grub> ls (cd0)/isolinux/                # list isolinux directory
-    boot.cat boot.msg grub.conf initrd.img isolinux.bin isolinux.cfg memtest splash
-    .jpg TRANS.TBL vesamenu.c32 vmlinuz
-    grub> linux (cd0)/isolinux/vmlinuz      # load kernel
-    grub> initrd (cd0)/isolinux/initrd.img  # ramfs
-    grub> boot                              # boot machine
-    ~~.                                     # exit from console
- 
-  Boot into the installation ISO:
-        iohyve boot centos6 CentOS-6.6-x86_64-netinstall.iso
- 
-  Console into the guest and install the it:
-        iohyve console centos6
-
-  Destroy guest:
-	iohyve destory centos6
-  
-  Load the centos6 guest:
-	iohyve load centos6
-
-  Console into booloader:
-	iohyve console centos6
-
-  Find kernel and ramfs:
-    grub> ls (hd0,msdos1)/
-    lost+found/ grub/ efi/ System.map-2.6.32-504.el6.x86_64 config-2.6.32-504.el6.x
-    86_64 symvers-2.6.32-504.el6.x86_64.gz vmlinuz-2.6.32-504.el6.x86_64 initramfs-
-    2.6.32-504.el6.x86_64.img
-    grub> linux (hd0,msdos1)/vmlinuz-2.6.32-504.el6.x86_64 root=/dev/mapper/VolGroup-lv_root
-    grub> initrd (hd0,msdos1)/initramfs-2.6.32-504.el6.x86_64.img
-    grub> boot
-    ~~.
-
-  Boot the OS:
-	iohyve boot centos6
-
-  Console into the OS:
-	iohyve console centos6
-
-  Log into root and install grub2:
-    [root@localhost ~]# yum install wget bison gcc flex nano
-    [root@localhost ~]# wget ftp://ftp.gnu.org/gnu/grub/grub-2.00.tar.gz
-    [root@localhost ~]# tar -xzf grub-2.00.tar.gz
-    [root@localhost ~]# cd grub-2.00
-    [root@localhost grub-2.00]# ./configure    
-    [root@localhost grub-2.00]# make install
-    [root@localhost grub-2.00]# /usr/local/sbin/grub-mkconfig -o /boot/grub/grub.cfg
-    [root@localhost grub-2.00]# /usr/local/sbin/grub-install /dev/vda
-    [root@localhost grub-2.00]# init 0
-
-  Destory guest:
-	iohyve destroy centos6
-
-  Start CentOS 6 guest:
-	iohyve start centos6    
+	iohyve fetch http://cdimage.debian.org/.../debian-8.0.0-amd64-netinst.iso    
 
 AUTHOR
   Trent -- @pr1ntf
