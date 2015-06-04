@@ -181,7 +181,6 @@ __install() {
     sleep 12
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
     -s3,virtio-net,$tap -s4,ahci-cd,/iohyve/ISO/$iso/$iso -lcom1,/dev/${con}A ioh-$name &
-  fi
 }
 
 # Load guest
