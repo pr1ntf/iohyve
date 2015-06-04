@@ -94,7 +94,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.2.12 2015/05/18 persist docs'
+  echo 'iohyve v0.3.1 2015/06/4 clean dat if then'
 }
 
 # Setup iohyve
@@ -216,24 +216,24 @@ __start() {
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
   local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
-    if [ $flag == "-p" ]; then
+    if [ $flag = "-p" ]; then
 	zfs set iohyve:persist=1 $pool/iohyve/$name
 	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
-	bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
+	bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A  ioh-$name > /dev/null
 	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
 	-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	sleep 40
 	local pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
-	while [ $persist == "1" ]
+	while [ $persist = "1" ]
 	do
 		persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
-		if [ $pid == $(ps | grep ioh-$name | grep -v grep | cut -c1-5) ]; then
+		if [ $pid = $(ps | grep ioh-$name | grep -v grep | cut -c1-5) ]; then
 			sleep 20
 		else
 			bhyvectl --force-poweroff --vm=ioh-$name
 			bhyvectl --destroy --vm=ioh-$name
 			sleep 5
-			bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
+			bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A  ioh-$name > /dev/null
 			bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
 			-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 			sleep 15
@@ -243,7 +243,7 @@ __start() {
 	done
   else
 	echo "Starting $name... (Takes 15 seconds for FreeBSD guests, 10 for Debian guests)"
-        bhyveload -m $ram -d /iohyve/$name/$name.img ioh-$name > /dev/null
+        bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A  ioh-$name > /dev/null
         bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
         -s2,virtio-blk,/iohyve/$name/$name.img \
         -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
