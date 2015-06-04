@@ -644,9 +644,6 @@ EXAMPLES
 
 	iohyve start bsdguest -p &
 
-  Debian based distros like Ubuntu and obviously Debian:
-  Fetch Linux ISO:
-	iohyve fetch http://cdimage.debian.org/.../debian-8.0.0-amd64-netinst.iso    
 
 AUTHOR
   Trent -- @pr1ntf
