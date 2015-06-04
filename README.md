@@ -1,4 +1,5 @@
-# iohyve
+# iohyve v0.3
+"Nix the other nix edition"
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools. 
 
 iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features including virtio drivers and ZFS. 
@@ -10,9 +11,9 @@ There is currently support for VIMAGE/VNET just as iocage. Documentation soon to
 
 Or create a readme file:
 
-    iohyve readme > readme.txt 
+    iohyve readme > awesomesauce.txt 
 
-Don't forget to check out the built in man page!
+DO YOU EVEN MAN PAGE?
 
     iohyve man 
 

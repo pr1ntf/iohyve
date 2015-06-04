@@ -419,7 +419,7 @@ EOT
 __man() {
 cat << 'EOT' | less
 NAME
-  iohyve(8) - bhyve manager/launcher v0.2 "I made a thing"
+  iohyve(8) - bhyve manager/launcher v0.3 "nix the other nix"
   
 SYNOPSIS
   iohyve version
