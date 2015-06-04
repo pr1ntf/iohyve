@@ -197,7 +197,6 @@ __load() {
 # Boot guest
 __boot() {
   local name="$2"
-  local iso="$3"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
@@ -205,7 +204,7 @@ __boot() {
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
   echo "Booting $name..."
     bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-    -s3,virtio-net,$tap -s4,ahci-cd,/iohyve/ISO/$iso/$iso -lcom1,/dev/${con}A ioh-$name &
+    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 }
 
 # Start guest (combine load and boot)
