@@ -124,20 +124,22 @@ Console into the intallation:
 
     iohyve console bsdguest
 
-Once installation is done, exit console (~~.) and destroy guest:
+Once installation is done, exit console (~~.) and stop guest:
 
-    iohyve destroy bsdguest
+    iohyve stop bsdguest
 
 Now that the guest is installed, it can be started like usual:
 
     iohyve start bsdguest
 
-Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stopped:
+Some guest os's can be gracefully stopped:
 
     iohyve stop bsdguest
 
+**Persistence**
+
 FreeBSD guests can now persist after the guest reboots or shutdowns. This means if you reboot the guest from console, it 
-will come back up without having to start manually. Linux guests do not work as of yet. There is an issue with grub 
+will come back up without having to start manually. There is an issue with grub 
 where it will not auto boot. You must connect via console to initiate boot. As of version 2.12, guests still don't 
 persist after host reboot. 
 
