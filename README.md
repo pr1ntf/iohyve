@@ -20,6 +20,8 @@ DO YOU EVEN MAN PAGE?
 **Pre-Flight Checklist**
 
 [Taken from the FreeBSD handbook https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html]
+
+
 The first step to creating a virtual machine in bhyve is configuring the host system. First, load the bhyve kernel module:
 
     kldload vmm
