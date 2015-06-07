@@ -313,6 +313,7 @@ __start() {
 		  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	    fi
 	fi
+	sleep 15
 	local pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
 	while [ $persist = "1" ]
 	do
@@ -348,9 +349,14 @@ __start() {
 			fi
 			sleep 15
 			pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
-			sleep 5
+			if [ $persist = "0" ]; then
+			  exit 0
+			fi
 		else
 			sleep 20
+			if [ $persist = "0" ]; then
+			  exit 0
+			fi
 		fi
 	done
   else
