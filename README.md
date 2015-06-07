@@ -68,6 +68,7 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
         getall [name]
         conlist
         console [name]
+        conreset
         readme
         help
         man 

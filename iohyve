@@ -548,6 +548,7 @@ SYNOPSIS
   iohyve getall [name]
   iohyve conlist
   iohyve console [name]
+  iohyve conreset
   iohyve readme
   iohyve help
   iohyve man
@@ -689,6 +690,8 @@ OPTIONS
             Usage: 'iohyve console [name]' where [name] is the name
                     of the guest operating system.
   
+  conreset  Ends all console sessions for when things get weird. 
+  
   readme    Outputs README file. You can run 'iohyve readme > README.txt' 
             to save the readme to a file.
   
@@ -788,6 +791,7 @@ iohyve  version
         getall [name]
         conlist
         console [name]
+        conreset
         readme
         help
         man 
