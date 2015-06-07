@@ -94,7 +94,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.3.1 2015/06/4 clean dat if then'
+  echo 'iohyve v0.3.2 2015/06/7 tap dat iface'
 }
 
 # Setup iohyve
@@ -203,8 +203,30 @@ __boot() {
   local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
   echo "Booting $name..."
-    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+# default creates tap0, useful for starting out with iohyve
+  if [ $tap = "tap0" ]; then
+#	no need to create tap0, should be installed already via README
+#	boot guest with tap0
+	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+	-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+  else
+#	check to see if tap is already created before attempting to create new tap interface
+	local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
+	if [ $tap = $tapif ]; then
+#		boot the guest
+		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
+		-s2,virtio-blk,/iohyve/$name/$name.img \
+		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+	else
+#		create tap interface
+		ifconfig $tap create
+		ifconfig bridge0 addm $tap
+#		boot the guest
+		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
+                -s2,virtio-blk,/iohyve/$name/$name.img \
+                -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+	fi
+  fi
 }
 
 # Start guest (combine load and boot)
