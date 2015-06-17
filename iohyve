@@ -27,6 +27,9 @@ __parse_cmd () {
       fetch)    __fetch "$@"
                 exit
       ;;
+      rename)   __rename "$@"
+                exit
+      ;;
       remove)   __remove "$@"
                 exit
       ;;
@@ -94,7 +97,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.3.3 2015/06/7 blank input check'
+  echo 'iohyve v0.3.4 2015/06/17 iso rename'
 }
 
 # Setup iohyve
@@ -139,6 +142,16 @@ __fetch() {
   echo "Fetching $url..."
   zfs create $pool/iohyve/ISO/$name
   fetch $url -o /iohyve/ISO/$name
+}
+
+# Rename an ISO
+__rename() {
+local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+local iso="$2"
+local name="$3"
+echo "Renaming $2 to $3..."
+mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
+zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
 }
 
 # Remove ISO 
@@ -540,6 +553,7 @@ SYNOPSIS
   iohyve vmmlist
   iohyve running
   iohyve fetch [URL] 
+  iohyve rename [ISO] [newname]
   iohyve remove [ISO]
   iohyve create [name] [size] [console]
   iohyve install [name] [ISO] 
@@ -600,6 +614,11 @@ OPTIONS
             Usage: 'iohyve fetch [URL]' where [URL] is the HTTP or FTP URL to 
                     fetch from the internet. 
               
+  rename    Renames an ISO
+
+            Usage: 'iohyve rename [ISO] [newname]' where [ISO] is the name
+                   of the ISO you would like to rename. [newname] is a new name.
+
   remove    Removes installed ISO from /iohyve/ISO
   
             Usage: 'iohyve remove [ISO]' where [ISO] is the name of the ISO 
@@ -720,6 +739,9 @@ EXAMPLES
   List ISO's:
 	iohyve isolist
 
+  Rename an ISO:
+	iohyve FreeBSD-10.1-RELEASE-amd64-bootonly.iso freebsd10.iso
+
   Install the FreeBSD guest bsdguest:
 	iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
 
@@ -783,7 +805,8 @@ iohyve  version
         vmmlist
         running
         fetch [URL]
-        remove [ISO]
+        rename [ISO] [newname]
+	remove [ISO]
         create [name] [size] [console]
         install [name] [ISO]
         load [name]
