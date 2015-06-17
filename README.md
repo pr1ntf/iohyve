@@ -52,6 +52,7 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
         vmmlist
         running
         fetch [URL]
+        rename [ISO] [newname]
         remove [ISO]
         create [name] [size] [console]
         install [name] [ISO]
@@ -113,6 +114,10 @@ Get all guest properties:
 Fetch FreeBSD install ISO for later:
 
     iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+
+Rename the ISO if you would like:
+
+    iohyve rename FreeBSD-10.1-RELEASE-amd64-bootonly.iso freebsd10.iso
 
 Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
 
