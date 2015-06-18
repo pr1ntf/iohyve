@@ -97,7 +97,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.3.4 2015/06/17 iso rename'
+  echo 'iohyve v0.3.5 2015/06/18 zvol support'
 }
 
 # Setup iohyve
@@ -170,7 +170,7 @@ __create() {
   local con="$4"
   echo "Creating $name..."
   zfs create $pool/iohyve/$name
-  truncate -s $size /iohyve/$name/$name.img
+  zfs create -V $size -o volmode=dev $pool/iohyve/$name/${name}-0.img
   zfs set iohyve:name=$name $pool/iohyve/$name
   zfs set iohyve:size=$size $pool/iohyve/$name
   zfs set iohyve:ram=256M $pool/iohyve/$name
@@ -195,8 +195,9 @@ __install() {
   if [ $tap = "tap0" ]; then
 	# no need to create tap0, should be installed already via README
 	# boot guest with tap0
-	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
-	-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
+	-s3,ahci-cd,/iohyve/ISO/$iso/$iso \
+	-s4,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
   else
  	# check to see if tap is already created before attempting to create new tap interface
 	local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
@@ -206,13 +207,15 @@ __install() {
 		ifconfig bridge0 addm $tap
  		# boot the guest
 		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		-s2,virtio-blk,/iohyve/$name/$name.img \
-		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
+		-s3,ahci-cd,/iohyve/ISO/$iso/$iso \
+		-s4,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	else
 		# boot the guest
 		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		-s2,virtio-blk,/iohyve/$name/$name.img \
-		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
+		-s3,ahci-cd,/iohyve/ISO/$iso/$iso \
+		-s4,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	fi
   fi
 }
@@ -224,7 +227,7 @@ __load() {
   local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
   local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
   echo "Loading $name..."
-    bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A ioh-$name &
+    bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img -c /dev/${con}A ioh-$name &
   
 }
 
@@ -241,7 +244,7 @@ __boot() {
   if [ $tap = "tap0" ]; then
 	# no need to create tap0, should be installed already via README
 	# boot guest with tap0
-	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 	-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
   else
  	# check to see if tap is already created before attempting to create new tap interface
@@ -252,12 +255,12 @@ __boot() {
 		ifconfig bridge0 addm $tap
  		# boot the guest
 		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		-s2,virtio-blk,/iohyve/$name/$name.img \
+		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	else
 		# boot the guest
 		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		-s2,virtio-blk,/iohyve/$name/$name.img \
+		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	fi
   fi
@@ -274,12 +277,12 @@ __start() {
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
   if [ -z $flag ]; then
 	echo "Starting $name... (Takes 15 seconds for FreeBSD guests, 10 for Debian guests)"
-        bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A  ioh-$name > /dev/null
+        bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img -c /dev/${con}A  ioh-$name > /dev/null
 	# default creates tap0, useful for starting out with iohyve
 	if [ $tap = "tap0" ]; then
 	  # no need to create tap0, should be installed already via README
 	  # boot guest with tap0
-	  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+	  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 	  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	else
 	  # check to see if tap is already created before attempting to create new tap interface
@@ -290,23 +293,24 @@ __start() {
 	    ifconfig bridge0 addm $tap
 	    # boot the guest
 	    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-	    -s2,virtio-blk,/iohyve/$name/$name.img \
+	    -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 	    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	  else
 	    # boot the guest
 	    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-	    -s2,virtio-blk,/iohyve/$name/$name.img \
+	    -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 	    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	  fi
   fi
   elif [ $flag = "-p" ]; then
 	zfs set iohyve:persist=1 $pool/iohyve/$name
 	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
-	bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A  ioh-$name > /dev/null
+	bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img -c /dev/${con}A  ioh-$name > /dev/null
 	if [ $tap = "tap0" ]; then
 		# no need to create tap0, should be installed already via README
 		# boot guest with tap0
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,virtio-blk,/iohyve/$name/$name.img \
+		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \ 
+		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	else
 	    # check to see if tap is already created before attempting to create new tap interface
@@ -317,12 +321,12 @@ __start() {
 		  ifconfig bridge0 addm $tap
 		  # boot the guest
 		  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		  -s2,virtio-blk,/iohyve/$name/$name.img \
+		  -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 		  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	    else
 		  # boot the guest
 		  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		  -s2,virtio-blk,/iohyve/$name/$name.img \
+		  -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 		  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 	    fi
 	fi
@@ -335,12 +339,13 @@ __start() {
 			bhyvectl --force-poweroff --vm=ioh-$name
 			bhyvectl --destroy --vm=ioh-$name
 			sleep 5
-			bhyveload -m $ram -d /iohyve/$name/$name.img -c /dev/${con}A  ioh-$name > /dev/null
+			bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img \
+			-c /dev/${con}A  ioh-$name > /dev/null
 			if [ $tap = "tap0" ]; then
 				# no need to create tap0, should be installed already via README
 				# boot guest with tap0
 				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-				-s2,virtio-blk,/iohyve/$name/$name.img \
+				-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 			else
 				# check to see if tap is already created before attempting to create new tap interface
@@ -351,12 +356,12 @@ __start() {
 				  ifconfig bridge0 addm $tap
 				  # boot the guest
 				  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-				  -s2,virtio-blk,/iohyve/$name/$name.img \
+				  -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 				  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 				else
 				  # boot the guest
 				  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-				  -s2,virtio-blk,/iohyve/$name/$name.img \
+				  -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
 				  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
 				fi
 			fi
@@ -410,7 +415,7 @@ __delete() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   echo "Deleting $name..."
-  zfs destroy $pool/iohyve/$name
+  zfs destroy -r $pool/iohyve/$name
 }
 
 # Set ZFS props
