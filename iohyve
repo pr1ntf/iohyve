@@ -97,7 +97,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.3.5 2015/06/18 zvol support'
+  echo 'iohyve v0.3.6 2015/06/18 list cleaning'
 }
 
 # Setup iohyve
@@ -113,7 +113,7 @@ __setup() {
 # List guests
 __list() {
   echo "Listing guests..."
-  zfs list | grep iohyve | grep -v ISO | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d
+  zfs list | grep iohyve | grep -v ISO | grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d
 }
 
 # List iso's
@@ -124,8 +124,13 @@ __isolist() {
 
 # List VMM (who has resources)
 __vmmlist() {
+  local vmmdir="/dev/vmm"
   echo "Listing VMM directory..."
-  ls /dev/vmm | grep ioh- | cut -c 5-
+  if [ -e $vmmdir  ]; then
+	ls -l /dev/vmm | grep ioh- | cut -d ' ' -f 12- | cut -c5-
+  else
+	echo "VMM not holding onto resources"
+  fi
 }
 
 # List running guests by PID
@@ -149,7 +154,7 @@ __rename() {
 local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
 local iso="$2"
 local name="$3"
-echo "Renaming $2 to $3..."
+echo "Renaming ISO $2 to $3..."
 mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
 zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
 }
@@ -276,7 +281,7 @@ __start() {
   local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
   local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
   if [ -z $flag ]; then
-	echo "Starting $name... (Takes 15 seconds for FreeBSD guests, 10 for Debian guests)"
+	echo "Starting $name... (Takes 15 seconds for FreeBSD guests)"
         bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img -c /dev/${con}A  ioh-$name > /dev/null
 	# default creates tap0, useful for starting out with iohyve
 	if [ $tap = "tap0" ]; then
