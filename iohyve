@@ -72,7 +72,16 @@ __parse_cmd () {
       getall)   __getall "$@"
                 exit
       ;;
+      taplist)  __taplist
+                exit
+      ;;
+      activetaps) __activetaps
+                exit
+      ;;
       conlist)  __conlist
+                exit
+      ;;
+      activecons) __activecons
                 exit
       ;;
       console)  __console "$@"
@@ -97,7 +106,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.3.6 2015/06/18 list cleaning'
+  echo 'iohyve v0.3.7 2015/06/18 list redux'
 }
 
 # Setup iohyve
@@ -449,9 +458,38 @@ __getall() {
   zfs get all $pool/iohyve/$name | grep iohyve:
 }
 
-# List Consoles in use
+# List taps in use
+__taplist() {
+  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+  echo "Listing all network taps:"
+  for i in $guestlist ; do
+        conprop="$(zfs get -H -o value iohyve:tap neuralnet/iohyve/$i)"
+        printf $i'......'$conprop'\n'
+  done
+}
+
+# List active taps in use
+__activetaps() {
+  echo "Listing active network taps..."
+  ls /dev | grep tap
+}
+
+# List consoles in use
 __conlist() {
-  echo "Listing active nullmodem consoles..."
+  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+  echo "Listing all consoles:" 
+  for i in $guestlist ; do
+	conprop="$(zfs get -H -o value iohyve:con neuralnet/iohyve/$i)"
+	printf $i'......'$conprop'\n'
+  done 
+}
+
+# List active consoles in use
+__activecons() {
+  echo 
+"Listing active nullmodem consoles..."
   ls /dev | grep nmdm | grep A | cut -d 'A' -f 1
 }
 
