@@ -767,10 +767,10 @@ EXAMPLES
 	iohvye running
 
   You can change guest properties by using set:
-	iohyve bsdguest set ram=512M	#set ram to 512 Megabytes
-	iohyve bsdguest set cpu=1	#set cpus to 1 core
-	iohyve bsdguest set tap=tap0	#set tap device for ethernet
-	iohyve bsdguest set con=nmdm0	#set the console to attach to
+	iohyve set bsdguest ram=512M	#set ram to 512 Megabytes
+	iohyve set bsdguest cpu=1	#set cpus to 1 core
+	iohyve set bsdguest tap=tap0	#set tap device for ethernet
+	iohyve set bsdguest con=nmdm0	#set the console to attach to
 
   Get a spcific guest property:
 	iohyve get bsdguest ram
