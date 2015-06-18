@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.3 2015/06/4 "nixing the other nix"
+# iohyve v0.4 2015/06/18 "it aliiive"
 
 # Process command line
 __parse_cmd () {
@@ -49,9 +49,6 @@ __parse_cmd () {
                 exit
       ;;
       stop)     __stop "$@"
-                exit
-      ;;
-      off)      __off "$@"
                 exit
       ;;
       scram)    __scram
@@ -106,7 +103,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.3.7 2015/06/18 list redux'
+  echo 'iohyve v0.4 2015/06/18 it aliiive'
 }
 
 # Setup iohyve
@@ -192,6 +189,7 @@ __create() {
   zfs set iohyve:tap=tap0 $pool/iohyve/$name
   zfs set iohyve:con=$con $pool/iohyve/$name
   zfs set iohyve:persist=0 $pool/iohyve/$name
+  zfs set iohyve:boot=0 $pool/iohyve/$name
 }
 
 # Install guest

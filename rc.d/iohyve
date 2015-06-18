@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Add the following lines to /etc/rc.conf to enable iohyve:
+#
+# iohyve_enable="YES"
+#
+#
+
+. /etc/rc.subr
+
+name="iohyve"
+rcvar=iohyve_enable
+
+# read configuration and set defaults
+load_rc_config "$name"
+: ${iohyve_enable="NO"}
+
+start_cmd="iohyve_start"
+stop_cmd="iohvye_stop"
+
+iohyve_start()
+{
+	guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+	pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	for i in $guestlist ; do
+		bootprop="$(zfs get -H -o value iohyve:boot $pool/iohyve/$i)"
+		if [ $bootprop = "1" ]; then
+			/usr/local/sbin/iohyve start $i -p &
+		fi
+	done 
+}
+
+iohyve_stop()
+{
+	/usr/local/sbin/iohyve scram
+}
+
+run_rc_command "$1"
