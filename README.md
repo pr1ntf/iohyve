@@ -57,9 +57,9 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
         remove [ISO]
         create [name] [size] [console]
         install [name] [ISO]
-        load [name]
-        boot [name] [ISO]
-        start [name]
+        load [name] [path/to/bootdisk]
+        boot [name] [runmode] [pcidevices]
+        start [name] [-s | -a]
         stop [name]
         off [name]
         scram
@@ -97,10 +97,11 @@ List all runnng guests using:
 
 You can change guest properties by using set:
 
-    iohyve set bsdguest ram=512M    #set ram to 512 Megabytes
-    iohyve set bsdguest cpu=1       #set cpus to 1 core
-    iohyve set bsdguest tap=tap0    #set tap device for ethernet
-    iohyve set bsdguest con=nmdm0   #set the console to attach to
+    iohyve set bsdguest ram=512M                 #set ram to 512 Megabytes
+    iohyve set bsdguest cpu=1                    #set cpus to 1 core
+    iohyve set bsdguest tap=tap0                 #set tap device for ethernet
+    iohyve set bsdguest con=nmdm0                #set the console to attach to
+    iohyve set bsdguest pcidev:1:passthru,2/0/0  #pass through a pci device
 
 Get a specific guest property:
 

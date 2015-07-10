@@ -25,7 +25,7 @@ iohyve_start()
 	for i in $guestlist ; do
 		bootprop="$(zfs get -H -o value iohyve:boot $pool/iohyve/$i)"
 		if [ $bootprop = "1" ]; then
-			/usr/local/sbin/iohyve start $i -p &
+			/usr/local/sbin/iohyve start $i
 		fi
 	done 
 }

@@ -39,10 +39,10 @@ __parse_cmd () {
       install)  __install "$@"
                 exit
       ;;
-      load)     __load "$@"
+      load)     __load "$2" "$3"
                 exit
       ;;
-      boot)     __boot "$@"
+      boot)     __boot "$2" "$3" "$4"
                 exit
       ;;
       start)    __start "$@"
@@ -116,6 +116,31 @@ __setup() {
   zfs set mountpoint="/iohyve/ISO" $pool/iohyve/ISO
 }
 
+__get_bhyve_cmd() {
+  local devices="$1"
+  local pci_slot_count=0
+  for device in $devices ; do
+    echo "-s $pci_slot_count,$device"
+    pci_slot_count=$(( pci_slot_count + 1 ))
+  done
+}
+
+# Get PCI device config from zfs
+__get_zfs_pcidev_conf() {
+  local pool="$1"
+  local oldifs=$IFS
+  #local pci
+  IFS=$'\n'
+  for pcidev in $(zfs get -H -o property,value all $pool | grep iohyve:pcidev: | sort )
+  do
+	echo $pcidev | cut -f2-
+	#local emul=$(echo $pcidev | cut -f2-)
+	#echo $emul
+  done
+  IFS=$oldifs
+}
+
+
 # List guests
 __list() {
   echo "Listing guests..."
@@ -188,210 +213,151 @@ __create() {
   zfs set iohyve:cpu=1 $pool/iohyve/$name
   zfs set iohyve:tap=tap0 $pool/iohyve/$name
   zfs set iohyve:con=$con $pool/iohyve/$name
-  zfs set iohyve:persist=0 $pool/iohyve/$name
+  zfs set iohyve:persist=1 $pool/iohyve/$name
   zfs set iohyve:boot=0 $pool/iohyve/$name
 }
 
 # Install guest
 __install() {
-  local name="$2"
-  local iso="$3"
-  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-  local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-  local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
-  local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
-  echo "Installing $name..."
-  bhyveload -m $ram -d /iohyve/ISO/$iso/$iso -c /dev/${con}A ioh-$name &
-  sleep 12
-  if [ $tap = "tap0" ]; then
-	# no need to create tap0, should be installed already via README
-	# boot guest with tap0
-	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-	-s3,ahci-cd,/iohyve/ISO/$iso/$iso \
-	-s4,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-  else
- 	# check to see if tap is already created before attempting to create new tap interface
-	local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
-	if [ -z $tapif ]; then
- 		# create tap interface
-		ifconfig $tap create
-		ifconfig bridge0 addm $tap
- 		# boot the guest
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-		-s3,ahci-cd,/iohyve/ISO/$iso/$iso \
-		-s4,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	else
-		# boot the guest
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-		-s3,ahci-cd,/iohyve/ISO/$iso/$iso \
-		-s4,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	fi
-  fi
+	local name="$2"
+	local iso="$3"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
+	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
+	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
+	local pci=""
+
+	echo "Installing $name..."
+
+	# Load from CD
+	__load "$name" "/iohyve/ISO/$iso/$iso"
+
+	# Prepare and start guest
+	pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
+
+	local pci_args=$(__get_bhyve_cmd "$pci" )
+
+	bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+
+  	exit
 }
 
 # Load guest
 __load() {
-  local name="$2"
-  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-  local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-  echo "Loading $name..."
-    bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img -c /dev/${con}A ioh-$name &
-  
+	local name="$1"
+	local media="$2"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
+	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
+
+	bhyveload -m $ram -d $media -c /dev/${con}A  ioh-$name > /dev/null
 }
 
 # Boot guest
 __boot() {
-  local name="$2"
-  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-  local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-  local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
-  local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
-  echo "Booting $name..."
-  # default creates tap0, useful for starting out with iohyve
-  if [ $tap = "tap0" ]; then
-	# no need to create tap0, should be installed already via README
-	# boot guest with tap0
-	bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-	-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-  else
- 	# check to see if tap is already created before attempting to create new tap interface
-	local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
-	if [ -z $tapif ]; then
- 		# create tap interface
-		ifconfig $tap create
-		ifconfig bridge0 addm $tap
- 		# boot the guest
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	else
-		# boot the guest
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
+	local name="$1"
+	# runmode (runonce/persist)
+	#   0 = once
+	#   1 = persist regular (stop if guest is powering off)
+	#   2 = always persist (start again even if guest is powering off)
+	local runmode="$2"
+	local pci="$3"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
+	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
+	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
+	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
+
+	# Generate list of bhyve -s commands for all devices
+	local pci_args=$(__get_bhyve_cmd "$pci" )
+
+	# Handle the starting of the guest inside a spawned subshell so the guest
+	# can be restarted automatically if the guest reboots or crashes
+	local runstate="1"
+	(
+		while [ $runstate = "1" ]
+		do
+			__load "$name" "/dev/zvol/$pool/iohyve/$name/${name}-0.img"
+			bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+			local vmpid=$!
+			wait $vmpid
+			vmrc=$?
+			sleep 5
+			if [ $runmode == "0" ]; then
+				runstate="0"
+			elif [ $vmrc == "1" ] && [ $runmode != 2 ]; then
+				# VM has been powered off
+				runstate="0"
+			else
+				if [ $(zfs get -H -o value iohyve:persist $pool/iohyve/$name) != 1 ]; then
+					runstate="0"
+				fi
+			fi
+		done
+		bhyvectl --destroy --vm=ioh-$name
+		# Resetting the flag so that a vm which we stopped by abusing zfs set/get
+		# as as an IPC mechanism is persistent again next time we start it
+		if [ ! -z $persist ]; then
+			zfs set iohyve:persist="$persist" $pool/iohyve/$name
+		fi
+	) &
+}
+
+__prepare_guest() {
+	local name="$1"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	local pci="$(__get_zfs_pcidev_conf $pool/iohyve/$name)"
+	local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
+
+	# Setup tap if needed
+	if [ $tap ] && [ $tap != "-" ]; then
+		if [ $tap != "tap0" ]; then
+			# no need to create tap0, should be installed already via README
+			# check to see if tap is already created before attempting to create new tap interface
+			local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
+			if [ -z $tapif ]; then
+				# create tap interface
+				ifconfig $tap create
+				ifconfig bridge0 addm $tap
+			fi
+		fi
+		# Add a virtio-net pci device for the tap
+		pci="virtio-net,$tap $pci"
 	fi
-  fi
+
+	#Add disk as second PCI device
+	pci="ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img $pci"
+
+	#Add Hostbridge and lpc as the first PCI devices
+	pci="hostbridge lpc $pci"
+
+	# return the list of pci devices
+	echo $pci
 }
 
 # Start guest (combine load and boot)
 __start() {
-  local name="$2"
-  local flag="$3"
-  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-  local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-  local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
-  local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
-  if [ -z $flag ]; then
+	local name="$2"
+	local flag="$3"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	local pci=""
+	local runmode="1"
+
+    case "$flag" in
+		-s)	runmode="0"		# single - start only once
+			;;
+		-a) runmode="2"		# always - persist regardless what
+			;;
+		*)	runmode="1"		# persist - persists until guest is powering off
+			;;
+    esac
+
 	echo "Starting $name... (Takes 15 seconds for FreeBSD guests)"
-        bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img -c /dev/${con}A  ioh-$name > /dev/null
-	# default creates tap0, useful for starting out with iohyve
-	if [ $tap = "tap0" ]; then
-	  # no need to create tap0, should be installed already via README
-	  # boot guest with tap0
-	  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-	  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	else
-	  # check to see if tap is already created before attempting to create new tap interface
-	  local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
-	  if [ -z $tapif ]; then
-	    # create tap interface
-	    ifconfig $tap create
-	    ifconfig bridge0 addm $tap
-	    # boot the guest
-	    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-	    -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-	    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	  else
-	    # boot the guest
-	    bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-	    -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-	    -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	  fi
-  fi
-  elif [ $flag = "-p" ]; then
-	zfs set iohyve:persist=1 $pool/iohyve/$name
-	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
-	bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img -c /dev/${con}A  ioh-$name > /dev/null
-	if [ $tap = "tap0" ]; then
-		# no need to create tap0, should be installed already via README
-		# boot guest with tap0
-		bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \ 
-		-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-		-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	else
-	    # check to see if tap is already created before attempting to create new tap interface
-	    local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
-	    if [ -z $tapif ]; then
-		  # create tap interface
-		  ifconfig $tap create
-		  ifconfig bridge0 addm $tap
-		  # boot the guest
-		  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		  -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-		  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	    else
-		  # boot the guest
-		  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-		  -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-		  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-	    fi
-	fi
-	sleep 15
-	local pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
-	while [ $persist = "1" ]
-	do
-		persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
-		if [ -z $(ps | grep ioh-$name | grep -v grep | cut -c1-5) ]; then
-			bhyvectl --force-poweroff --vm=ioh-$name
-			bhyvectl --destroy --vm=ioh-$name
-			sleep 5
-			bhyveload -m $ram -d /dev/zvol/$pool/iohyve/$name/${name}-0.img \
-			-c /dev/${con}A  ioh-$name > /dev/null
-			if [ $tap = "tap0" ]; then
-				# no need to create tap0, should be installed already via README
-				# boot guest with tap0
-				bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-				-s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-				-s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-			else
-				# check to see if tap is already created before attempting to create new tap interface
-				local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
-				if [ -z $tapif ]; then
-				  # create tap interface
-				  ifconfig $tap create
-				  ifconfig bridge0 addm $tap
-				  # boot the guest
-				  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-				  -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-				  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-				else
-				  # boot the guest
-				  bhyve -c $cpu -A -H -P -m $ram -s0,hostbridge -s1,lpc \
-				  -s2,ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img \
-				  -s3,virtio-net,$tap -lcom1,/dev/${con}A ioh-$name &
-				fi
-			fi
-			sleep 15
-			pid="$(ps | grep ioh-$name | grep -v grep | cut -c1-5)"
-			if [ $persist = "0" ]; then
-			  exit 0
-			fi
-		else
-			sleep 20
-			if [ $persist = "0" ]; then
-			  exit 0
-			fi
-		fi
-	done
-  else
-	echo "If your happy and you know it, SYNTAX ERROR"
-  fi
+
+	# Prepare and boot guest
+	pci="$(__prepare_guest $name)"
+	__boot "$name" "$runmode" "$pci"
+
 }
 
 # Gracefully stop a guest
@@ -605,7 +571,7 @@ SYNOPSIS
   iohyve install [name] [ISO] 
   iohyve load [name]
   iohyve boot [name] [ISO]
-  iohyve start [name] [-p]
+  iohyve start [name] [-a | -s]
   iohyve stop [name]
   iohyve off [name]
   iohyve scram
@@ -688,22 +654,35 @@ OPTIONS
                     
   load      Loads the guest operating system bootloader and resources.
   
-            Usage: 'iohyve load [name]' where [name] is the name
-                    of the guest operating system.
-  
+            Usage: 'iohyve load [name] [ISO]'
+					where [name]    is the name of the guest operating system.
+                          [bootimg] is the path to the boot medium
+
   boot      Boots the guest into the operating system. 'iohyve run' needs
             to be run before this is done. 
             
-            Usage: 'iohyve boot [name] [ISO]' where [name] is the name
-                    of the guest operating system.  [ISO] is optional and
-                    only for non FreeBSD guests.
+            Usage: 'iohyve boot [name] [runmode] [pci]'
+					where [name]    is the name of the guest operating system.
+                          [runmode] describes how to start the guest:
+                                    0 = start only once
+                                    1 = regular persist
+                                        Stop if the guest is powering off
+                                    2 = always persist
+                                        Always restart the guest
+                          [pci]     is a space separated list of pci devices
+                                    based on slot-less bhyve -s commands.
+                                    Example:
+                                        "ahci-hd,/path/disk.img virtio-net,tap0"
+                                    Note: hostbridge and lpc are automatically
+                                          added
   
   start     Starts the guest operating system. (Combines load & boot)
   
-            Usage: 'iohyve start [name] -p' where [name] is the name
-                    of the guest operating system. Appending the -p
-		    flag will allow the guest to persist.
-  
+            Usage: 'iohyve start [name] [-s | -a]'
+                   where [name]     is the name of the guest operating system.
+                         [-s]       will cause the guest to be started once
+                         [-a]       will cause the guest to always restart
+
   stop      Gracefully stops guest operating system.
   
             Usage: 'iohyve stop [name]' where [name] is the name
@@ -738,6 +717,15 @@ OPTIONS
                     tap=tap0 (tap device for virtio-net)
                     size=size of block device
                     name=name of guest
+                    pcidev:[n]=[spec]
+                        Generic way to add devices to the guest.
+                        [n] is a generic random number or string
+                        [spec] defines a virtual device added to the guest
+                            by using a bhyve -s argument without the pcislot
+                            or function argument. PCI slot numbers are assigned
+                            automatically by iohyve.
+                            Examples: "pcidev:1=passthru,2/0/0"
+                                      "pcidev:2=ahci-hd,/some/place/disk.img"
   
   get       Gets ZFS properties for guests one at a time
             
@@ -855,9 +843,9 @@ iohyve  version
 	remove [ISO]
         create [name] [size] [console]
         install [name] [ISO]
-        load [name]
-        boot [name] [ISO]
-        start [name] [-p]
+        load [name] [path/to/bootdisk]
+        boot [name] [runmode] [pcidevices]
+        start [name] [-s | -a]
         stop [name]
         off [name]
         scram
