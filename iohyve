@@ -795,7 +795,7 @@ EXAMPLES
 	iohyve isolist
 
   Rename an ISO:
-	iohyve FreeBSD-10.1-RELEASE-amd64-bootonly.iso freebsd10.iso
+	iohyve rename FreeBSD-10.1-RELEASE-amd64-bootonly.iso freebsd10.iso
 
   Install the FreeBSD guest bsdguest:
 	iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
