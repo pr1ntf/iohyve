@@ -1,12 +1,12 @@
-# iohyve v0.4
-"IT ALIIIVE"
+# iohyve v0.5
+"It's pronounced linux edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools. 
+*Now with more Debian.*
 
-iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features including virtio drivers and ZFS. 
-iohyve strives to be much like @pannon's iocage (Jail Manager), storing properties in ZFS datasets. 
-[https://github.com/iocage/iocage]
-There is currently support for VIMAGE/VNET just as iocage. Documentation soon to come. For more information on VNET support, run:
+iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features. 
+The idea is based on iocage, a jail manager utilizing some of the same principles. 
+There is currently support for VIMAGE/VNET. Documentation soon to come. For more information on VNET support, run:
 
     iohyve readme
 
@@ -148,27 +148,4 @@ Now that the guest is installed, it can be started like usual:
 Some guest os's can be gracefully stopped:
 
     iohyve stop bsdguest
-
-**Persistence**
-
-FreeBSD guests can now persist after the guest reboots or shutdowns. This means if you reboot the guest from console, it 
-will come back up without having to start manually. There is an issue with grub 
-where it will not auto boot. You must connect via console to initiate boot. As of version 2.12, guests still don't 
-persist after host reboot. 
-
-This is done by simply appending '-p &' to the end of the start command:
-
-    iohyve start bsdguest -p &
-
-Stop a persistent guest:
-
-    iohyve stop bsdguest
-
-Destroy a hung persistent guest:
-
-    iohyve destroy bsdguest
-
-Turn off persistence flag so guest will shut down instead of reboot:
-
-    iohyve set bsdguest persist=0
 
