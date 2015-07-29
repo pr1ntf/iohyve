@@ -4,6 +4,7 @@
 #
 # iohyve_enable="YES"
 #
+# REQUIRE: sshd
 #
 
 . /etc/rc.subr
@@ -16,7 +17,7 @@ load_rc_config "$name"
 : ${iohyve_enable="NO"}
 
 start_cmd="iohyve_start"
-stop_cmd="iohvye_stop"
+stop_cmd="iohyve_stop"
 
 iohyve_start()
 {

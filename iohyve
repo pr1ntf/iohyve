@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.4 2015/06/18 "it aliiive"
+# iohyve v0.5 2015/07/28 "it's pronounced linux edition"
 
 # Process command line
 __parse_cmd () {
@@ -103,7 +103,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.4 2015/06/18 it aliiive'
+  echo 'iohyve v0.5 2015/07/28 Its pronounced linux edition'
 }
 
 # Setup iohyve
@@ -215,6 +215,7 @@ __create() {
   zfs set iohyve:con=$con $pool/iohyve/$name
   zfs set iohyve:persist=1 $pool/iohyve/$name
   zfs set iohyve:boot=0 $pool/iohyve/$name
+  zfs set iohyve:loader=bhyveload $pool/iohyve/$name
 }
 
 # Install guest
@@ -228,6 +229,9 @@ __install() {
 	local pci=""
 
 	echo "Installing $name..."
+
+	# Set install prop
+	zfs set iohyve:install=yes $pool/iohyve/$name
 
 	# Load from CD
 	__load "$name" "/iohyve/ISO/$iso/$iso"
@@ -249,8 +253,22 @@ __load() {
 	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
 	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
 	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
+	local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$name)"
+	local install="$(zfs get -H -o value iohyve:install $pool/iohyve/$name)"
 
-	bhyveload -m $ram -d $media -c /dev/${con}A  ioh-$name > /dev/null
+	if [ $loader = "grub-bhyve" ]; then
+		if [ $install = "yes" ]; then
+			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/'$name'-0.img\n' > /iohyve/$name/device.map
+			printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+			grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name		
+		elif [ $install = "no" ]; then
+			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/'$name'-0.img\n' > /iohyve/$name/device.map
+                        printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+                        grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
+		fi
+	else
+		bhyveload -m $ram -d $media -c /dev/${con}A ioh-$name
+	fi
 }
 
 # Boot guest
@@ -267,6 +285,9 @@ __boot() {
 	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
 	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
+
+        # Set install prop
+        zfs set iohyve:install=no $pool/iohyve/$name
 
 	# Generate list of bhyve -s commands for all devices
 	local pci_args=$(__get_bhyve_cmd "$pci" )
@@ -368,8 +389,8 @@ __stop() {
   echo "Stopping $name..."
   zfs set iohyve:persist=0 $pool/iohyve/$name
   kill $pid
-  sleep 20
-  bhyvectl --destroy --vm=ioh-$name
+#  sleep 20
+#  bhyvectl --destroy --vm=ioh-$name
 }
 
 # Gracefully shut down all guests via ACPI (Does not destroy)
