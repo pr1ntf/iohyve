@@ -594,7 +594,6 @@ SYNOPSIS
   iohyve boot [name] [ISO]
   iohyve start [name] [-a | -s]
   iohyve stop [name]
-  iohyve off [name]
   iohyve scram
   iohyve destroy [name]
   iohyve delete [name]
@@ -707,11 +706,6 @@ OPTIONS
   stop      Gracefully stops guest operating system.
   
             Usage: 'iohyve stop [name]' where [name] is the name
-                    of the guest operating system.
-  
-  off       Forces a power off of guest. Also destroys guest resources.
-  
-            Usage: 'iohyve off [name]' where [name] is the name
                     of the guest operating system.
                     
   scram     Gracefully stop all bhyve guests. Does not destroy resources.
@@ -833,9 +827,12 @@ EXAMPLES
   Get all guest properties:
 	iohyve getall bsdguest
 
-  Start a FreeBSD guest in persistent mode:
+  Install and run a Debian guest:
 
-	iohyve start bsdguest -p &
+	iohyve create debianvm 8G nmdm8		#create as usual
+	iohyve set debianvm loader=grub-bhyve	#set loader option
+	iohyve install debianvm deb8.1-net.iso	#install as usual
+	iohyve start debianvm			#start after install is done
 
 
 AUTHOR
@@ -868,7 +865,6 @@ iohyve  version
         boot [name] [runmode] [pcidevices]
         start [name] [-s | -a]
         stop [name]
-        off [name]
         scram
         destroy [name]
         delete [name]
