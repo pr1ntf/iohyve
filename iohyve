@@ -838,10 +838,6 @@ EXAMPLES
 AUTHOR
   Trent -- @pr1ntf
 
-THANKS
-  @pannon
-  @skarekrow
-
 SEE ALSO
   bhyve(8), bhyveload(4), zfs(8), nmdm(4), cu(1)
 EOT
