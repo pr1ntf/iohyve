@@ -61,7 +61,6 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
         boot [name] [runmode] [pcidevices]
         start [name] [-s | -a]
         stop [name]
-        off [name]
         scram
         destroy [name]
         delete [name]
@@ -111,6 +110,10 @@ Get all guest properties:
 
     iohyve getall bsdguest
 
+Utilize grub2-bhyve for non FreebSD guests:
+
+    iohyve set debianguest loader=grub-bhyve
+
 **FreeBSD Guests**
 
 Fetch FreeBSD install ISO for later:
@@ -148,4 +151,5 @@ Now that the guest is installed, it can be started like usual:
 Some guest os's can be gracefully stopped:
 
     iohyve stop bsdguest
+
 
