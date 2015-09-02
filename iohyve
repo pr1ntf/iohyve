@@ -27,10 +27,10 @@ __parse_cmd () {
       fetch)    __fetch "$@"
                 exit
       ;;
-      renameiso)   __renameiso "$@"
+      renameiso) __renameiso "$@"
                 exit
       ;;
-      remove)   __remove "$@"
+      removeiso) __remove "$@"
                 exit
       ;;
       create)   __create "$@"
@@ -194,7 +194,7 @@ zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
 }
 
 # Remove ISO 
-__remove() {
+__removeiso() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   echo "Removing $name..."
@@ -605,7 +605,7 @@ SYNOPSIS
   iohyve running
   iohyve fetch [URL] 
   iohyve renameiso [ISO] [newname]
-  iohyve remove [ISO]
+  iohyve removeiso [ISO]
   iohyve create [name] [size] [console]
   iohyve install [name] [ISO] 
   iohyve load [name]
@@ -670,10 +670,11 @@ OPTIONS
               
   renameiso Renames an ISO
 
-            Usage: 'iohyve rename [ISO] [newname]' where [ISO] is the name
-                   of the ISO you would like to rename. [newname] is a new name.
+            Usage: 'iohyve renameiso [ISO] [newname]' where [ISO] is the
+                   name of the ISO you would like to rename. [newname] 
+                   is a new name.
 
-  remove    Removes installed ISO from /iohyve/ISO
+  removeiso Removes installed ISO from /iohyve/ISO
   
             Usage: 'iohyve remove [ISO]' where [ISO] is the name of the ISO 
                     you would like to delete.
@@ -737,6 +738,11 @@ OPTIONS
             
             Usage: 'iohyve destroy [name]' where [name] is the name
                     of the guest operating system.
+
+  rename    Renames the guest
+
+            Usage: 'iohyve rename [name] [newname]' where [name] is the
+                    name of the guest and [newname] is the new name.
                     
   delete    Deletes all data for the guest.
             
@@ -774,8 +780,15 @@ OPTIONS
             
             Usage: 'iohyve getall [name]' where [name] is the name
                     of the guest operating system.
+
+  taplist   Lists all of the network taps taken by iohyve guests
+            This will list taps that are not active as well. 
+
+  activetaps
+            Lists all active taps in use
                     
-  conlist   Lists all of the connected and in use nullmodem consoles
+  conlist   Lists all of the nullmodem consoles taken by iohyve guests.
+            This will list taps that are not active as well.
   
   console   Consoles into a guest operating system. Utilizes nmdm(4) and
             cu(1) to open a console on a guest operating system. Since
