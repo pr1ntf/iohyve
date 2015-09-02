@@ -477,7 +477,8 @@ __getall() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   echo "Getting $name props..."
-  zfs get all $pool/iohyve/$name | grep iohyve:
+  zfs get all $pool/iohyve/$name | grep iohyve: | \
+	cut -w -f2-3 | cut -c8-
 }
 
 # List taps in use
