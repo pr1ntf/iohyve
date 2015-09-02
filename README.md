@@ -56,7 +56,7 @@ iohyve
 	fetch [URL]
 	renameiso [ISO] [newname]
 	remove [ISO]
-	create [name] [size] [console]
+	create [name] [size]
 	install [name] [ISO]
 	load [name] [path/to/bootdisk]
 	boot [name] [runmode] [pcidevices]
@@ -130,9 +130,9 @@ Rename the ISO if you would like:
 
     iohyve renameiso FreeBSD-10.1-RELEASE-amd64-bootonly.iso fbsd10.iso
 
-Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
+Create a new FreeBSD guest named bsdguest with an 8Gigabyte virtual HDD:
 
-    iohyve create bsdguest 8G nmdm0
+    iohyve create bsdguest 8G
 
 List ISO's:
 
