@@ -161,7 +161,7 @@ __vmmlist() {
   local vmmdir="/dev/vmm"
   echo "Listing VMM directory..."
   if [ -e $vmmdir  ]; then
-	ls -l /dev/vmm | grep ioh- | cut -d ' ' -f13- | cut -c5-
+	ls /dev/vmm | grep ioh- | cut -c5-
   else
 	echo "VMM not holding onto resources"
   fi
