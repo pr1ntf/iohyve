@@ -626,7 +626,7 @@ SYNOPSIS
   iohyve fetch [URL] 
   iohyve renameiso [ISO] [newname]
   iohyve removeiso [ISO]
-  iohyve create [name] [size] [console]
+  iohyve create [name] [size]
   iohyve install [name] [ISO] 
   iohyve load [name]
   iohyve boot [name] [ISO]
@@ -701,13 +701,10 @@ OPTIONS
   
   create    Creates new guest operating system.
               
-            Usage: 'iohyve create [name] [size] [console]' where [name] is
+            Usage: 'iohyve create [name] [size]' where [name] is
                     the name you would like to use, [size] is the size of the
                     virtual block device in '16G' format where the capital G 
-                    signifies gigabytes, and [console] is the name of the null 
-                    modem device in the form of 'nmdmN' where N is 0-99 leaving 
-                    out the /dev/ & A or B.
-                    (See console options below for more details)
+                    signifies gigabytes.
                     
   install   Loads and boots into ISO for guest installation. 
             
@@ -838,7 +835,7 @@ EXAMPLES
 	iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
 
   Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
-	iohyve create bsdguest 8G nmdm0
+	iohyve create bsdguest 8G
 
   List ISO's:
 	iohyve isolist
@@ -907,7 +904,7 @@ iohyve  version
         fetch [URL]
         renameiso [ISO] [newname]
 	remove [ISO]
-        create [name] [size] [console]
+        create [name] [size]
         install [name] [ISO]
         load [name] [path/to/bootdisk]
         boot [name] [runmode] [pcidevices]
