@@ -27,7 +27,7 @@ __parse_cmd () {
       fetch)    __fetch "$@"
                 exit
       ;;
-      rename)   __rename "$@"
+      renameiso)   __renameiso "$@"
                 exit
       ;;
       remove)   __remove "$@"
@@ -55,6 +55,9 @@ __parse_cmd () {
                 exit
       ;;
       destroy)  __destroy "$@"
+                exit
+      ;;
+      rename)   __rename "$@"
                 exit
       ;;
       delete)   __delete "$@"
@@ -134,8 +137,8 @@ __get_zfs_pcidev_conf() {
   for pcidev in $(zfs get -H -o property,value all $pool | grep iohyve:pcidev: | sort )
   do
 	echo $pcidev | cut -f2-
-	#local emul=$(echo $pcidev | cut -f2-)
-	#echo $emul
+	local emul=$(echo $pcidev | cut -f2-)
+	echo $emul
   done
   IFS=$oldifs
 }
@@ -181,7 +184,7 @@ __fetch() {
 }
 
 # Rename an ISO
-__rename() {
+__renameiso() {
 local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
 local iso="$2"
 local name="$3"
@@ -407,6 +410,16 @@ __destroy() {
   zfs set iohyve:persist=0 $pool/iohyve/$name
   bhyvectl --force-poweroff --vm=ioh-$name
   bhyvectl --destroy --vm=ioh-$name
+}
+
+# Rename the guest
+__rename() {
+  local name="$2"
+  local newname="$3"
+  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+  echo "Renaming $name to $newname..."
+  zfs rename $pool/iohyve/$name $pool/iohyve/$newname
+  zfs set iohyve:name=$newname $pool/iohyve/$newname
 }
 
 # Delete guest
