@@ -420,6 +420,8 @@ __rename() {
   echo "Renaming $name to $newname..."
   zfs rename $pool/iohyve/$name $pool/iohyve/$newname
   zfs set iohyve:name=$newname $pool/iohyve/$newname
+  zfs rename $pool/iohyve/$newname/$name-0.img \
+	$pool/iohyve/$newname-0.img
 }
 
 # Delete guest
