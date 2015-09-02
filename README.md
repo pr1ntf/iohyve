@@ -47,36 +47,36 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
 
 ```
 iohyve  version
-        setup [pool]
-        list
-        isolist
-        vmmlist
-        running
-        fetch [URL]
-        renameiso [ISO] [newname]
+	setup [pool]
+	list
+	isolist
+	vmmlist
+	running
+	fetch [URL]
+	renameiso [ISO] [newname]
 	remove [ISO]
-        create [name] [size] [console]
-        install [name] [ISO]
-        load [name] [path/to/bootdisk]
-        boot [name] [runmode] [pcidevices]
-        start [name] [-s | -a]
-        stop [name]
-        scram
-        destroy [name]
+	create [name] [size] [console]
+	install [name] [ISO]
+	load [name] [path/to/bootdisk]
+	boot [name] [runmode] [pcidevices]
+	start [name] [-s | -a]
+	stop [name]
+	scram
+	destroy [name]
 	rename [name] [newname]
-        delete [name]
-        set [name] [prop=value]
-        get [name] [prop]
-        getall [name]
-        taplist
+	delete [name]
+	set [name] [prop=value]
+	get [name] [prop]
+	getall [name]
+	taplist
 	activetaps
 	conlist
 	activecons
-        console [name]
-        conreset
-        readme
-        help
-        man 
+	console [name]
+	conreset
+	readme
+	help
+	man 
 ```
 
 **Setup**
