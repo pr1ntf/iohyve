@@ -45,16 +45,16 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
 
 **Usage**
 
-    iohyve  
-        version
+```
+iohyve  version
         setup [pool]
         list
         isolist
         vmmlist
         running
         fetch [URL]
-        rename [ISO] [newname]
-        remove [ISO]
+        renameiso [ISO] [newname]
+	remove [ISO]
         create [name] [size] [console]
         install [name] [ISO]
         load [name] [path/to/bootdisk]
@@ -63,16 +63,21 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
         stop [name]
         scram
         destroy [name]
+	rename [name] [newname]
         delete [name]
         set [name] [prop=value]
         get [name] [prop]
         getall [name]
-        conlist
+        taplist
+	activetaps
+	conlist
+	activecons
         console [name]
         conreset
         readme
         help
         man 
+```
 
 **Setup**
 
@@ -122,7 +127,7 @@ Fetch FreeBSD install ISO for later:
 
 Rename the ISO if you would like:
 
-    iohyve rename FreeBSD-10.1-RELEASE-amd64-bootonly.iso freebsd10.iso
+    iohyve renameiso FreeBSD-10.1-RELEASE-amd64-bootonly.iso fbsd10.iso
 
 Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
 
