@@ -604,7 +604,7 @@ SYNOPSIS
   iohyve vmmlist
   iohyve running
   iohyve fetch [URL] 
-  iohyve rename [ISO] [newname]
+  iohyve renameiso [ISO] [newname]
   iohyve remove [ISO]
   iohyve create [name] [size] [console]
   iohyve install [name] [ISO] 
@@ -614,11 +614,15 @@ SYNOPSIS
   iohyve stop [name]
   iohyve scram
   iohyve destroy [name]
+  iohyve rename [name] [newname]
   iohyve delete [name]
   iohyve set [name] [prop=value]
   iohyve get [name] [prop]
   iohyve getall [name]
+  iohyve taplist
+  iohyve activetaps
   iohyve conlist
+  iohyve activeconsoles
   iohyve console [name]
   iohyve conreset
   iohyve readme
@@ -664,7 +668,7 @@ OPTIONS
             Usage: 'iohyve fetch [URL]' where [URL] is the HTTP or FTP URL to 
                     fetch from the internet. 
               
-  rename    Renames an ISO
+  renameiso Renames an ISO
 
             Usage: 'iohyve rename [ISO] [newname]' where [ISO] is the name
                    of the ISO you would like to rename. [newname] is a new name.
@@ -871,7 +875,7 @@ iohyve  version
         vmmlist
         running
         fetch [URL]
-        rename [ISO] [newname]
+        renameiso [ISO] [newname]
 	remove [ISO]
         create [name] [size] [console]
         install [name] [ISO]
@@ -881,11 +885,15 @@ iohyve  version
         stop [name]
         scram
         destroy [name]
+	rename [name] [newname]
         delete [name]
         set [name] [prop=value]
         get [name] [prop]
         getall [name]
-        conlist
+        taplist
+	activetaps
+	conlist
+	activecons
         console [name]
         conreset
         readme
