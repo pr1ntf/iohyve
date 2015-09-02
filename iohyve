@@ -413,8 +413,13 @@ __destroy() {
 __delete() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  echo "Deleting $name..."
-  zfs destroy -r $pool/iohyve/$name
+  read -p "Are you sure you want to delete $name [Y/N]? " an </dev/tty
+  case "$an" in
+	y|Y) zfs destroy -rR $pool/iohyve/$name
+	  ;;
+	*) echo "Not deleted..."
+	  ;;
+  esac
 }
 
 # Set ZFS props
