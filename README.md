@@ -46,7 +46,8 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
 **Usage**
 
 ```
-iohyve  version
+iohyve
+	version
 	setup [pool]
 	list
 	isolist
