@@ -206,7 +206,24 @@ __create() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   local size="$3"
-  local con="$4"
+  local guestlist="$(zfs list | grep iohyve | grep -v ISO | \
+	grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+  listtaps(){
+  for i in $guestlist ; do
+	tapprop="$(zfs get -H -o value iohyve:tap neuralnet/iohyve/$i)"
+	printf $tapprop'\n'
+  done
+  }
+  local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
+  local tap="$(expr $taplast + 1)"
+  listcons(){
+  for i in $guestlist ; do
+        conprop="$(zfs get -H -o value iohyve:con neuralnet/iohyve/$i)"
+        printf $conprop'\n'
+  done
+  }
+  local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
+  local con="$(expr $conlast + 1)"
   echo "Creating $name..."
   zfs create $pool/iohyve/$name
   zfs create -V $size -o volmode=dev $pool/iohyve/$name/${name}-0.img
@@ -214,8 +231,8 @@ __create() {
   zfs set iohyve:size=$size $pool/iohyve/$name
   zfs set iohyve:ram=256M $pool/iohyve/$name
   zfs set iohyve:cpu=1 $pool/iohyve/$name
-  zfs set iohyve:tap=tap0 $pool/iohyve/$name
-  zfs set iohyve:con=$con $pool/iohyve/$name
+  zfs set iohyve:tap=tap$tap $pool/iohyve/$name
+  zfs set iohyve:con=nmdm$con $pool/iohyve/$name
   zfs set iohyve:persist=1 $pool/iohyve/$name
   zfs set iohyve:boot=0 $pool/iohyve/$name
   zfs set iohyve:loader=bhyveload $pool/iohyve/$name
