@@ -408,7 +408,7 @@ __stop() {
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   local pid="$(ps -a | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
   echo "Stopping $name..."
-  zfs set iohyve:persist=0 $pool/iohyve/$name
+# zfs set iohyve:persist=0 $pool/iohyve/$name
   kill $pid
 #  sleep 20
 #  bhyvectl --destroy --vm=ioh-$name
@@ -425,7 +425,7 @@ __destroy() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   echo "Destroying $name..."
-  zfs set iohyve:persist=0 $pool/iohyve/$name
+# zfs set iohyve:persist=0 $pool/iohyve/$name
   bhyvectl --force-poweroff --vm=ioh-$name
   bhyvectl --destroy --vm=ioh-$name
 }
