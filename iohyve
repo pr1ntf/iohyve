@@ -170,7 +170,8 @@ __vmmlist() {
 # List running guests by PID
 __running() {
   echo "Listing running guests..."
-  ps | grep "ioh-" | grep -v "grep" | cut -d ':' -f 3- | cut -d '-' -f 2 | cut -d '(' -f 1
+  ps -aux | grep "ioh-" | grep -v "grep" | \
+	cut -d ':' -f4- | cut -c6- | cut -d '(' -f1
 }
 
 # Fetch ISO 
