@@ -147,7 +147,7 @@ __get_zfs_pcidev_conf() {
 # List guests
 __list() {
   echo "Listing guests..."
-  zfs list | grep iohyve | grep -v ISO | grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d
+  zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d
 }
 
 # List iso's
@@ -208,7 +208,7 @@ __create() {
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   local size="$3"
   local guestlist="$(zfs list | grep iohyve | grep -v ISO | \
-	grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+	grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   listtaps(){
   for i in $guestlist ; do
 	tapprop="$(zfs get -H -o value iohyve:tap neuralnet/iohyve/$i)"
@@ -279,11 +279,11 @@ __load() {
 
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
-			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/'$name'-0.img\n' > /iohyve/$name/device.map
+			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
 			printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 			grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name		
 		elif [ $install = "no" ]; then
-			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/'$name'-0.img\n' > /iohyve/$name/device.map
+			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
                         printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                         grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
 		fi
@@ -438,8 +438,6 @@ __rename() {
   echo "Renaming $name to $newname..."
   zfs rename $pool/iohyve/$name $pool/iohyve/$newname
   zfs set iohyve:name=$newname $pool/iohyve/$newname
-  zfs rename $pool/iohyve/$newname/disk0 \
-	$pool/iohyve/$newname-0.img
 }
 
 # Delete guest
@@ -485,7 +483,7 @@ __getall() {
 # List taps in use
 __taplist() {
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   echo "Listing all network taps:"
   for i in $guestlist ; do
         conprop="$(zfs get -H -o value iohyve:tap neuralnet/iohyve/$i)"
@@ -502,7 +500,7 @@ __activetaps() {
 # List consoles in use
 __conlist() {
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v .img | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   echo "Listing all consoles:" 
   for i in $guestlist ; do
 	conprop="$(zfs get -H -o value iohyve:con neuralnet/iohyve/$i)"
