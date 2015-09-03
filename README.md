@@ -18,6 +18,14 @@ DO YOU EVEN MAN PAGE?
 
     iohyve man 
 
+## ZOMG EVERYTHING BROKE AFTER UPDATING?!
+You probably are updating from something before v0.5.6 and disk images 
+are not loading. NEVER FEAR. I just changed how iohyve names disk 
+images. Lame, I know. For now, clone the latest git, run `./fixme.sh` in 
+the directory. This should rename all the zvols to the correct scheme. 
+
+If you run into further issues, please feel free to open an issue. 
+
 **Pre-Flight Checklist**
 
 [Taken from the FreeBSD handbook https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html]

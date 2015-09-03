@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.5.5 2015/07/28 "it's pronounced linux edition"
+# iohyve v0.5.6 2015/09/03 "it's pronounced linux edition"
 
 # Process command line
 __parse_cmd () {
@@ -106,7 +106,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.5.5 2015/07/28 Its pronounced linux edition'
+  echo 'iohyve v0.5.6 2015/09/03 Its pronounced linux edition'
 }
 
 # Setup iohyve
@@ -227,7 +227,7 @@ __create() {
   local con="$(expr $conlast + 1)"
   echo "Creating $name..."
   zfs create $pool/iohyve/$name
-  zfs create -V $size -o volmode=dev $pool/iohyve/$name/${name}-0.img
+  zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk0
   zfs set iohyve:name=$name $pool/iohyve/$name
   zfs set iohyve:size=$size $pool/iohyve/$name
   zfs set iohyve:ram=256M $pool/iohyve/$name
@@ -319,7 +319,7 @@ __boot() {
 	(
 		while [ $runstate = "1" ]
 		do
-			__load "$name" "/dev/zvol/$pool/iohyve/$name/${name}-0.img"
+			__load "$name" "/dev/zvol/$pool/iohyve/$name/disk0"
 			bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 			local vmpid=$!
 			wait $vmpid
@@ -368,7 +368,7 @@ __prepare_guest() {
 	fi
 
 	#Add disk as second PCI device
-	pci="ahci-hd,/dev/zvol/$pool/iohyve/$name/${name}-0.img $pci"
+	pci="ahci-hd,/dev/zvol/$pool/iohyve/$name/disk0 $pci"
 
 	#Add Hostbridge and lpc as the first PCI devices
 	pci="hostbridge lpc $pci"
@@ -406,7 +406,7 @@ __start() {
 __stop() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local pid="$(ps | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
+  local pid="$(ps -aux | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
   echo "Stopping $name..."
   zfs set iohyve:persist=0 $pool/iohyve/$name
   kill $pid
@@ -438,7 +438,7 @@ __rename() {
   echo "Renaming $name to $newname..."
   zfs rename $pool/iohyve/$name $pool/iohyve/$newname
   zfs set iohyve:name=$newname $pool/iohyve/$newname
-  zfs rename $pool/iohyve/$newname/$name-0.img \
+  zfs rename $pool/iohyve/$newname/disk0 \
 	$pool/iohyve/$newname-0.img
 }
 
@@ -615,7 +615,7 @@ EOT
 __man() {
 cat << 'EOT' | less
 NAME
-  iohyve(8) - bhyve manager/launcher v0.5.5 "it's pronounced linux"
+  iohyve(8) - bhyve manager/launcher v0.5.6 "it's pronounced linux"
   
 SYNOPSIS
   iohyve version
