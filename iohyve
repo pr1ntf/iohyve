@@ -229,7 +229,6 @@ __create() {
   else
 	local con="$(expr $conlast + 1)"
   fi
-  local con="$(expr $conlast + 1)"
   echo "Creating $name..."
   zfs create $pool/iohyve/$name
   zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk0
