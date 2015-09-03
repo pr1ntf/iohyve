@@ -406,7 +406,7 @@ __start() {
 __stop() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local pid="$(ps -aux | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
+  local pid="$(ps -a | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
   echo "Stopping $name..."
   zfs set iohyve:persist=0 $pool/iohyve/$name
   kill $pid
