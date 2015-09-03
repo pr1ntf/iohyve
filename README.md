@@ -24,6 +24,8 @@ are not loading. NEVER FEAR. I just changed how iohyve names disk
 images. Lame, I know. For now, clone the latest git, run `./fixme.sh` in 
 the directory. This should rename all the zvols to the correct scheme. 
 
+The script will shutdown all the guests (scram).
+
 If you run into further issues, please feel free to open an issue. 
 
 **Pre-Flight Checklist**
