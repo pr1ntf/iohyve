@@ -211,7 +211,7 @@ __create() {
 	grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   listtaps(){
   for i in $guestlist ; do
-	tapprop="$(zfs get -H -o value iohyve:tap neuralnet/iohyve/$i)"
+	local tapprop="$(zfs get -H -o value iohyve:tap neuralnet/iohyve/$i)"
 	printf $tapprop'\n'
   done
   }
@@ -219,11 +219,16 @@ __create() {
   local tap="$(expr $taplast + 1)"
   listcons(){
   for i in $guestlist ; do
-        conprop="$(zfs get -H -o value iohyve:con neuralnet/iohyve/$i)"
-        printf $conprop'\n'
+        local conprop="$(zfs get -H -o value iohyve:con neuralnet/iohyve/$i)"
+	printf $conprop'\n'
   done
   }
   local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
+  if [ -z $conlast ]; then
+	local con='0'
+  else
+	local con="$(expr $conlast + 1)"
+  fi
   local con="$(expr $conlast + 1)"
   echo "Creating $name..."
   zfs create $pool/iohyve/$name
