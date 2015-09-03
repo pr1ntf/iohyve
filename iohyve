@@ -170,8 +170,8 @@ __vmmlist() {
 # List running guests by PID
 __running() {
   echo "Listing running guests..."
-  ps -aux | grep ioh- | grep -v grep \ 
-	cut -d ':' -f4- | cut -d '-' -f2 | cut -d '(' -f1
+  ps -ax | grep ioh- | grep -v grep \
+	| cut -d ':' -f3 | cut -d '-' -f2 | cut -d '(' -f1
 }
 
 # Fetch ISO 
@@ -406,7 +406,7 @@ __start() {
 __stop() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  local pid="$(ps -a | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
+  local pid="$(ps -ax | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
   echo "Stopping $name..."
 # zfs set iohyve:persist=0 $pool/iohyve/$name
   kill $pid
