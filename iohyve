@@ -30,7 +30,7 @@ __parse_cmd () {
       renameiso) __renameiso "$@"
                 exit
       ;;
-      removeiso) __remove "$@"
+      remove) __removeiso "$@"
                 exit
       ;;
       create)   __create "$@"
