@@ -116,7 +116,7 @@ You can change guest properties by using set:
     iohyve set bsdguest cpu=1                    #set cpus to 1 core
     iohyve set bsdguest tap=tap0                 #set tap device for ethernet
     iohyve set bsdguest con=nmdm0                #set the console to attach to
-    iohyve set bsdguest pcidev:1:passthru,2/0/0  #pass through a pci device
+    iohyve set bsdguest pcidev:1=passthru,2/0/0  #pass through a pci device
 
 Get a specific guest property:
 
