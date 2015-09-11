@@ -216,7 +216,11 @@ __create() {
   done
   }
   local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
-  local tap="$(expr $taplast + 1)"
+  if [ -z $taplast ]; then
+	local tap='0'
+  else
+	local tap="$(expr $taplast + 1)"
+  fi
   listcons(){
   for i in $guestlist ; do
         local conprop="$(zfs get -H -o value iohyve:con neuralnet/iohyve/$i)"
