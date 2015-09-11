@@ -211,7 +211,7 @@ __create() {
 	grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   listtaps(){
   for i in $guestlist ; do
-	local tapprop="$(zfs get -H -o value iohyve:tap neuralnet/iohyve/$i)"
+	local tapprop="$(zfs get -H -o value iohyve:tap $pool/iohyve/$i)"
 	printf $tapprop'\n'
   done
   }
@@ -223,7 +223,7 @@ __create() {
   fi
   listcons(){
   for i in $guestlist ; do
-        local conprop="$(zfs get -H -o value iohyve:con neuralnet/iohyve/$i)"
+        local conprop="$(zfs get -H -o value iohyve:con $pool/iohyve/$i)"
 	printf $conprop'\n'
   done
   }
@@ -494,7 +494,7 @@ __taplist() {
   local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   echo "Listing all network taps:"
   for i in $guestlist ; do
-        conprop="$(zfs get -H -o value iohyve:tap neuralnet/iohyve/$i)"
+        conprop="$(zfs get -H -o value iohyve:tap $pool/iohyve/$i)"
         printf $i'......'$conprop'\n'
   done
 }
@@ -511,7 +511,7 @@ __conlist() {
   local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   echo "Listing all consoles:" 
   for i in $guestlist ; do
-	conprop="$(zfs get -H -o value iohyve:con neuralnet/iohyve/$i)"
+	conprop="$(zfs get -H -o value iohyve:con $pool/iohyve/$i)"
 	printf $i'......'$conprop'\n'
   done 
 }
