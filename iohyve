@@ -136,9 +136,7 @@ __get_zfs_pcidev_conf() {
   IFS=$'\n'
   for pcidev in $(zfs get -H -o property,value all $pool | grep iohyve:pcidev: | sort )
   do
-	echo $pcidev | cut -f2-
-	local emul=$(echo $pcidev | cut -f2-)
-	echo $emul
+    echo $pcidev | cut -f2-
   done
   IFS=$oldifs
 }
