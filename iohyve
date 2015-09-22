@@ -6,22 +6,22 @@
 __parse_cmd () {
   while [ $# -gt 0 ] ; do
     case "$1" in
-      version)  __version 
+      version)  __version
                 exit
       ;;
       setup)    __setup "$@"
                 exit
       ;;
-      list)     __list 
+      list)     __list
                 exit
       ;;
-      isolist)  __isolist 
+      isolist)  __isolist
                 exit
       ;;
-      vmmlist)  __vmmlist 
+      vmmlist)  __vmmlist
                 exit
       ;;
-      running)  __running 
+      running)  __running
                 exit
       ;;
       fetch)    __fetch "$@"
@@ -174,7 +174,7 @@ __running() {
 	| cut -d ':' -f3 | cut -d '-' -f2 | cut -d '(' -f1
 }
 
-# Fetch ISO 
+# Fetch ISO
 __fetch() {
   local url="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
@@ -194,7 +194,7 @@ mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
 zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
 }
 
-# Remove ISO 
+# Remove ISO
 __removeiso() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
@@ -202,7 +202,7 @@ __removeiso() {
   zfs destroy $pool/iohyve/ISO/$name
 }
 
-# Create guest 
+# Create guest
 __create() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
@@ -289,7 +289,7 @@ __load() {
 		if [ $install = "yes" ]; then
 			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
 			printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-			grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name		
+			grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 		elif [ $install = "no" ]; then
 			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
                         printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
@@ -364,7 +364,7 @@ __prepare_guest() {
 		if [ $tap != "tap0" ]; then
 			# no need to create tap0, should be installed already via README
 			# check to see if tap is already created before attempting to create new tap interface
-			local tapif="$(ifconfig -a | grep $tap: | cut -c1-4)"
+			local tapif="$('ifconfig' -a | grep $tap: | cut -c1-4)"
 			if [ -z $tapif ]; then
 				# create tap interface
 				ifconfig $tap create
@@ -509,16 +509,16 @@ __activetaps() {
 __conlist() {
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
-  echo "Listing all consoles:" 
+  echo "Listing all consoles:"
   for i in $guestlist ; do
 	conprop="$(zfs get -H -o value iohyve:con $pool/iohyve/$i)"
 	printf $i'......'$conprop'\n'
-  done 
+  done
 }
 
 # List active consoles in use
 __activecons() {
-  echo 
+  echo
 "Listing active nullmodem consoles..."
   ls /dev | grep nmdm | grep A | cut -d 'A' -f 1
 }
@@ -544,18 +544,18 @@ cat << 'EOT'
 ### Welcome! ###
 
 # If you are just setting up shared networking, just set the guest's IP to a valid IP address
-# on the host's network. If you choose to use VNET, you'll need to set a few more things up. 
+# on the host's network. If you choose to use VNET, you'll need to set a few more things up.
 
 ### Quick Pre-flight checklist ###
 
 # iohyve's network is meant to work either via VNET or Shared IP, both utilizing tap(4)
 # The goal is to potentialy have bhyve guests and iocage jails living on the same VNET
-# Things labeled as NEEDED are needed at the very least for shared IP guests. 
+# Things labeled as NEEDED are needed at the very least for shared IP guests.
 # Everything else is for VNET.
 #
 #
 # The following needs to be added to kernal config and recompiled
-# options     VIMAGE    # VNET/VIMAGE option for VNET only. 
+# options     VIMAGE    # VNET/VIMAGE option for VNET only.
 #
 # VirtIO support (Included in GENERIC kernel)
 # device          virtio                  # Generic VirtIO bus (required)
@@ -590,28 +590,28 @@ cat << 'EOT'
 # pf_rules="/etc/pf.conf"                                 # Not needed for non-vnet setups
 # pflog_enable="yes"                                      # Not needed for non-vnet setups
 #
-# 
+#
 # Below is an example /etc/pf.conf ***Not needed for non-vnet setups
 # Remember to start pf service and run 'pfctl -ef /etc/pf.conf'
-# 
+#
 # pub="XXX.XXX.XXX.XXX"           # IP address of host
 # jail_net="10.10.155.00/24"      #
 # example_jail="10.10.155.10"     # Already existing iocage vnet jail
 # example_guest="10.10.155.11"    # IP for new guest
 # if="em0"                        # The physical ethernet interface
-#  
+#
 # set block-policy return
 # set skip on lo
 # scrub in
-#  
+#
 # NAT
 # nat on $if from $example_jail to !$jail_net -> $pub   # Give jail route out
 # nat on $if from $example_guest to !$jail_net -> $pub  # Give guest route out
-#  
+#
 # default
 # pass out on $if from $pub to any
 # block in log on $if
-#  
+#
 # ssh on the host machine
 # pass in quick on $if proto tcp from any to $pub port 4444   # my SSH port is on 4444
 EOT
@@ -622,7 +622,7 @@ __man() {
 cat << 'EOT' | less
 NAME
   iohyve(8) - bhyve manager/launcher v0.5.6 "it's pronounced linux"
-  
+
 SYNOPSIS
   iohyve version
   iohyve setup [pool]
@@ -630,11 +630,11 @@ SYNOPSIS
   iohyve isolist
   iohyve vmmlist
   iohyve running
-  iohyve fetch [URL] 
+  iohyve fetch [URL]
   iohyve renameiso [ISO] [newname]
   iohyve removeiso [ISO]
   iohyve create [name] [size]
-  iohyve install [name] [ISO] 
+  iohyve install [name] [ISO]
   iohyve load [name]
   iohyve boot [name] [ISO]
   iohyve start [name] [-a | -s]
@@ -655,79 +655,79 @@ SYNOPSIS
   iohyve readme
   iohyve help
   iohyve man
-  
+
 DESCRIPTION
-  The iohyve(8) shell script utilizes the FreeBSD hypervisor bhyve(8), 
+  The iohyve(8) shell script utilizes the FreeBSD hypervisor bhyve(8),
   zfs(8), and nmdm(4) to make virtualization on FreeBSD easy and simple.
   Currently, only FreeBSD guests can be configured, with more on the way.
-  The basic idea is to store bhyve settings in zfs user properties of zfs 
-  datasets that house important guest files like block devices and grub 
-  configurations. iohyve(8) uses the virtio drivers built into the GENERIC 
+  The basic idea is to store bhyve settings in zfs user properties of zfs
+  datasets that house important guest files like block devices and grub
+  configurations. iohyve(8) uses the virtio drivers built into the GENERIC
   kernel for virtualization. iohyve(8) does not run out of the box. For
-  starters, you will need to run 'kldload vmm' for bhyve and 'kldload nmdm' 
-  for the null modem device that helps you connect with  your virtual guest. 
-  You can run 'iohyve readme' to learn more about host configuration. 
-  
+  starters, you will need to run 'kldload vmm' for bhyve and 'kldload nmdm'
+  for the null modem device that helps you connect with  your virtual guest.
+  You can run 'iohyve readme' to learn more about host configuration.
+
   Make sure you have enough tap devices. Only one guest per tap device.
   You can always run 'ifconfig tap1' then 'ifconfig bridge0 addm tap1'
   Then you can set the guest to use it with 'iohyve guest set tap=tap1'
 
 OPTIONS
   version   Prints the current running version of iohyve
-  
+
   setup     Installs required zfs datasets for iohyve to function.
-              
+
             Usage: 'iohyve setup [poolname]' where [poolname] is the zpool
                     you want to install iohyve on.
-              
-  list      Lists the zfs dataset directorys for iohyve. 
-  
+
+  list      Lists the zfs dataset directorys for iohyve.
+
   isolist   Lists the installed ISOs in the /iohyve/ISO directory.
-  
-  vmmlist   Lists the current guests that are loaded into bhyves VMM. 
+
+  vmmlist   Lists the current guests that are loaded into bhyves VMM.
             (Use to see who has resources)
-  
+
   running   Lists all the current running and booted guests by Process ID.
-  
+
   fetch     Fetches installation ISO or install image and creates a
-            dataset for it. 
-             
-            Usage: 'iohyve fetch [URL]' where [URL] is the HTTP or FTP URL to 
-                    fetch from the internet. 
-              
+            dataset for it.
+
+            Usage: 'iohyve fetch [URL]' where [URL] is the HTTP or FTP URL to
+                    fetch from the internet.
+
   renameiso Renames an ISO
 
             Usage: 'iohyve renameiso [ISO] [newname]' where [ISO] is the
-                   name of the ISO you would like to rename. [newname] 
+                   name of the ISO you would like to rename. [newname]
                    is a new name.
 
   removeiso Removes installed ISO from /iohyve/ISO
-  
-            Usage: 'iohyve remove [ISO]' where [ISO] is the name of the ISO 
+
+            Usage: 'iohyve remove [ISO]' where [ISO] is the name of the ISO
                     you would like to delete.
-  
+
   create    Creates new guest operating system.
-              
+
             Usage: 'iohyve create [name] [size]' where [name] is
                     the name you would like to use, [size] is the size of the
-                    virtual block device in '16G' format where the capital G 
+                    virtual block device in '16G' format where the capital G
                     signifies gigabytes.
-                    
-  install   Loads and boots into ISO for guest installation. 
-            
+
+  install   Loads and boots into ISO for guest installation.
+
             Usage: 'iohyve install [name] [ISO]' where [name] is the name
                     of the guest, and [ISO] is the name of the ISO you would
                     like to boot from in the form of: 'instal.iso'
-                    
+
   load      Loads the guest operating system bootloader and resources.
-  
+
             Usage: 'iohyve load [name] [ISO]'
 					where [name]    is the name of the guest operating system.
                           [bootimg] is the path to the boot medium
 
   boot      Boots the guest into the operating system. 'iohyve run' needs
-            to be run before this is done. 
-            
+            to be run before this is done.
+
             Usage: 'iohyve boot [name] [runmode] [pci]'
 					where [name]    is the name of the guest operating system.
                           [runmode] describes how to start the guest:
@@ -742,24 +742,24 @@ OPTIONS
                                         "ahci-hd,/path/disk.img virtio-net,tap0"
                                     Note: hostbridge and lpc are automatically
                                           added
-  
+
   start     Starts the guest operating system. (Combines load & boot)
-  
+
             Usage: 'iohyve start [name] [-s | -a]'
                    where [name]     is the name of the guest operating system.
                          [-s]       will cause the guest to be started once
                          [-a]       will cause the guest to always restart
 
   stop      Gracefully stops guest operating system.
-  
+
             Usage: 'iohyve stop [name]' where [name] is the name
                     of the guest operating system.
-                    
+
   scram     Gracefully stop all bhyve guests. Does not destroy resources.
-  
-  destroy   Destroys guest resources. 
+
+  destroy   Destroys guest resources.
             (Resources viewed with 'iocage vmmlist')
-            
+
             Usage: 'iohyve destroy [name]' where [name] is the name
                     of the guest operating system.
 
@@ -767,17 +767,17 @@ OPTIONS
 
             Usage: 'iohyve rename [name] [newname]' where [name] is the
                     name of the guest and [newname] is the new name.
-                    
+
   delete    Deletes all data for the guest.
-            
+
             Usage: 'iohyve delete [name]' where [name] is the name
                     of the guest operating system.
-                    
+
   set       Sets ZFS properties for guests one at a time
-  
+
             Usage: 'iohyve set [name] [prop=value]' where [name] is the name
                     of the guest operating system.
-            Properties: 
+            Properties:
                     ram=512M or ram=2G (M for megabytes, G for gigabtyes)
                     cpu=1 (number of cpu cores)
                     con=nmdm0 (where to attach null modem console)
@@ -793,46 +793,46 @@ OPTIONS
                             automatically by iohyve.
                             Examples: "pcidev:1=passthru,2/0/0"
                                       "pcidev:2=ahci-hd,/some/place/disk.img"
-  
+
   get       Gets ZFS properties for guests one at a time
-            
+
             Usage: 'iohyve get [name] [prop]' where [name] is the name
-                    of the guest operating system. [prop] is the 
+                    of the guest operating system. [prop] is the
                     property you want to view. (See 'iohyve set' info)
-  
+
   getall    Gets all the ZFS properties for a guest
-            
+
             Usage: 'iohyve getall [name]' where [name] is the name
                     of the guest operating system.
 
   taplist   Lists all of the network taps taken by iohyve guests
-            This will list taps that are not active as well. 
+            This will list taps that are not active as well.
 
   activetaps
             Lists all active taps in use
-                    
+
   conlist   Lists all of the nullmodem consoles taken by iohyve guests.
             This will list taps that are not active as well.
-  
+
   console   Consoles into a guest operating system. Utilizes nmdm(4) and
             cu(1) to open a console on a guest operating system. Since
-            bhyve(8) does not emulate video, so we need to administer 
+            bhyve(8) does not emulate video, so we need to administer
             the guests via a serial communication device. Since iohyve
             uses cu(1), you will need to press the tilde (~) twice
-            then period (.) to exit the console. 
+            then period (.) to exit the console.
             (Think typing ~~. real fast to exit console)
-  
+
             Usage: 'iohyve console [name]' where [name] is the name
                     of the guest operating system.
-  
-  conreset  Ends all console sessions for when things get weird. 
-  
-  readme    Outputs README file. You can run 'iohyve readme > README.txt' 
+
+  conreset  Ends all console sessions for when things get weird.
+
+  readme    Outputs README file. You can run 'iohyve readme > README.txt'
             to save the readme to a file.
-  
+
   help      General usage help.
-  
-  man       This man page. 
+
+  man       This man page.
 
 EXAMPLES
   Setup iohyve zpool named tank:
@@ -932,7 +932,7 @@ iohyve  version
         conreset
         readme
         help
-        man 
+        man
 EOT
 }
 
