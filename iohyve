@@ -30,7 +30,7 @@ __parse_cmd () {
       renameiso) __renameiso "$@"
                 exit
       ;;
-      remove) __removeiso "$@"
+      rmiso) 	__deleteiso "$@"
                 exit
       ;;
       create)   __create "$@"
@@ -195,11 +195,11 @@ mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
 zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
 }
 
-# Remove ISO
-__removeiso() {
+# Delete ISO
+__deleteiso() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  echo "Removing $name..."
+  echo "Deleting $name..."
   zfs destroy $pool/iohyve/ISO/$name
 }
 
@@ -654,7 +654,7 @@ SYNOPSIS
   iohyve running
   iohyve fetch [URL]
   iohyve renameiso [ISO] [newname]
-  iohyve removeiso [ISO]
+  iohyve rmiso [ISO]
   iohyve create [name] [size]
   iohyve install [name] [ISO]
   iohyve load [name]
@@ -723,9 +723,9 @@ OPTIONS
                    name of the ISO you would like to rename. [newname]
                    is a new name.
 
-  removeiso Removes installed ISO from /iohyve/ISO
+  rmiso     Removes installed ISO from /iohyve/ISO
 
-            Usage: 'iohyve remove [ISO]' where [ISO] is the name of the ISO
+            Usage: 'iohyve rmiso [ISO]' where [ISO] is the name of the ISO
                     you would like to delete.
 
   create    Creates new guest operating system.
