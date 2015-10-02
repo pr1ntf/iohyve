@@ -1,8 +1,8 @@
-# iohyve v0.5
-"It's pronounced linux edition"
+# iohyve v0.6
+"Multiple Disk Disorder Edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools. 
-*Now with more Debian.*
+*Over the hill to 1.0*
 
 iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features. 
 The idea is based on iocage, a jail manager utilizing some of the same principles. 
@@ -56,38 +56,37 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
 **Usage**
 
 ```
-iohyve
-	version
-	setup [pool]
-	list
-	isolist
-	vmmlist
-	running
-	fetch [URL]
-	renameiso [ISO] [newname]
-	remove [ISO]
-	create [name] [size]
-	install [name] [ISO]
-	load [name] [path/to/bootdisk]
-	boot [name] [runmode] [pcidevices]
-	start [name] [-s | -a]
-	stop [name]
-	scram
-	destroy [name]
-	rename [name] [newname]
-	delete [name]
-	set [name] [prop=value]
-	get [name] [prop]
-	getall [name]
-	taplist
-	activetaps
-	conlist
-	activecons
-	console [name]
-	conreset
-	readme
-	help
-	man 
+iohyve  version
+        setup [pool]
+        list
+        isolist
+        vmmlist
+        running
+        fetch [URL]
+        renameiso [ISO] [newname]
+        remove [ISO]
+        create [name] [size]
+        install [name] [ISO]
+        load [name] [path/to/bootdisk]
+        boot [name] [runmode] [pcidevices]
+        start [name] [-s | -a]
+        stop [name]
+        scram
+        destroy [name]
+        rename [name] [newname]
+        delete [name]
+        set [name] [prop=value]
+        get [name] [prop]
+        getall [name]
+        taplist
+        activetaps
+        conlist
+        activecons
+        console [name]
+        conreset
+        readme
+        help
+        man 
 ```
 
 **Setup**
