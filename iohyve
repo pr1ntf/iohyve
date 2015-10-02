@@ -402,22 +402,24 @@ __start() {
 	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
 	local pci=""
 	local runmode="1"
+	# Check if guest exists
+	if [ -d /iohyve/$name ]; then
+		case "$flag" in
+			-s)	runmode="0"	# single - start only once
+				;;
+			-a) 	runmode="2"	# always - persist regardless what
+				;;
+			*)	runmode="1"	# persist - persists until guest is powering off
+				;;
+		esac
+		echo "Starting $name... (Takes 15 seconds for FreeBSD guests)"
+		# Prepare and boot guest
+		pci="$(__prepare_guest $name)"
+		__boot "$name" "$runmode" "$pci"
+	else
+		echo "Not a valid guest name"
 
-    case "$flag" in
-		-s)	runmode="0"		# single - start only once
-			;;
-		-a) runmode="2"		# always - persist regardless what
-			;;
-		*)	runmode="1"		# persist - persists until guest is powering off
-			;;
-    esac
-
-	echo "Starting $name... (Takes 15 seconds for FreeBSD guests)"
-
-	# Prepare and boot guest
-	pci="$(__prepare_guest $name)"
-	__boot "$name" "$runmode" "$pci"
-
+	fi
 }
 
 # Gracefully stop a guest
