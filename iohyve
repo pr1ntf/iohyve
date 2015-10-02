@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.5.6 2015/09/03 "it's pronounced linux edition"
+# iohyve v0.5.7 2015/10/03 "trynna be like iocage"
 
 # Process command line
 __parse_cmd () {
@@ -109,7 +109,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.5.6 2015/09/03 Its pronounced linux edition'
+  echo 'iohyve v0.5.7 2015/10/02 trynna be like iocage'
 }
 
 # Setup iohyve
@@ -643,7 +643,7 @@ EOT
 __man() {
 cat << 'EOT' | less
 NAME
-  iohyve(8) - bhyve manager/launcher v0.5.6 "it's pronounced linux"
+  iohyve(8) - bhyve manager/launcher v0.5.7 "trynna be like iocage"
 
 SYNOPSIS
   iohyve version
