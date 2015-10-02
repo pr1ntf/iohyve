@@ -262,27 +262,25 @@ __install() {
 	local name="$2"
 	local iso="$3"
 	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
-	local pci=""
+        # Check if guest exists
+        if [ -d /iohyve/$name ]; then
+                local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
+                local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
+                local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
+                echo "Installing $name..."
+                # Set install prop
+                zfs set iohyve:install=yes $pool/iohyve/$name
+                # Load from CD
+                __load "$name" "/iohyve/ISO/$iso/$iso"
+                # Prepare and start guest
+                pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
+                local pci_args=$(__get_bhyve_cmd "$pci" )
+                bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+                exit
+        else
+                echo "Not a valid guest name"
 
-	echo "Installing $name..."
-
-	# Set install prop
-	zfs set iohyve:install=yes $pool/iohyve/$name
-
-	# Load from CD
-	__load "$name" "/iohyve/ISO/$iso/$iso"
-
-	# Prepare and start guest
-	pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
-
-	local pci_args=$(__get_bhyve_cmd "$pci" )
-
-	bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-
-  	exit
+        fi
 }
 
 # Load guest
