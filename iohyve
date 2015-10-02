@@ -69,6 +69,9 @@ __parse_cmd () {
       get)      __get "$@"
                 exit
       ;;
+      rmpci)	__rmpci "$@"
+		exit
+      ;;
       getall)   __getall "$@"
                 exit
       ;;
@@ -475,6 +478,27 @@ __get() {
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   echo "Getting $name prop $prop..."
   zfs get -H -o value iohyve:$prop $pool/iohyve/$name
+}
+
+# Remove a PCIDEV property
+__rmpci() {
+  local name="$2"
+  local prop="$3"
+  local pciprop="$(echo "$prop" | grep pcidev:)"
+  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+  # Make sure it's a valid pcidev property as to not shoot foot
+  if [ -z $pciprop ]; then
+	echo "Not a valid PCIDEV property"
+  else
+	read -p "Are you sure you want to remove $prop [Y/N]? " an </dev/tty
+	case "$an" in
+		y|Y) zfs inherit  -r iohyve:$prop $pool/iohyve/$name
+	  	;;
+		*) echo "Not removed..."
+	  	;;
+	esac
+  fi
+
 }
 
 # Get all ZFS props
