@@ -729,6 +729,9 @@ SYNOPSIS
   iohyve get [name] [prop]
   iohyve rmpci [name] [pcidev:N]
   iohyve getall [name]
+  iohyve add [name] [size]
+  iohyve remove [name] [diskN]
+  iohyve disks [name]
   iohyve taplist
   iohyve activetaps
   iohyve conlist
@@ -894,6 +897,25 @@ OPTIONS
             Usage: 'iohyve getall [name]' where [name] is the name
                     of the guest operating system.
 
+  add       Adds a new disk to the guest.
+
+            Usage: 'iohyve add [name] [size]' where [name] is
+                    the name of the guest, [size] is the size of the
+                    virtual block device in '16G' format where the capital G
+                    signifies gigabytes.
+
+  remove    Removes a disk from the guest. Cannot be disk0.
+
+            Usage: 'iohyve remove [name] [diskN]' where [name] is
+                    the name of the guest, [diskN] is the disk you would
+                    like to remove from the guest. See 'iohyve disks' for
+                    a list of disks for a guest 
+
+  disks     Lists the disks attached to a guest.
+
+            Usage: 'iohyve disks [name]' where [name] is the name
+                    of the guest operating system.
+
   taplist   Lists all of the network taps taken by iohyve guests
             This will list taps that are not active as well.
 
@@ -999,7 +1021,7 @@ iohyve  version
         running
         fetch [URL]
         renameiso [ISO] [newname]
-	remove [ISO]
+	rmiso [ISO]
         create [name] [size]
         install [name] [ISO]
         load [name] [path/to/bootdisk]
@@ -1014,6 +1036,9 @@ iohyve  version
         get [name] [prop]
 	rmpci [name] [pcidev:N]
         getall [name]
+	add [name] [size]
+	remove [name] [diskN]
+	disks [name]
         taplist
 	activetaps
 	conlist
