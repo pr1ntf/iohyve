@@ -81,6 +81,9 @@ __parse_cmd () {
       remove)	__remove "$@"
 		exit
       ;;
+      disks)	__disks "$@"
+		exit
+      ;;
       taplist)  __taplist
                 exit
       ;;
@@ -557,6 +560,14 @@ __remove() {
 	  	;;
 	esac
   fi
+}
+
+# List disks for a guest
+__disks() {
+  local name="$2"
+  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+  zfs list -H | grep iohyve | grep $name | grep disk | \
+	cut -d '/' -f4 | cut -f-2
 }
 
 # List taps in use
