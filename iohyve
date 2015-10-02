@@ -264,19 +264,26 @@ __install() {
 	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
         # Check if guest exists
         if [ -d /iohyve/$name ]; then
-                local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-                local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-                local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
-                echo "Installing $name..."
-                # Set install prop
-                zfs set iohyve:install=yes $pool/iohyve/$name
-                # Load from CD
-                __load "$name" "/iohyve/ISO/$iso/$iso"
-                # Prepare and start guest
-                pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
-                local pci_args=$(__get_bhyve_cmd "$pci" )
-                bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-                exit
+
+                # Check to make sure guest isn't running
+                local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+                if [ -z $running ]; then
+			local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
+                	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
+                	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
+                	echo "Installing $name..."
+                	# Set install prop
+                	zfs set iohyve:install=yes $pool/iohyve/$name
+                	# Load from CD
+                	__load "$name" "/iohyve/ISO/$iso/$iso"
+                	# Prepare and start guest
+                	pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
+                	local pci_args=$(__get_bhyve_cmd "$pci" )
+                	bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+                	exit
+                else
+                        echo "Guest is already running."
+                fi
         else
                 echo "Not a valid guest name"
 
@@ -402,18 +409,24 @@ __start() {
 	local runmode="1"
 	# Check if guest exists
 	if [ -d /iohyve/$name ]; then
-		case "$flag" in
-			-s)	runmode="0"	# single - start only once
-				;;
-			-a) 	runmode="2"	# always - persist regardless what
-				;;
-			*)	runmode="1"	# persist - persists until guest is powering off
-				;;
-		esac
-		echo "Starting $name... (Takes 15 seconds for FreeBSD guests)"
-		# Prepare and boot guest
-		pci="$(__prepare_guest $name)"
-		__boot "$name" "$runmode" "$pci"
+		# Check to make sure guest isn't running
+		local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+		if [ -z $running ]; then
+			case "$flag" in
+				-s)	runmode="0"	# single - start only once
+					;;
+				-a) 	runmode="2"	# always - persist regardless what
+					;;
+				*)	runmode="1"	# persist - persists until guest is powering off
+					;;
+			esac
+			echo "Starting $name... (Takes 15 seconds for FreeBSD guests)"
+			# Prepare and boot guest
+			pci="$(__prepare_guest $name)"
+			__boot "$name" "$runmode" "$pci"
+		else
+			echo "Guest is already running."
+		fi
 	else
 		echo "Not a valid guest name"
 
