@@ -727,6 +727,7 @@ SYNOPSIS
   iohyve delete [name]
   iohyve set [name] [prop=value]
   iohyve get [name] [prop]
+  iohyve rmpci [name] [pcidev:N]
   iohyve getall [name]
   iohyve taplist
   iohyve activetaps
@@ -882,6 +883,12 @@ OPTIONS
                     of the guest operating system. [prop] is the
                     property you want to view. (See 'iohyve set' info)
 
+  rmpci     Removes a pcidev from the guest
+
+            Usage: 'iohyve rmpci [name] [pcidev:N]' where [name] is the name
+                   of the guest operating system. [pcidev:N] is the PCI
+                   device you want removed. Ex: 'pcidev:3'
+
   getall    Gets all the ZFS properties for a guest
 
             Usage: 'iohyve getall [name]' where [name] is the name
@@ -1005,6 +1012,7 @@ iohyve  version
         delete [name]
         set [name] [prop=value]
         get [name] [prop]
+	rmpci [name] [pcidev:N]
         getall [name]
         taplist
 	activetaps
