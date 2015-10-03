@@ -314,6 +314,11 @@ __load() {
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf 'knetbsd -h -r cd0a /netbsd\nboot\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+                        elif [ $os = "debian" ]; then
+                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+                                printf '\n' | \
+                                grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			else
                                 printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
@@ -329,6 +334,11 @@ __load() {
                                 printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf 'knetbsd -h -r sd0a /netbsd\nboot\n' | \
+                                grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+                        elif [ $os = "debian" ]; then
+                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+                                printf '\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
 			else
                                 printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
