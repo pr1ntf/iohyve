@@ -255,6 +255,7 @@ __create() {
   zfs set iohyve:persist=1 $pool/iohyve/$name
   zfs set iohyve:boot=0 $pool/iohyve/$name
   zfs set iohyve:loader=bhyveload $pool/iohyve/$name
+  zfs set iohyve:os=default $pool/iohyve/$name
 }
 
 # Install guest
@@ -299,16 +300,32 @@ __load() {
 	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
 	local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$name)"
 	local install="$(zfs get -H -o value iohyve:install $pool/iohyve/$name)"
+	local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
 
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
-			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
-			printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-			grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
+			if [ $os = "openbsd" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 /5.7/amd64/bsd.rd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+			else
+                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+                                grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
+			fi
 		elif [ $install = "no" ]; then
-			printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
-                        printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                        grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
+                        if [ $os = "openbsd" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+	                        printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
+	                        grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name 
+
+			else
+                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+                                grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
+			fi
 		fi
 	else
 		bhyveload -m $ram -d $media -c /dev/${con}A ioh-$name
