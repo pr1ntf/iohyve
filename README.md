@@ -6,13 +6,7 @@ FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
 
 iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features. 
 The idea is based on iocage, a jail manager utilizing some of the same principles. 
-There is currently support for VIMAGE/VNET. Documentation soon to come. For more information on VNET support, run:
 
-    iohyve readme
-
-Or create a readme file:
-
-    iohyve readme > awesomesauce.txt 
 
 DO YOU EVEN MAN PAGE?
 
