@@ -125,17 +125,6 @@ Get all guest properties:
 
     iohyve getall bsdguest
 
-Utilize grub2-bhyve for non FreebSD guests:
-
-    iohyve set debianguest loader=grub-bhyve
-
-Try out OpenBSD:
-````
-iohyve set obsdguest loader=grub-bhyve
-iohyve set obsdguest os=openbsd
-iohyve install obsdguest install57.iso
-iohyve console obsdguest
-````
 
 **FreeBSD Guests**
 
@@ -176,3 +165,26 @@ Some guest os's can be gracefully stopped:
     iohyve stop bsdguest
 
 
+**Other BSDs:**
+Try out OpenBSD:
+````
+iohyve set obsdguest loader=grub-bhyve
+iohyve set obsdguest os=openbsd
+iohyve install obsdguest install57.iso
+iohyve console obsdguest
+````
+Try out NetBSD:
+````
+iohyve set nbsdguest loader=grub-bhyve
+iohyve set nbsdguest os=netbsd
+iohyve install nbsdguest NetBSD-6.1.5-amd64.iso
+iohyve console nbsdguest
+````
+**Linux flavors:**
+Try out Debian or Ubuntu:
+````
+iohyve set debguest loader=grub-bhyve
+iohyve set debguest os=debian
+iohyve install debguest debian-8.2.0-amd64-i386-netinst.iso
+iohyve console debguest
+````
