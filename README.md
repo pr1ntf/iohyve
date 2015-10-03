@@ -166,6 +166,7 @@ Some guest os's can be gracefully stopped:
 
 
 **Other BSDs:**
+
 Try out OpenBSD:
 ````
 iohyve set obsdguest loader=grub-bhyve
@@ -181,6 +182,7 @@ iohyve install nbsdguest NetBSD-6.1.5-amd64.iso
 iohyve console nbsdguest
 ````
 **Linux flavors:**
+
 Try out Debian or Ubuntu:
 ````
 iohyve set debguest loader=grub-bhyve
