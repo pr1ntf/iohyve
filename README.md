@@ -129,6 +129,14 @@ Utilize grub2-bhyve for non FreebSD guests:
 
     iohyve set debianguest loader=grub-bhyve
 
+Try out OpenBSD:
+````
+iohyve set obsdguest loader=grub-bhyve
+iohyve set obsdguest os=openbsd
+iohyve install obsdguest install57.iso
+iohyve console obsdguest
+````
+
 **FreeBSD Guests**
 
 Fetch FreeBSD install ISO for later:
