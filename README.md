@@ -175,3 +175,48 @@ iohyve set debguest os=debian
 iohyve install debguest debian-8.2.0-amd64-i386-netinst.iso
 iohyve console debguest
 ````
+Try out CentOS 6:
+````
+iohyve set centguest loader=grub-bhyve
+iohyve set centguest os=centos6
+iohyve set centguest ram=512M			# CentOS6 Requirement
+iohyve install centguest CentOS-6.7-x86_64-netinstall.iso
+
+# Okay whoa, hold on, we can go two ways here. 
+# There the hacky way, and the more hacky way. 
+# Option 1: Update a property everytime the kernel is updated. 
+# Option 2: Do some things, compile things, not worry so much. 
+
+# Option 1:
+iohyve set centguest os=custom 			# Do this once
+iohyve set centguest autogrub='linux%1s(hd0,msdos1)/vmlinuz-2.6.32-573.el6.x86_64%1sroot=/dev/mapper/VolGroup-lv_root\ninitrd%1s(hd0,msdos1)/initramfs-2.6.32-573.el6.x86_64.img\nboot\n'
+# I know, right? Do that everytime you update your Linus kernel. 
+
+# Option 2:
+iohyve set centguest os=custom
+iohyve start centguest				# Do some things
+iohyve console centos guest			# Stuff may scroll across screen
+
+CentOS release 6.7 (Final)
+Kernel 2.6.32-573.el6.x86_64 on an x86_64	# Don't panic
+
+localhost.localdomain login: root		# Okay panic a little
+
+[root@localhost ~]# yum install wget bison gcc flex nano
+[root@localhost ~]# wget ftp://ftp.gnu.org/gnu/grub/grub-2.00.tar.gz
+[root@localhost ~]# tar -xzf grub-2.00.tar.gz
+[root@localhost ~]# cd grub-2.00
+[root@localhost grub-2.00]# ./configure    
+[root@localhost grub-2.00]# make install
+[root@localhost grub-2.00]# /usr/local/sbin/grub-mkconfig -o /boot/grub/grub.cfg
+[root@localhost grub-2.00]# /usr/local/sbin/grub-install /dev/sda
+[root@localhost grub-2.00]# init 0
+
+# Exit the terminal (To make sure) [Enter] [Enter] (~ ~ .)
+
+iohyve destroy centos				# Double tap
+
+iohyve start centos				# "Should" work. 
+
+
+````
