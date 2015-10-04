@@ -230,6 +230,8 @@ localhost.localdomain login: root		# Okay panic a little
 
 iohyve destroy centos				# Double tap
 
+iohyve set centos6 os=centos6			# Set it back.
+
 iohyve start centos				# "Should" work. 
 
 
