@@ -188,19 +188,33 @@ iohyve install centguest CentOS-6.7-x86_64-netinstall.iso
 # Option 2: Do some things, compile things, not worry so much. 
 
 # Option 1:
-iohyve set centguest os=centos6 			# Do this once
+iohyve set centguest os=custom 			# Do this once
 iohyve set centguest autogrub='linux%1s(hd0,msdos1)/vmlinuz-2.6.32-573.el6.x86_64%1sroot=/dev/mapper/VolGroup-lv_root\ninitrd%1s(hd0,msdos1)/initramfs-2.6.32-573.el6.x86_64.img\nboot\n'
 # I know, right? Do that everytime you update your Linus kernel. 
 
 # Option 2:
-iohyve set centguest os=custom
+iohyve set centguest os=default
 iohyve start centguest				# Do some things
-iohyve console centos guest			# Stuff may scroll across screen
+iohyve console centos guest			
+
+# Find the kernel and things to boot the first time. 
+
+grub>ls (hd0,msdos1)/ 
+lost+found/ grub/ efi/ System.map-2.6.32-504.el6.x86_64 config-2.6.32-504.el6.x
+86_64 symvers-2.6.32-504.el6.x86_64.gz vmlinuz-2.6.32-504.el6.x86_64 initramfs-
+2.6.32-504.el6.x86_64.img
+grub>linux (hd0,msdos1)/vmlinuz-2.6.32-504.el6.x86_64 root=/dev/mapper/VolGroup-lv_root
+grub>initrd (hd0,msdos1)/initramfs-2.6.32-504.el6.x86_64.img
+grub>boot
+
+# Stuff may scroll across screen
 
 CentOS release 6.7 (Final)
 Kernel 2.6.32-573.el6.x86_64 on an x86_64	# Don't panic
 
 localhost.localdomain login: root		# Okay panic a little
+
+# Install Grub2
 
 [root@localhost ~]# yum install wget bison gcc flex nano
 [root@localhost ~]# wget ftp://ftp.gnu.org/gnu/grub/grub-2.00.tar.gz
