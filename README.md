@@ -188,7 +188,7 @@ iohyve install centguest CentOS-6.7-x86_64-netinstall.iso
 # Option 2: Do some things, compile things, not worry so much. 
 
 # Option 1:
-iohyve set centguest os=custom 			# Do this once
+iohyve set centguest os=centos6 			# Do this once
 iohyve set centguest autogrub='linux%1s(hd0,msdos1)/vmlinuz-2.6.32-573.el6.x86_64%1sroot=/dev/mapper/VolGroup-lv_root\ninitrd%1s(hd0,msdos1)/initramfs-2.6.32-573.el6.x86_64.img\nboot\n'
 # I know, right? Do that everytime you update your Linus kernel. 
 
