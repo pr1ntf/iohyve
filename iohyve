@@ -329,7 +329,7 @@ __load() {
                         elif [ $os = "archlinux" ]; then
                                 printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'linux (cd0)/linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_201510 ro\ninitrd (cd0)//arch/boot/x86_64/archiso.img\nboot\n' | \
+				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_201510 ro\ninitrd (cd0)//arch/boot/x86_64/archiso.img\nboot\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			else
                                 printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
