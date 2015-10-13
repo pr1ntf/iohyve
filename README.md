@@ -175,6 +175,13 @@ iohyve set debguest os=debian
 iohyve install debguest debian-8.2.0-amd64-i386-netinst.iso
 iohyve console debguest
 ````
+Try out ArchLinux:
+````
+iohyve set archguest loader=grub-bhyve
+iohyve set archguest os=arch
+iohyve install archguest archlinux-2015.10.01-dual.iso
+iohyve console archguest
+````
 Try out CentOS 6:
 ````
 iohyve set centguest loader=grub-bhyve
