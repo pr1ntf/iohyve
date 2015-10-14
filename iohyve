@@ -857,6 +857,9 @@ SYNOPSIS
   iohyve add [name] [size]
   iohyve remove [name] [diskN]
   iohyve disks [name]
+  iohyve snapguest [name]@[snapshotname]
+  iohyve rollguest [name]@[snapshotname]
+  iohyve snaplist
   iohyve taplist
   iohyve activetaps
   iohyve conlist
@@ -1041,6 +1044,21 @@ OPTIONS
             Usage: 'iohyve disks [name]' where [name] is the name
                     of the guest operating system.
 
+  snapguest Take a snapshot of a guest. 
+
+            Usage: 'iohyve snapguest [name]@[snapshot]' where [name] is the 
+                    name of the guest and [snapshot] is what you would 
+                    like to name the snapshot.
+
+  rollguest Rollback guest to a snapshot. 
+
+            Usage: 'iohyve rollguest [name]@[snapshot]' where [name] is the
+                    name of the guest and [snapshot] is what you would
+                    like to name the snapshot.
+
+  snaplist  List all of the snapshots for all the guests. Does not show 
+            snapshots of disks (they are there, though). 
+
   taplist   Lists all of the network taps taken by iohyve guests
             This will list taps that are not active as well.
 
@@ -1164,6 +1182,9 @@ iohyve  version
 	add [name] [size]
 	remove [name] [diskN]
 	disks [name]
+	snapguest [name]@[snapshotname]
+	rollguest [name]@[snapshotname]
+	snaplist
         taplist
 	activetaps
 	conlist
