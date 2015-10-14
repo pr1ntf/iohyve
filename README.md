@@ -109,6 +109,12 @@ You can change guest properties by using set:
     iohyve set bsdguest con=nmdm0                #set the console to attach to
     iohyve set bsdguest pcidev:1=passthru,2/0/0  #pass through a pci device
 
+You can also set a description that can be a double quoted (") string with no equals sign (=). 
+All spaces are turned into underscores (_). At guest creation, the description is the output of `date`
+````
+iohyve set bsdguest description="This is my string"
+````
+
 Get a specific guest property:
 
     iohyve get bsdguest ram
