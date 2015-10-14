@@ -63,6 +63,12 @@ iohyve  version
         set [name] [prop=value]
         get [name] [prop]
         getall [name]
+        add [name] [size]
+        remove [name] [diskN]
+        disks [name]
+        snapguest [name]@[snapshotname]
+        rollguest [name]@[snapshotname]
+        snaplist
         taplist
         activetaps
         conlist
