@@ -229,6 +229,7 @@ __create() {
   local name="$2"
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   local size="$3"
+  local description="$(date | sed -e 's/ /_/g')"
   local guestlist="$(zfs list | grep iohyve | grep -v ISO | \
 	grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   listtaps(){
@@ -269,6 +270,7 @@ __create() {
   zfs set iohyve:loader=bhyveload $pool/iohyve/$name
   zfs set iohyve:os=default $pool/iohyve/$name
   zfs set iohyve:autogrub='\n' $pool/iohyve/$name
+  zfs set iohyve:description=$description $pool/iohyve/$name
 }
 
 # Install guest
@@ -556,11 +558,17 @@ __delete() {
 
 # Set ZFS props
 __set() {
-  local name="$2"
-  local propval="$3"
-  local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
-  echo "Setting $name prop $propval..."
-  zfs set iohyve:$propval $pool/iohyve/$name
+	local name="$2"
+	local propval="$3"
+	local prop="$(echo $propval | cut -d '=' -f1 )"
+	local dprop="$(echo $propval | cut -d '"' -f2 | sed -e 's/ /_/g')"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	echo "Setting $name prop $propval..."
+	if [ $prop = "description" ]; then
+		zfs set iohyve:$dprop $pool/iohyve/$name
+	else
+		zfs set iohyve:$propval $pool/iohyve/$name
+	fi
 }
 
 # Get ZFS props
