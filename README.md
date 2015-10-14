@@ -65,6 +65,7 @@ iohyve  version
         getall [name]
         add [name] [size]
         remove [name] [diskN]
+	resize [name] [diskN] [size]
         disks [name]
         snapguest [name]@[snapshotname]
         rollguest [name]@[snapshotname]
