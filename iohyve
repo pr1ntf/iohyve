@@ -84,6 +84,15 @@ __parse_cmd () {
       disks)	__disks "$@"
 		exit
       ;;
+      snapguest) __snapguest "$@"
+		exit
+      ;;
+      rollguest) __rollguest "$@"
+		exit
+      ;;
+      snaplist)	__snaplist
+		exit
+      ;;
       taplist)  __taplist
                 exit
       ;;
@@ -639,6 +648,51 @@ __disks() {
   local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
   zfs list -H | grep iohyve | grep $name | grep disk | \
 	cut -d '/' -f4 | cut -f-2
+}
+
+# Snapshot a guest
+__snapguest() {
+	local fullsnap="$2"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	local name="$(echo $fullsnap | cut -d '@' -f1)"
+	echo "Taking snapshot $fullsnap"
+	# Check if guest exists
+	if [ -d /iohyve/$name ]; then
+		zfs snap -r $pool/iohyve/$fullsnap
+	else
+		echo "Not a valid guest name"
+	fi
+}
+
+# Rollback guest
+__rollguest() {
+	local fullsnap="$2"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	local name="$(echo $fullsnap | cut -d '@' -f1)"
+	local snap="$(echo $fullsnap | cut -d '@' -f2)"
+	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
+                                cut -f1 | cut -d '/' -f4-)"
+	# Check if guest exists
+	if [ -d /iohyve/$name ]; then
+		# Check to make sure guest isn't running
+		local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+		if [ -z $running ]; then
+			zfs rollback -rR $pool/iohyve/$fullsnap
+			for disk in $disklist ; do
+				zfs rollback -rR $pool/iohyve/$name/$disk@$snap
+			done
+		else
+			echo "Please stop the guest first"
+		fi
+	else
+		echo "Not a valid guest name"
+
+	fi
+}
+
+# List all the snapshots
+__snaplist() {
+	zfs list -H -t snap | grep iohyve | grep -v disk | cut -f1 | cut -d '/' -f3
 }
 
 # List taps in use
