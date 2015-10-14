@@ -110,7 +110,12 @@ Get all guest properties:
 
     iohyve getall bsdguest
 
-
+Take a snapshot of a guest:
+````
+iohyve snapguest bsdguest@beforeupdate  #take snapshot
+iohyve snaplist                         #list snapshots
+iohyve snapguest bsdguest@beforeupdate  #rollback to snapshot
+````
 **FreeBSD Guests**
 
 Fetch FreeBSD install ISO for later:
@@ -148,7 +153,6 @@ Now that the guest is installed, it can be started like usual:
 Some guest os's can be gracefully stopped:
 
     iohyve stop bsdguest
-
 
 **Other BSDs:**
 
