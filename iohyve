@@ -81,6 +81,9 @@ __parse_cmd () {
       remove)	__remove "$@"
 		exit
       ;;
+      resize)   __resize "$@"
+                exit
+      ;;
       disks)	__disks "$@"
 		exit
       ;;
@@ -642,6 +645,28 @@ __remove() {
   fi
 }
 
+# Resize a disk
+__resize(){
+	local name="$2"
+	local disk="$3"
+	local size="$4"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	# Check if guest exists
+	echo "Resizing $disk to $size"
+	if [ -d /iohyve/$name ]; then
+		# Check to make sure guest isn't running
+		local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+		if [ -z $running ]; then
+			zfs set volsize=$size $pool/iohyve/$name/$disk 
+		else
+			echo "Please stop the guest first"
+		fi
+	else
+		echo "Not a valid guest name"
+
+	fi
+}
+
 # List disks for a guest
 __disks() {
   local name="$2"
@@ -673,6 +698,7 @@ __rollguest() {
 	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
                                 cut -f1 | cut -d '/' -f4-)"
 	# Check if guest exists
+	echo "Rolling back to $fullsnap"
 	if [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
