@@ -1139,11 +1139,16 @@ EXAMPLES
 
   Install and run a Debian guest:
 
-	iohyve create debianvm 8G nmdm8		#create as usual
+	iohyve create debianvm 8G		#create as usual
 	iohyve set debianvm loader=grub-bhyve	#set loader option
 	iohyve install debianvm deb8.1-net.iso	#install as usual
 	iohyve start debianvm			#start after install is done
 
+  Take a snapshot of a guest:
+
+        iohyve snapguest bsdguest@beforeupdate	#take snapshot
+        iohyve snaplist				#list snapshots
+        iohyve snapguest bsdguest@beforeupdate	#rollback to snapshot
 
 AUTHOR
   Trent -- @pr1ntf
