@@ -882,6 +882,7 @@ SYNOPSIS
   iohyve getall [name]
   iohyve add [name] [size]
   iohyve remove [name] [diskN]
+  iohyve resize [name] [diskN] [size]
   iohyve disks [name]
   iohyve snapguest [name]@[snapshotname]
   iohyve rollguest [name]@[snapshotname]
@@ -1065,6 +1066,15 @@ OPTIONS
                     like to remove from the guest. See 'iohyve disks' for
                     a list of disks for a guest 
 
+  resize    Resizes a disk. THIS CAN BREAK THINGS ON THE GUEST.
+
+            Usage: 'iohyve resize [name] [diskN] [size]' where [name] is
+                    the name of the guest, [diskN] is the disk you would
+                    like to remove from the guest, and [size] is the size 
+                    of the virtual block device in '16G' format where the 
+                    capital G signifies gigabytes.
+                    See 'iohyve disks' for a list of disks for a guest
+
   disks     Lists the disks attached to a guest.
 
             Usage: 'iohyve disks [name]' where [name] is the name
@@ -1212,6 +1222,7 @@ iohyve  version
         getall [name]
 	add [name] [size]
 	remove [name] [diskN]
+	resize [name] [diskN] [size]
 	disks [name]
 	snapguest [name]@[snapshotname]
 	rollguest [name]@[snapshotname]
