@@ -93,7 +93,7 @@ __parse_cmd () {
       snap)	__snapguest "$@"
 		exit
       ;;
-      rollguest) __rollguest "$@"
+      roll)	__rollguest "$@"
 		exit
       ;;
       snaplist)	__snaplist
@@ -839,7 +839,7 @@ SYNOPSIS
   iohyve resize [name] [diskN] [size]
   iohyve disks [name]
   iohyve snap [name]@[snapshotname]
-  iohyve rollguest [name]@[snapshotname]
+  iohyve roll [name]@[snapshotname]
   iohyve snaplist
   iohyve taplist
   iohyve activetaps
@@ -1039,9 +1039,9 @@ OPTIONS
                     name of the guest and [snapshot] is what you would 
                     like to name the snapshot.
 
-  rollguest Rollback guest to a snapshot. 
+  roll      Rollback guest to a snapshot. 
 
-            Usage: 'iohyve rollguest [name]@[snapshot]' where [name] is the
+            Usage: 'iohyve roll [name]@[snapshot]' where [name] is the
                     name of the guest and [snapshot] is what you would
                     like to name the snapshot.
 
@@ -1175,7 +1175,7 @@ iohyve  version
 	resize [name] [diskN] [size]
 	disks [name]
 	snap [name]@[snapshotname]
-	rollguest [name]@[snapshotname]
+	roll [name]@[snapshotname]
 	snaplist
         taplist
 	activetaps
