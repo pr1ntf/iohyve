@@ -847,7 +847,6 @@ SYNOPSIS
   iohyve activeconsoles
   iohyve console [name]
   iohyve conreset
-  iohyve readme
   iohyve help
   iohyve man
 
@@ -1071,9 +1070,6 @@ OPTIONS
 
   conreset  Ends all console sessions for when things get weird.
 
-  readme    Outputs README file. You can run 'iohyve readme > README.txt'
-            to save the readme to a file.
-
   help      General usage help.
 
   man       This man page.
@@ -1187,7 +1183,6 @@ iohyve  version
 	activecons
         console [name]
         conreset
-        readme
         help
         man
 EOT
