@@ -96,6 +96,9 @@ __parse_cmd () {
       roll)	__rollguest "$@"
 		exit
       ;;
+      clone)	__cloneguest "$@"
+		exit
+      ;;
       snaplist)	__snaplist
 		exit
       ;;
@@ -747,6 +750,36 @@ __rollguest() {
 		echo "Not a valid guest name"
 
 	fi
+}
+
+# Clone a guest
+__cloneguest() {
+        local name="$2"
+	local cname="$3"
+        local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+        # Check if guest exists
+        echo "Cloning $name to $cname"
+        if [ -d /iohyve/$name ]; then
+                # Check to make sure guest isn't running
+                local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+                if [ -z $running ]; then
+			# Take snapshot
+			zfs snap -r $pool/iohyve/$name@$cname
+			# zfs send that snap and desendants then receive to cname
+			zfs send -R $pool/iohyve/$name@$cname | \
+			zfs recv $pool/iohyve/$cname
+			# clean up
+			zfs destroy -rR $pool/iohyve/$name@$cname
+			zfs destroy -rR $pool/iohyve/$cname@$cname
+			# rename the guest
+			zfs set iohyve:name=$cname $pool/iohyve/$cname
+                else
+                        echo "Please stop the guest first"
+                fi
+        else
+                echo "Not a valid guest name"
+
+        fi
 }
 
 # List all the snapshots
