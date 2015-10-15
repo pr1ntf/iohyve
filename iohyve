@@ -208,7 +208,7 @@ __fetch() {
   local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
   local name="$(basename $2)"
   echo "Fetching $url..."
-  zfs create $pool/iohyve/ISO/$name
+  zfs create -o mountpoint=/iohyve/ISO/$name $pool/iohyve/ISO/$name
   fetch $url -o /iohyve/ISO/$name
 }
 
@@ -216,8 +216,8 @@ __fetch() {
 __cpiso() {
 	local loc="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local name="$(basename $2)"
-	echo "Copying $name..."
+	local name="$(basename $loc)"
+	echo "Copying $name from $loc..."
 	zfs create $pool/iohyve/ISO/$name
 	cp $loc /iohyve/ISO/$name
 }
@@ -864,6 +864,7 @@ SYNOPSIS
   iohyve vmmlist
   iohyve running
   iohyve fetch [URL]
+  iohyve cpiso [path]
   iohyve renameiso [ISO] [newname]
   iohyve rmiso [ISO]
   iohyve create [name] [size]
@@ -935,6 +936,12 @@ OPTIONS
 
             Usage: 'iohyve fetch [URL]' where [URL] is the HTTP or FTP URL to
                     fetch from the internet.
+
+  cpiso     Copies installation ISO or install image from your host and 
+            creates a dataset for it.
+
+            Usage: 'iohyve fetch [path]' where [path] is the full path to
+                    ISO file on the host machine. 
 
   renameiso Renames an ISO
 
@@ -1215,6 +1222,7 @@ iohyve  version
         vmmlist
         running
         fetch [URL]
+	cpiso [path]
         renameiso [ISO] [newname]
 	rmiso [ISO]
         create [name] [size]

@@ -48,6 +48,7 @@ isolist
 vmmlist
 running
 fetch [URL]
+cpiso [path]
 renameiso [ISO] [newname]
 remove [ISO]
 create [name] [size]
