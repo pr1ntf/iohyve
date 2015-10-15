@@ -69,8 +69,8 @@ add [name] [size]
 remove [name] [diskN]
 resize [name] [diskN] [size]
 disks [name]
-snapguest [name]@[snapshotname]
-rollguest [name]@[snapshotname]
+snap [name]@[snapshotname]
+roll [name]@[snapshotname]
 snaplist
 taplist
 activetaps
@@ -147,9 +147,9 @@ Get all guest properties:
 
 Take a snapshot of a guest:
 ````
-iohyve snapguest bsdguest@beforeupdate  #take snapshot
-iohyve snaplist                         #list snapshots
-iohyve snapguest bsdguest@beforeupdate  #rollback to snapshot
+iohyve snap bsdguest@beforeupdate  #take snapshot
+iohyve snaplist                    #list snapshots
+iohyve roll bsdguest@beforeupdate  #rollback to snapshot
 ````
 **FreeBSD Guests**
 
