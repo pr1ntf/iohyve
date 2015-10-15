@@ -41,44 +41,45 @@ The built-in readme 'iohyve readme' has more information on VNET setups.
 **Usage**
 
 ```
-iohyve  version
-        setup [pool]
-        list
-        isolist
-        vmmlist
-        running
-        fetch [URL]
-        renameiso [ISO] [newname]
-        remove [ISO]
-        create [name] [size]
-        install [name] [ISO]
-        load [name] [path/to/bootdisk]
-        boot [name] [runmode] [pcidevices]
-        start [name] [-s | -a]
-        stop [name]
-        scram
-        destroy [name]
-        rename [name] [newname]
-        delete [name]
-        set [name] [prop=value]
-        get [name] [prop]
-        getall [name]
-        add [name] [size]
-        remove [name] [diskN]
-	resize [name] [diskN] [size]
-        disks [name]
-        snapguest [name]@[snapshotname]
-        rollguest [name]@[snapshotname]
-        snaplist
-        taplist
-        activetaps
-        conlist
-        activecons
-        console [name]
-        conreset
-        readme
-        help
-        man 
+iohyve  
+
+version
+setup [pool]
+list
+isolist
+vmmlist
+running
+fetch [URL]
+renameiso [ISO] [newname]
+remove [ISO]
+create [name] [size]
+install [name] [ISO]
+load [name] [path/to/bootdisk]
+boot [name] [runmode] [pcidevices]
+start [name] [-s | -a]
+stop [name]
+scram
+destroy [name]
+rename [name] [newname]
+delete [name]
+set [name] [prop=value]
+get [name] [prop]
+getall [name]
+add [name] [size]
+remove [name] [diskN]
+resize [name] [diskN] [size]
+disks [name]
+snapguest [name]@[snapshotname]
+rollguest [name]@[snapshotname]
+snaplist
+taplist
+activetaps
+conlist
+activecons
+console [name]
+conreset
+help
+man 
 ```
 **Quick note about upgrading from v6.0 to v6.5**
 
