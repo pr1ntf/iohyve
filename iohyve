@@ -844,20 +844,15 @@ __activetaps() {
 
 # List consoles in use
 __conlist() {
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
-  echo "Listing all consoles:"
-  for i in $guestlist ; do
-	conprop="$(zfs get -H -o value iohyve:con $pool/iohyve/$i)"
-	printf $i'......'$conprop'\n'
-  done
-}
-
-# List active consoles in use
-__activecons() {
-  echo
-"Listing active nullmodem consoles..."
-  ls /dev | grep nmdm | grep A | cut -d 'A' -f 1
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | sed 1d | cut -f1 | cut -d '/' -f3)"
+	(
+	printf 'Guest\tConsole\n'
+	for guest in $guestlist; do
+		local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$guest)"
+		printf $guest'\t'$con'\n'
+	done
+	) | column -t
 }
 
 # Run console (dirty pre-zfs workaround)
