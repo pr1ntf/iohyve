@@ -1,4 +1,4 @@
-# iohyve v0.6.5
+# iohyve v0.6.6
 "You sed what edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools. 
