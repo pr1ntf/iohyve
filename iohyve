@@ -114,9 +114,6 @@ __parse_cmd () {
       conlist)  __conlist
                 exit
       ;;
-      activecons) __activecons
-                exit
-      ;;
       console)  __console "$@"
                 exit
       ;;
@@ -912,7 +909,6 @@ SYNOPSIS
   iohyve taplist
   iohyve activetaps
   iohyve conlist
-  iohyve activeconsoles
   iohyve console [name]
   iohyve conreset
   iohyve help
@@ -1270,7 +1266,6 @@ iohyve  version
         taplist
 	activetaps
 	conlist
-	activecons
         console [name]
         conreset
         help

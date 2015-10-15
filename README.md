@@ -75,7 +75,6 @@ snaplist
 taplist
 activetaps
 conlist
-activecons
 console [name]
 conreset
 help
