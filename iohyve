@@ -271,6 +271,7 @@ __create() {
   zfs set iohyve:os=default $pool/iohyve/$name
   zfs set iohyve:autogrub='\n' $pool/iohyve/$name
   zfs set iohyve:description=$description $pool/iohyve/$name
+  zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
 
 # Install guest
@@ -287,7 +288,9 @@ __install() {
 			local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
                 	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
                 	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
-                	echo "Installing $name..."
+			local bargexist="$(zfs get -H -o value iohyve:bargs $pool/iohyve/$name)"
+			local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
+			echo "Installing $name..."
                 	# Set install prop
                 	zfs set iohyve:install=yes $pool/iohyve/$name
                 	# Load from CD
@@ -295,8 +298,13 @@ __install() {
                 	# Prepare and start guest
                 	pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
                 	local pci_args=$(__get_bhyve_cmd "$pci" )
-                	bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-                	exit
+			if [ $bargexist = '-' ]; then
+	                	bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+				echo "This version of your guest is outdated."
+				echo "Please run iohyve fix-bargs guestname to update."
+			else
+				bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+                	fi
                 else
                         echo "Guest is already running."
                 fi
@@ -401,7 +409,8 @@ __boot() {
 	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
 	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
-
+	local bargexist="$(zfs get -H -o value iohyve:bargs $pool/iohyve/$name)"
+	local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
         # Set install prop
         zfs set iohyve:install=no $pool/iohyve/$name
 
@@ -415,7 +424,13 @@ __boot() {
 		while [ $runstate = "1" ]
 		do
 			__load "$name" "/dev/zvol/$pool/iohyve/$name/disk0"
-			bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+                        if [ $bargexist = '-' ]; then
+                                bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+				echo "This version of your guest is outdated."
+				echo "Please run iohyve fix-bargs guestname to update."
+                        else
+                                bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+                        fi
 			local vmpid=$!
 			wait $vmpid
 			vmrc=$?
@@ -561,11 +576,13 @@ __set() {
 	local name="$2"
 	local propval="$3"
 	local prop="$(echo $propval | cut -d '=' -f1 )"
-	local dprop="$(echo $propval | cut -d '"' -f2 | sed -e 's/ /_/g')"
+	local sprop="$(echo $propval | cut -d '"' -f2 | sed -e 's/ /_/g')"
 	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
 	echo "Setting $name prop $propval..."
 	if [ $prop = "description" ]; then
-		zfs set iohyve:$dprop $pool/iohyve/$name
+		zfs set iohyve:$sprop $pool/iohyve/$name
+        elif [ $prop = "bargs" ]; then
+                zfs set iohyve:$sprop $pool/iohyve/$name
 	else
 		zfs set iohyve:$propval $pool/iohyve/$name
 	fi
