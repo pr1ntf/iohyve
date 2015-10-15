@@ -873,6 +873,7 @@ SYNOPSIS
   iohyve disks [name]
   iohyve snap [name]@[snapshotname]
   iohyve roll [name]@[snapshotname]
+  iohyve clone [name] [clonename]
   iohyve snaplist
   iohyve taplist
   iohyve activetaps
@@ -1078,6 +1079,14 @@ OPTIONS
                     name of the guest and [snapshot] is what you would
                     like to name the snapshot.
 
+  clone     Clone a guest. Note that this will clone all of the properties. 
+            If you want to use the clone and the original guest at the 
+            same time you will need to change the tap and nmdm properties
+
+            Usage: 'iohyve clone [name] [clonename]' where [name] is the
+                    name of the guest and [clonename] is what you would
+                    like to name the new clone.
+
   snaplist  List all of the snapshots for all the guests. Does not show 
             snapshots of disks (they are there, though). 
 
@@ -1169,6 +1178,12 @@ EXAMPLES
         iohyve snaplist				#list snapshots
         iohyve roll bsdguest@beforeupdate	#rollback to snapshot
 
+  Make an independent clone of a guest:
+
+	iohyve clone bsdguest dolly		#Clone bsdguest to dolly
+						#Makes an exact copy
+						#Guest cannot be running
+
 AUTHOR
   Trent -- @pr1ntf
 
@@ -1209,6 +1224,7 @@ iohyve  version
 	disks [name]
 	snap [name]@[snapshotname]
 	roll [name]@[snapshotname]
+	clone [name] [clonename]
 	snaplist
         taplist
 	activetaps
