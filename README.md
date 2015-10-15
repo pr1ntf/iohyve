@@ -36,8 +36,6 @@ interface ane the physical interface as members. In this example, the physical i
 Once you have created tap0, there is no need to create more tap interfaces for iohyve, it will create them and add them 
 to bridge0 automatically as of v0.3.2 master branch.
 
-The built-in readme 'iohyve readme' has more information on VNET setups. 
-
 **Usage**
 
 ```
