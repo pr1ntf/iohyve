@@ -171,11 +171,37 @@ __get_zfs_pcidev_conf() {
   IFS=$oldifs
 }
 
-
-# List guests
+# List Guests
 __list() {
-  echo "Listing guests..."
-  zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | sed 1d | cut -f1 | cut -d '/' -f3)"
+	(
+	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
+	for guest in $guestlist; do
+		local vmm="/dev/vmm/ioh-$guest"
+		if [ -e $vmm ]; then
+			vmm="YES"
+		else
+			vmm="NO"
+		fi
+		local running="$(ps -ax | grep ioh-$guest | grep -v grep | cut -d ' ' -f1)"
+		if [ -z $running ]; then
+			running="NO"
+		elif [ $running -gt '1' ]; then
+			running="YES"
+		else
+			running="NO"
+		fi
+		local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$guest)"
+		if [ $boot = '1' ]; then
+			boot="YES"
+		else
+			boot="NO"
+		fi
+		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$guest)"
+		printf $guest'\t'$vmm'\t'$running'\t'$boot'\t'$description'\n'
+	done
+	) | column -t
 }
 
 # List iso's
