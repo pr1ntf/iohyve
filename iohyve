@@ -75,6 +75,9 @@ __parse_cmd () {
       getall)   __getall "$@"
                 exit
       ;;
+      fix-bargs) __fixbargs "$@"
+		exit
+      ;;
       add)	__add "$@"
 		exit
       ;;
@@ -625,6 +628,14 @@ __getall() {
   echo "Getting $name props..."
   zfs get all $pool/iohyve/$name | grep iohyve: | \
 	cut -w -f2-3 | cut -c8-
+}
+
+# Fix legacy bhyve arguments
+__fixbargs() {
+	local name="$2"
+	local pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	echo "Setting default bargs flags for bhyve to $name..."
+	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name	
 }
 
 # Add a new disk to guest
