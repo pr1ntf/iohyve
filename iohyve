@@ -90,7 +90,7 @@ __parse_cmd () {
       disks)	__disks "$@"
 		exit
       ;;
-      snapguest) __snapguest "$@"
+      snap)	__snapguest "$@"
 		exit
       ;;
       rollguest) __rollguest "$@"
@@ -838,7 +838,7 @@ SYNOPSIS
   iohyve remove [name] [diskN]
   iohyve resize [name] [diskN] [size]
   iohyve disks [name]
-  iohyve snapguest [name]@[snapshotname]
+  iohyve snap [name]@[snapshotname]
   iohyve rollguest [name]@[snapshotname]
   iohyve snaplist
   iohyve taplist
@@ -1033,9 +1033,9 @@ OPTIONS
             Usage: 'iohyve disks [name]' where [name] is the name
                     of the guest operating system.
 
-  snapguest Take a snapshot of a guest. 
+  snap      Take a snapshot of a guest. 
 
-            Usage: 'iohyve snapguest [name]@[snapshot]' where [name] is the 
+            Usage: 'iohyve snap [name]@[snapshot]' where [name] is the 
                     name of the guest and [snapshot] is what you would 
                     like to name the snapshot.
 
@@ -1132,9 +1132,9 @@ EXAMPLES
 
   Take a snapshot of a guest:
 
-        iohyve snapguest bsdguest@beforeupdate	#take snapshot
+        iohyve snap bsdguest@beforeupdate	#take snapshot
         iohyve snaplist				#list snapshots
-        iohyve snapguest bsdguest@beforeupdate	#rollback to snapshot
+        iohyve roll bsdguest@beforeupdate	#rollback to snapshot
 
 AUTHOR
   Trent -- @pr1ntf
@@ -1174,7 +1174,7 @@ iohyve  version
 	remove [name] [diskN]
 	resize [name] [diskN] [size]
 	disks [name]
-	snapguest [name]@[snapshotname]
+	snap [name]@[snapshotname]
 	rollguest [name]@[snapshotname]
 	snaplist
         taplist
