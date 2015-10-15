@@ -71,6 +71,7 @@ resize [name] [diskN] [size]
 disks [name]
 snap [name]@[snapshotname]
 roll [name]@[snapshotname]
+clone [name] [clonename]
 snaplist
 taplist
 activetaps
@@ -145,11 +146,16 @@ Get all guest properties:
 
     iohyve getall bsdguest
 
-Take a snapshot of a guest:
+Do cool ZFS stuff to a guest:
 ````
+#Take a snapshot of a guest. 
 iohyve snap bsdguest@beforeupdate  #take snapshot
 iohyve snaplist                    #list snapshots
 iohyve roll bsdguest@beforeupdate  #rollback to snapshot
+
+# Make an independent clone of a guest
+# This is not a zfs clone, but a true copy of a dataset
+iohyve clone bsdguest dolly	   #make a clone of bsdguest to dolly
 ````
 **FreeBSD Guests**
 
