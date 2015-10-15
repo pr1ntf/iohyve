@@ -117,9 +117,6 @@ __parse_cmd () {
       conreset) __conreset
                 exit
       ;;
-      readme)   __readme
-                exit
-      ;;
       man)      __man
                 exit
       ;;
@@ -805,85 +802,6 @@ __console() {
 # Reset all consoles. This kills the cu(1)
 __conreset() {
   killall cu
-}
-
-# Print readme page
-__readme() {
-cat << 'EOT'
-### Welcome! ###
-
-# If you are just setting up shared networking, just set the guest's IP to a valid IP address
-# on the host's network. If you choose to use VNET, you'll need to set a few more things up.
-
-### Quick Pre-flight checklist ###
-
-# iohyve's network is meant to work either via VNET or Shared IP, both utilizing tap(4)
-# The goal is to potentialy have bhyve guests and iocage jails living on the same VNET
-# Things labeled as NEEDED are needed at the very least for shared IP guests.
-# Everything else is for VNET.
-#
-#
-# The following needs to be added to kernal config and recompiled
-# options     VIMAGE    # VNET/VIMAGE option for VNET only.
-#
-# VirtIO support (Included in GENERIC kernel)
-# device          virtio                  # Generic VirtIO bus (required)
-# device          virtio_pci              # VirtIO PCI device
-# device          vtnet                   # VirtIO Ethernet device
-# device          virtio_blk              # VirtIO Block device
-# device          virtio_scsi             # VirtIO SCSI device
-# device          virtio_balloon          # VirtIO Memory Balloon device
-#
-#
-# Below is added to /boot/loader.conf
-# vmm_load="YES"        # bhyve module NEEDED
-# nmdm_load="YES"       # For the nullmodem console NEEDED
-# if_bridge_load="YES"  # bridge module NEEDED
-# if_tap_load="YES"     # tap module NEEDED
-#
-#
-# These are added to /etc/sysctl.conf
-# net.link.tap.up_on_open=1     # tap setup NEEDED
-# net.inet.ip.forwarding=1      # gateway setup
-# net.link.bridge.pfil_onlyip=0 # misc gotcha
-# net.link.bridge.pfil_bridge=0 # misc gotcha
-# net.link.bridge.pfil_member=0 # misc gotca
-#
-#
-# Below is added to /etc/rc.conf for firewall and VNET stuff
-# cloned_interfaces="bridge0 bridge1 tap0"                # bridge1 not needed for non-vnet setups
-# ifconfig_bridge0="addm em0 10.10.123.1/24 up addm tap0" # 10.10.155.1 is the VNET Gateway
-#                                                         # '10.10.123.1/24 up' not needed for non-vnet
-# gateway_enable="YES"                                    # Not needed for non-vnet setups
-# pf_enable="YES"                                         # Not needed for non-vnet setups
-# pf_rules="/etc/pf.conf"                                 # Not needed for non-vnet setups
-# pflog_enable="yes"                                      # Not needed for non-vnet setups
-#
-#
-# Below is an example /etc/pf.conf ***Not needed for non-vnet setups
-# Remember to start pf service and run 'pfctl -ef /etc/pf.conf'
-#
-# pub="XXX.XXX.XXX.XXX"           # IP address of host
-# jail_net="10.10.155.00/24"      #
-# example_jail="10.10.155.10"     # Already existing iocage vnet jail
-# example_guest="10.10.155.11"    # IP for new guest
-# if="em0"                        # The physical ethernet interface
-#
-# set block-policy return
-# set skip on lo
-# scrub in
-#
-# NAT
-# nat on $if from $example_jail to !$jail_net -> $pub   # Give jail route out
-# nat on $if from $example_guest to !$jail_net -> $pub  # Give guest route out
-#
-# default
-# pass out on $if from $pub to any
-# block in log on $if
-#
-# ssh on the host machine
-# pass in quick on $if proto tcp from any to $pub port 4444   # my SSH port is on 4444
-EOT
 }
 
 # Print man page
