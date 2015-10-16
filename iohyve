@@ -221,7 +221,7 @@ __list() {
 # List iso's
 __isolist() {
 	echo "Listing ISO's..."
-	zfs list -H | grep iohyve/ISO | cut -d -f 1 | cut -d '/' -f 4 | sed 1d
+	zfs list -H | grep iohyve/ISO | cut -f 1 | cut -d '/' -f 4 | sed 1d
 }
 
 # List Firmware
