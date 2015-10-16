@@ -191,7 +191,7 @@ __get_zfs_pcidev_conf() {
 # List Guests
 __list() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | sed 1d | cut -f1 | cut -d '/' -f3)"
+	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | grep -v Firmware | sed 1d | cut -f1 | cut -d '/' -f3)"
 	(
 	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
 	for guest in $guestlist; do
@@ -334,7 +334,7 @@ __create() {
   local size="$3"
   local description="$(date | sed -e 's/ /_/g')"
   local guestlist="$(zfs list | grep iohyve | grep -v ISO | \
-	grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+	grep -v disk | grep -v Firmware | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   listtaps(){
   for i in $guestlist ; do
 	local tapprop="$(zfs get -H -o value iohyve:tap $pool/iohyve/$i)"
@@ -946,7 +946,7 @@ __snaplist() {
 # List taps in use
 __taplist() {
   local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk  | grep -v Firmware | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
   echo "Listing all network taps:"
   for i in $guestlist ; do
         conprop="$(zfs get -H -o value iohyve:tap $pool/iohyve/$i)"
@@ -963,7 +963,7 @@ __activetaps() {
 # List consoles in use
 __conlist() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | sed 1d | cut -f1 | cut -d '/' -f3)"
+	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | grep -v Firmware | sed 1d | cut -f1 | cut -d '/' -f3)"
 	(
 	printf 'Guest\tConsole\n'
 	for guest in $guestlist; do
