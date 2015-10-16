@@ -742,8 +742,9 @@ __resize(){
 __disks() {
   local name="$2"
   local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  zfs list -H | grep iohyve | grep $name | grep disk | \
-	cut -d '/' -f4 | cut -f-2
+
+  zfs list -H -o name,volsize | grep -E "iohyve.*$name.*disk" | \
+        cut -d '/' -f4
 }
 
 # Snapshot a guest
