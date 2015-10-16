@@ -66,6 +66,9 @@ __parse_cmd () {
       start)    __start "$@"
                 exit
       ;;
+      uefi)	__uefi "$@"
+		exit
+      ;;
       stop)     __stop "$@"
                 exit
       ;;
@@ -618,6 +621,63 @@ __start() {
 		echo "Not a valid guest name"
 
 	fi
+}
+
+# Start a UEFI enabled bhyve instance. 
+# This is experimental, use with caution. 
+__uefi() {
+	local name="$2"
+	local media="$3"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
+        local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
+        local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"	
+	local fw="$(zfs get -H -o value iohyve:fw $pool/iohyve/$name)"
+	local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
+	local bargs="$(zfs get -H -o value iohyve:bargs $pool/iohyve/$name | sed -e 's/_/ /g')"
+	# Create tap if needed
+	if [ $tap != "tap0" ]; then
+		# no need to create tap0, should be installed already via README
+		# check to see if tap is already created before attempting to create new tap interface
+		local tapif="$('ifconfig' -a | grep $tap: | cut -c1-4)"
+		if [ -z $tapif ]; then
+			# create tap interface
+			ifconfig $tap create
+			ifconfig bridge0 addm $tap
+		fi
+	fi
+	# Make sure everything is in order...
+	if [ $fw = '-' ]; then
+		echo "You must set a firmware file property to use UEFI..."
+	fi
+	if [ -z $media ]; then
+		echo "You must enter at least a zero byte ISO for some OSs..."
+		echo "EX: iohyve uefi winguest null.iso"
+	fi
+	# Check if guest exists
+        if [ -d /iohyve/$name ]; then
+
+                # Check to make sure guest isn't running
+                local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+                if [ -z $running ]; then
+			# The good stuff...
+			bhyve -c $cpu $bargs -m $ram \
+			        -s 0,hostbridge \
+			        -s 3,ahci-cd,/iohyve/ISO/$media/$media \
+			        -s 4,ahci-hd,/dev/zvol/$pool/iohyve/$name/disk0 \
+			        -s 10,virtio-net,$tap \
+			        -s 31,lpc \
+			        -l com1,/dev/${con}A \
+			        -l bootrom,/iohyve/Firmware/$fw/$fw \
+			        ioh-$name &
+                else
+                        echo "Guest is already running."
+                fi
+        else
+                echo "Not a valid guest name"
+
+        fi
+
 }
 
 # Gracefully stop a guest
