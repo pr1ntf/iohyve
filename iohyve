@@ -939,12 +939,17 @@ SYNOPSIS
   iohyve setup [pool]
   iohyve list
   iohyve isolist
+  iohyve fwlist
   iohyve vmmlist
   iohyve running
   iohyve fetch [URL]
   iohyve cpiso [path]
   iohyve renameiso [ISO] [newname]
   iohyve rmiso [ISO]
+  iohyve fetchfw [URL]
+  iohyve cpfw [path]
+  iohyve renamefw [firmware] [newname]
+  iohyve rmfw [firmware]
   iohyve create [name] [size]
   iohyve install [name] [ISO]
   iohyve load [name]
@@ -1003,6 +1008,8 @@ OPTIONS
 
   isolist   Lists the installed ISOs in the /iohyve/ISO directory.
 
+  fwlist    Lists the firmwares in the /iohyve/Firmware directory.
+
   vmmlist   Lists the current guests that are loaded into bhyves VMM.
             (Use to see who has resources)
 
@@ -1017,7 +1024,7 @@ OPTIONS
   cpiso     Copies installation ISO or install image from your host and 
             creates a dataset for it.
 
-            Usage: 'iohyve fetch [path]' where [path] is the full path to
+            Usage: 'iohyve cpiso [path]' where [path] is the full path to
                     ISO file on the host machine. 
 
   renameiso Renames an ISO
@@ -1030,6 +1037,27 @@ OPTIONS
 
             Usage: 'iohyve rmiso [ISO]' where [ISO] is the name of the ISO
                     you would like to delete.
+
+  fetchfw   Fetches firmware and creates a dataset for it.
+
+            Usage: 'iohyve fetchfw [URL]' where [URL] is the HTTP or FTP URL to
+                    fetch from the internet.
+
+  cpfw      Copies firmware from your host and creates a dataset for it.
+
+            Usage: 'iohyve cpfw [path]' where [path] is the full path to
+                    firmware file on the host machine.
+
+  renamefw  Renames a Firmware
+
+            Usage: 'iohyve renamefw [firmware] [newname]' where [firmware] 
+                   is the name of the firmware you would like to rename. 
+                   [newname] is a new name.
+
+  rmfw      Removes installed firmware from /iohyve/Firmware
+
+            Usage: 'iohyve rmfw [firmware]' where [firmware] is the name of 
+                    the firmware you would like to delete.
 
   create    Creates new guest operating system.
 
@@ -1296,12 +1324,17 @@ iohyve  version
         setup [pool]
         list
         isolist
+	fwlist
         vmmlist
         running
         fetch [URL]
 	cpiso [path]
         renameiso [ISO] [newname]
 	rmiso [ISO]
+        fetchfw [URL]
+        cpfw [path]
+        renamefw [firmware] [newname]
+        rmfw [firmware]
         create [name] [size]
         install [name] [ISO]
         load [name] [path/to/bootdisk]

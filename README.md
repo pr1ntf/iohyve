@@ -45,12 +45,17 @@ version
 setup [pool]
 list
 isolist
+fwlist
 vmmlist
 running
 fetch [URL]
 cpiso [path]
 renameiso [ISO] [newname]
-remove [ISO]
+rmiso [ISO]
+fetchfw [URL]
+cpfw [path]
+renamefw [firmware] [newname]
+rmfw [firmware]
 create [name] [size]
 install [name] [ISO]
 load [name] [path/to/bootdisk]
