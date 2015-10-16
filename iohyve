@@ -144,6 +144,8 @@ __setup() {
   zfs set mountpoint="/iohyve" $pool/iohyve
   zfs create $pool/iohyve/ISO
   zfs set mountpoint="/iohyve/ISO" $pool/iohyve/ISO
+  zfs create $pool/iohyve/Firmware
+  zfs set mountpoint="/iohyve/Firmware" $pool/iohyve/Firmware
 }
 
 __get_bhyve_cmd() {
