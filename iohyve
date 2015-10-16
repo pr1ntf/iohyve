@@ -18,6 +18,9 @@ __parse_cmd () {
       isolist)  __isolist
                 exit
       ;;
+      fwlist)	__fwlist
+                exit
+      ;;
       vmmlist)  __vmmlist
                 exit
       ;;
@@ -207,6 +210,12 @@ __list() {
 __isolist() {
   echo "Listing ISO's..."
   zfs list | grep iohyve/ISO | cut -d ' ' -f 1 | cut -d '/' -f 4 | sed 1d
+}
+
+# List Firmware
+__fwlist() {
+	echo "Listing Firmware..."
+	zfs list -H | grep iohyve/Firmware | cut -d ' ' -f 1 | cut -d '/' -f 4 
 }
 
 # List VMM (who has resources)
