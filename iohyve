@@ -48,6 +48,9 @@ __parse_cmd () {
       renamefw) __renamefw "$@"
                 exit
       ;;
+      rmfw)	__deletefw "$@"
+                exit
+      ;;
       create)   __create "$@"
                 exit
       ;;
@@ -311,6 +314,14 @@ __renamefw() {
 	echo "Renaming Firmware $2 to $3..."
 	mv /iohyve/Firmware/$fw/$fw /iohyve/Firmware/$fw/$name
 	zfs rename $pool/iohyve/Firmware/$fw $pool/iohyve/Firmware/$name
+}
+
+# Delete Firmware
+__deletefw() {
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	echo "Deleting $name..."
+	zfs destroy $pool/iohyve/Firmware/$name
 }
 
 # Create guest
