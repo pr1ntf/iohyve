@@ -39,6 +39,9 @@ __parse_cmd () {
       rmiso) 	__deleteiso "$@"
                 exit
       ;;
+      fetchfw)	__fetchfw "$@"
+                exit
+      ;;
       create)   __create "$@"
                 exit
       ;;
@@ -272,6 +275,16 @@ __deleteiso() {
   local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
   echo "Deleting $name..."
   zfs destroy $pool/iohyve/ISO/$name
+}
+
+# Fetch Firmware
+__fetchfw() {
+	local url="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $2)"
+	echo "Fetching $url..."
+	zfs create -o mountpoint=/iohyve/Firmware/$name $pool/iohyve/Firmware/$name
+	fetch $url -o /iohyve/Firmware/$name
 }
 
 # Create guest
