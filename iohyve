@@ -45,6 +45,9 @@ __parse_cmd () {
       cpfw)	__cpfw "$@"
                 exit
       ;;
+      renamefw) __renamefw "$@"
+                exit
+      ;;
       create)   __create "$@"
                 exit
       ;;
@@ -298,6 +301,16 @@ __cpfw() {
         echo "Copying $name from $loc..."
         zfs create $pool/iohyve/Firmware/$name
         cp $loc /iohyve/Firmware/$name
+}
+
+# Rename Firmware
+__renamefw() {
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local isfw="$2"
+	local name="$3"
+	echo "Renaming Firmware $2 to $3..."
+	mv /iohyve/Firmware/$fw/$fw /iohyve/Firmware/$fw/$name
+	zfs rename $pool/iohyve/Firmware/$fw $pool/iohyve/Firmware/$name
 }
 
 # Create guest
