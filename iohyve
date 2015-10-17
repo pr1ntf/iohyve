@@ -198,7 +198,7 @@ __list() {
 		else
 			vmm="NO"
 		fi
-		local running="$(ps -ax | grep ioh-$guest | grep -v grep | cut -d ' ' -f1)"
+		local running="$(ps -ax | grep "ioh-$guest (bhyve)" | grep -v grep | cut -d ' ' -f1)"
 		if [ -z $running ]; then
 			running="NO"
 		elif [ $running -gt '1' ]; then
