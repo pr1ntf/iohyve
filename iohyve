@@ -908,6 +908,7 @@ __rollguest() {
 __cloneguest() {
         local name="$2"
 	local cname="$3"
+	local description="$(date | sed -e 's/ /_/g')"
         local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
         # Check if guest exists
         echo "Cloning $name to $cname"
@@ -925,6 +926,7 @@ __cloneguest() {
 			zfs destroy -rR $pool/iohyve/$cname@$cname
 			# rename the guest
 			zfs set iohyve:name=$cname $pool/iohyve/$cname
+			zfs set iohyve:description=$description $pool/iohyve/$cname
                 else
                         echo "Please stop the guest first"
                 fi
