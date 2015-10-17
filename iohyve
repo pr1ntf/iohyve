@@ -1008,6 +1008,7 @@ SYNOPSIS
   iohyve version
   iohyve setup [pool]
   iohyve list
+  iohyve info [-d]
   iohyve isolist
   iohyve fwlist
   iohyve vmmlist
@@ -1075,6 +1076,9 @@ OPTIONS
                     you want to install iohyve on.
 
   list      Lists the zfs dataset directorys for iohyve.
+
+  info      Lists all the guests along with their RAM, CPU, Size, 
+            OS, Loader, and Description (if -d is passed)
 
   isolist   Lists the installed ISOs in the /iohyve/ISO directory.
 
@@ -1393,6 +1397,7 @@ cat << 'EOT'
 iohyve  version
         setup [pool]
         list
+	info [-d]
         isolist
 	fwlist
         vmmlist

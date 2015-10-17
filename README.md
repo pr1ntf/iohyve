@@ -44,6 +44,7 @@ iohyve
 version
 setup [pool]
 list
+info [-d]
 isolist
 fwlist
 vmmlist
