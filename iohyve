@@ -15,6 +15,9 @@ __parse_cmd () {
       list)     __list
                 exit
       ;;
+      info)	__info "$@"
+		exit
+      ;;
       isolist)  __isolist
                 exit
       ;;
@@ -216,6 +219,22 @@ __list() {
 		printf $guest'\t'$vmm'\t'$running'\t'$boot'\t'$description'\n'
 	done
 	) | column -t
+}
+
+# Display info about all guests. 
+__info() {
+	dflag="$2"
+	if [ -z $dflag ]; then
+		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\n';  \
+			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader | \
+			grep iohyve | grep -v Firmware | grep -v ISO  |  cut -d '/' -f3- | sed 1d) | column -t
+	elif [ $dflag = "-d" ]; then
+		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\tDescription\n';  \
+                        zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader,iohyve:description | \
+                        grep iohyve | grep -v Firmware | grep -v ISO  |  cut -d '/' -f3- | sed 1d) | column -t
+	else
+		echo "Invalid flag..."
+	fi
 }
 
 # List iso's
