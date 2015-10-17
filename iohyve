@@ -24,9 +24,6 @@ __parse_cmd () {
       vmmlist)  __vmmlist
                 exit
       ;;
-      running)  __running
-                exit
-      ;;
       fetch)    __fetch "$@"
                 exit
       ;;
@@ -242,13 +239,6 @@ __vmmlist() {
   else
 	echo "VMM not holding onto resources"
   fi
-}
-
-# List running guests by PID
-__running() {
-  echo "Listing running guests..."
-  ps -ax | grep ioh- | grep -v grep \
-	| cut -d ':' -f3 | cut -d '-' -f2 | cut -d '(' -f1
 }
 
 # Fetch ISO
