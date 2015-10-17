@@ -118,14 +118,6 @@ List all guests created with:
 
     iohyve list
 
-List all guests that have resources allocated using:
-
-    iohyve vmmlist
-
-List all runnng guests using:
-
-    iohvye running
-
 You can change guest properties by using set:
 
     iohyve set bsdguest ram=512M                 #set ram to 512 Megabytes
