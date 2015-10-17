@@ -997,8 +997,6 @@ SYNOPSIS
   iohyve info [-d]
   iohyve isolist
   iohyve fwlist
-  iohyve vmmlist
-  iohyve running
   iohyve fetch [URL]
   iohyve cpiso [path]
   iohyve renameiso [ISO] [newname]
@@ -1069,11 +1067,6 @@ OPTIONS
   isolist   Lists the installed ISOs in the /iohyve/ISO directory.
 
   fwlist    Lists the firmwares in the /iohyve/Firmware directory.
-
-  vmmlist   Lists the current guests that are loaded into bhyves VMM.
-            (Use to see who has resources)
-
-  running   Lists all the current running and booted guests by Process ID.
 
   fetch     Fetches installation ISO or install image and creates a
             dataset for it.
@@ -1386,8 +1379,6 @@ iohyve  version
 	info [-d]
         isolist
 	fwlist
-        vmmlist
-        running
         fetch [URL]
 	cpiso [path]
         renameiso [ISO] [newname]

@@ -47,8 +47,6 @@ list
 info [-d]
 isolist
 fwlist
-vmmlist
-running
 fetch [URL]
 cpiso [path]
 renameiso [ISO] [newname]
