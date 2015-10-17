@@ -24,9 +24,6 @@ __parse_cmd () {
       fwlist)	__fwlist
                 exit
       ;;
-      vmmlist)  __vmmlist
-                exit
-      ;;
       fetch)    __fetch "$@"
                 exit
       ;;
@@ -247,17 +244,6 @@ __isolist() {
 __fwlist() {
 	echo "Listing Firmware..."
 	zfs list -H | grep iohyve/Firmware | cut -f1 | cut -d '/' -f 4 | sed 1d
-}
-
-# List VMM (who has resources)
-__vmmlist() {
-  local vmmdir="/dev/vmm"
-  echo "Listing VMM directory..."
-  if [ -e $vmmdir  ]; then
-	ls /dev/vmm | grep ioh- | cut -c5-
-  else
-	echo "VMM not holding onto resources"
-  fi
 }
 
 # Fetch ISO
