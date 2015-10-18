@@ -198,13 +198,11 @@ __list() {
 		else
 			vmm="NO"
 		fi
-		local running="$(ps -ax | grep "ioh-$guest (bhyve)" | grep -v grep | cut -d ' ' -f1)"
+		local running=$(pgrep -fx "bhyve: ioh-$guest")
 		if [ -z $running ]; then
 			running="NO"
-		elif [ $running -gt '1' ]; then
-			running="YES"
 		else
-			running="NO"
+			running="YES"
 		fi
 		local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$guest)"
 		if [ $boot = '1' ]; then
@@ -381,7 +379,7 @@ __install() {
         if [ -d /iohyve/$name ]; then
 
                 # Check to make sure guest isn't running
-                local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+                local running=$(pgrep -fx "bhyve: ioh-$name")
                 if [ -z $running ]; then
 			local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
                 	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
@@ -595,7 +593,7 @@ __start() {
 	# Check if guest exists
 	if [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
-		local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
 			case "$flag" in
 				-s)	runmode="0"	# single - start only once
@@ -653,7 +651,7 @@ __uefi() {
         if [ -d /iohyve/$name ]; then
 
                 # Check to make sure guest isn't running
-                local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+                local running=$(pgrep -fx "bhyve: ioh-$name")
                 if [ -z $running ]; then
 			# The good stuff...
 			bhyve -c $cpu $bargs -m $ram \
@@ -679,7 +677,7 @@ __uefi() {
 __stop() {
   local name="$2"
   local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  local pid="$(ps -ax | grep "ioh-" | grep $name | grep -v "grep" | cut -c1-5)"
+  local pid=$(pgrep -fx "bhyve: ioh-$name")
   echo "Stopping $name..."
 # zfs set iohyve:persist=0 $pool/iohyve/$name
   kill $pid
@@ -842,7 +840,7 @@ __resize(){
 	echo "Resizing $disk to $size"
 	if [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
-		local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
 			zfs set volsize=$size $pool/iohyve/$name/$disk 
 		else
@@ -889,7 +887,7 @@ __rollguest() {
 	echo "Rolling back to $fullsnap"
 	if [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
-		local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
 			zfs rollback -rR $pool/iohyve/$fullsnap
 			for disk in $disklist ; do
@@ -914,7 +912,7 @@ __cloneguest() {
         echo "Cloning $name to $cname"
         if [ -d /iohyve/$name ]; then
                 # Check to make sure guest isn't running
-                local running="$(ps -ax | grep ioh-$name | grep -v grep | cut -d ' ' -f1)"
+                local running=$(pgrep -fx "bhyve: ioh-$name")
                 if [ -z $running ]; then
 			# Take snapshot
 			zfs snap -r $pool/iohyve/$name@$cname
