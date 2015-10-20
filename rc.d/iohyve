@@ -22,14 +22,14 @@ stop_cmd="iohyve_stop"
 
 iohyve_start()
 {
-	guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
-	pool="$(zfs list | grep iohyve | head -n1 | cut -d '/' -f 1)"
+	guestlist="$(zfs list -H -t volume -o name | grep iohyve | grep disk0 | cut -d'/' -f3)"
 	for i in $guestlist ; do
-		bootprop="$(zfs get -H -o value iohyve:boot $pool/iohyve/$i)"
+		pool="$(zfs list -H -t volume -o name | grep iohyve | grep $i | grep disk0 | cut -d'/' -f1-3)"
+		bootprop="$(zfs get -H -o value iohyve:boot $pool)"
 		if [ $bootprop = "1" ]; then
 			/usr/local/sbin/iohyve start $i
 		fi
-	done 
+	done
 }
 
 iohyve_stop()

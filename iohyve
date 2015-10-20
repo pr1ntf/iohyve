@@ -156,11 +156,15 @@ __setup() {
   local pool="$2"
   echo "Setting up iohyve..."
   zfs create $pool/iohyve
-  zfs set mountpoint="/iohyve" $pool/iohyve
-  zfs create $pool/iohyve/ISO
-  zfs set mountpoint="/iohyve/ISO" $pool/iohyve/ISO
-  zfs create $pool/iohyve/Firmware
-  zfs set mountpoint="/iohyve/Firmware" $pool/iohyve/Firmware
+  if [ -d /iohyve/ISO ]; then
+      zfs set mountpoint="/iohyve/$pool" $pool/iohyve
+  else
+      zfs set mountpoint="/iohyve"
+      zfs create $pool/iohyve/ISO
+      zfs set mountpoint="/iohyve/ISO" $pool/iohyve/ISO
+      zfs create $pool/iohyve/Firmware
+      zfs set mountpoint="/iohyve/Firmware" $pool/iohyve/Firmware
+  fi
 }
 
 __get_bhyve_cmd() {
@@ -188,10 +192,11 @@ __get_zfs_pcidev_conf() {
 # List Guests
 __list() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | grep -v Firmware | sed 1d | cut -f1 | cut -d '/' -f3)"
+	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
 	(
 	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
-	for guest in $guestlist; do
+	for g in $guestlist; do
+        local guest=$(echo $g | cut -d'/' -f3)
 		local vmm="/dev/vmm/ioh-$guest"
 		if [ -e $vmm ]; then
 			vmm="YES"
@@ -204,19 +209,19 @@ __list() {
 		else
 			running="YES"
 		fi
-		local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$guest)"
+		local boot="$(zfs get -H -o value iohyve:boot $g)"
 		if [ $boot = '1' ]; then
 			boot="YES"
 		else
 			boot="NO"
 		fi
-		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$guest)"
+		local description="$(zfs get -H -o value iohyve:description $g)"
 		printf $guest'\t'$vmm'\t'$running'\t'$boot'\t'$description'\n'
 	done
 	) | column -t
 }
 
-# Display info about all guests. 
+# Display info about all guests.
 __info() {
 	dflag="$2"
 	if [ -z $dflag ]; then
@@ -323,14 +328,13 @@ __deletefw() {
 # Create guest
 __create() {
   local name="$2"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+  local pool="${4-$(zfs list -H -t volume | grep iohyve | cut -d '/' -f 1 | head -n1)}"
   local size="$3"
   local description="$(date | sed -e 's/ /_/g')"
-  local guestlist="$(zfs list | grep iohyve | grep -v ISO | \
-	grep -v disk | grep -v Firmware | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+  local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
   listtaps(){
   for i in $guestlist ; do
-	local tapprop="$(zfs get -H -o value iohyve:tap $pool/iohyve/$i)"
+	local tapprop="$(zfs get -H -o value iohyve:tap $i)"
 	printf $tapprop'\n'
   done
   }
@@ -342,7 +346,7 @@ __create() {
   fi
   listcons(){
   for i in $guestlist ; do
-        local conprop="$(zfs get -H -o value iohyve:con $pool/iohyve/$i)"
+        local conprop="$(zfs get -H -o value iohyve:con $i)"
 	printf $conprop'\n'
   done
   }
@@ -374,17 +378,18 @@ __create() {
 __install() {
 	local name="$2"
 	local iso="$3"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+    local pool="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f1)"
+	local dataset="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1-3 | head -n1)"
         # Check if guest exists
-        if [ -d /iohyve/$name ]; then
+        if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 
                 # Check to make sure guest isn't running
                 local running=$(pgrep -fx "bhyve: ioh-$name")
                 if [ -z $running ]; then
-			local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-                	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-                	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
-			local bargexist="$(zfs get -H -o value iohyve:bargs $pool/iohyve/$name)"
+			local ram="$(zfs get -H -o value iohyve:ram $dataset)"
+                	local con="$(zfs get -H -o value iohyve:con $dataset)"
+                	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
+			local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
 			local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
 			echo "Installing $name..."
                 	# Set install prop
@@ -414,74 +419,75 @@ __install() {
 __load() {
 	local name="$1"
 	local media="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-	local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$name)"
-	local install="$(zfs get -H -o value iohyve:install $pool/iohyve/$name)"
-	local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$name)"
-	local autogrub="$(zfs get -H -o value iohyve:autogrub $pool/iohyve/$name)"
+    local disk="${3-$(zfs list -H -t volume -o name | grep $name | grep disk0 | head -n1)}"
+    local dataset="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
+	local con="$(zfs get -H -o value iohyve:con $dataset)"
+	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
+	local install="$(zfs get -H -o value iohyve:install $dataset)"
+	local os="$(zfs get -H -o value iohyve:os $dataset)"
+	local autogrub="$(zfs get -H -o value iohyve:autogrub $dataset)"
 
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
 			if [ $os = "openbsd" ]; then
-				printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 /5.7/amd64/bsd.rd\nboot\n' | \
 				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
                         elif [ $os = "netbsd" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf 'knetbsd -h -r cd0a /netbsd\nboot\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
                         elif [ $os = "debian" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf '\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
                         elif [ $os = "centos6" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
                         elif [ $os = "arch" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_'$(date +%Y%m)' ro\ninitrd (cd0)/arch/boot/x86_64/archiso.img\nboot\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			else
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 			fi
 		elif [ $install = "no" ]; then
                         if [ $os = "openbsd" ]; then
-				printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 	                        printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
-	                        grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name 
+	                        grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name
                         elif [ $os = "netbsd" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf 'knetbsd -h -r sd0a /netbsd\nboot\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
                         elif [ $os = "debian" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf '\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
                         elif [ $os = "centos6" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf '\n' | \
                                 grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
                         elif [ $os = "custom" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 printf $autogrub | \
                                 grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
 			else
-                                printf '\(hd0\)\ /dev/zvol/'$pool'/iohyve/'$name'/disk0\n' > /iohyve/$name/device.map
+                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
                                 printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
                                 grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
 			fi
@@ -500,15 +506,15 @@ __boot() {
 	#   2 = always persist (start again even if guest is powering off)
 	local runmode="$2"
 	local pci="$3"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-	local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-	local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"
-	local persist="$(zfs get -H -o value iohyve:persist $pool/iohyve/$name)"
-	local bargexist="$(zfs get -H -o value iohyve:bargs $pool/iohyve/$name)"
+    local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
+	local con="$(zfs get -H -o value iohyve:con $dataset)"
+	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
+	local persist="$(zfs get -H -o value iohyve:persist $dataset)"
+	local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
 	local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
         # Set install prop
-        zfs set iohyve:install=no $pool/iohyve/$name
+        zfs set iohyve:install=no $dataset
 
 	# Generate list of bhyve -s commands for all devices
 	local pci_args=$(__get_bhyve_cmd "$pci" )
@@ -519,7 +525,7 @@ __boot() {
 	(
 		while [ $runstate = "1" ]
 		do
-			__load "$name" "/dev/zvol/$pool/iohyve/$name/disk0"
+			__load "$name" "/dev/zvol/$dataset/disk0"
                         if [ $bargexist = '-' ]; then
                                 bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 				echo "This version of your guest is outdated."
@@ -537,7 +543,7 @@ __boot() {
 				# VM has been powered off
 				runstate="0"
 			else
-				if [ $(zfs get -H -o value iohyve:persist $pool/iohyve/$name) != 1 ]; then
+				if [ $(zfs get -H -o value iohyve:persist $dataset) != 1 ]; then
 					runstate="0"
 				fi
 			fi
@@ -546,16 +552,16 @@ __boot() {
 		# Resetting the flag so that a vm which we stopped by abusing zfs set/get
 		# as as an IPC mechanism is persistent again next time we start it
 		if [ ! -z $persist ]; then
-			zfs set iohyve:persist="$persist" $pool/iohyve/$name
+			zfs set iohyve:persist="$persist" $dataset
 		fi
 	) &
 }
 
 __prepare_guest() {
 	local name="$1"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local pci="$(__get_zfs_pcidev_conf $pool/iohyve/$name)"
-	local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
+    local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local pci="$(__get_zfs_pcidev_conf $dataset)"
+	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
 
 	# Setup tap if needed
 	if [ $tap ] && [ $tap != "-" ]; then
@@ -574,7 +580,7 @@ __prepare_guest() {
 	fi
 
 	#Add disk as second PCI device
-	pci="ahci-hd,/dev/zvol/$pool/iohyve/$name/disk0 $pci"
+	pci="ahci-hd,/dev/zvol/$dataset/disk0 $pci"
 
 	#Add Hostbridge and lpc as the first PCI devices
 	pci="hostbridge lpc $pci"
@@ -587,11 +593,11 @@ __prepare_guest() {
 __start() {
 	local name="$2"
 	local flag="$3"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local pci=""
 	local runmode="1"
+    local pool="$(zfs list -H -t volume -o name | grep $name| grep disk0 | cut -d '/' -f1)"
 	# Check if guest exists
-	if [ -d /iohyve/$name ]; then
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
@@ -616,18 +622,19 @@ __start() {
 	fi
 }
 
-# Start a UEFI enabled bhyve instance. 
-# This is experimental, use with caution. 
+# Start a UEFI enabled bhyve instance.
+# This is experimental, use with caution.
 __uefi() {
 	local name="$2"
 	local media="$3"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$name)"
-        local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
-        local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$name)"	
-	local fw="$(zfs get -H -o value iohyve:fw $pool/iohyve/$name)"
-	local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
-	local bargs="$(zfs get -H -o value iohyve:bargs $pool/iohyve/$name | sed -e 's/_/ /g')"
+    local dataset="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1-3 | head -n1)"
+	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
+        local con="$(zfs get -H -o value iohyve:con $dataset)"
+        local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
+	local fw="$(zfs get -H -o value iohyve:fw $dataset)"
+	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
+	local bargs="$(zfs get -H -o value iohyve:bargs $dataset | sed -e 's/_/ /g')"
+    local pool="$(zfs list -H -t volume -o name | grep $name | cut -d '/' -f1)"
 	# Create tap if needed
 	if [ $tap != "tap0" ]; then
 		# no need to create tap0, should be installed already via README
@@ -648,8 +655,7 @@ __uefi() {
 		echo "EX: iohyve uefi winguest null.iso"
 	fi
 	# Check if guest exists
-        if [ -d /iohyve/$name ]; then
-
+        if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
                 # Check to make sure guest isn't running
                 local running=$(pgrep -fx "bhyve: ioh-$name")
                 if [ -z $running ]; then
@@ -657,7 +663,7 @@ __uefi() {
 			bhyve -c $cpu $bargs -m $ram \
 			        -s 0,hostbridge \
 			        -s 3,ahci-cd,/iohyve/ISO/$media/$media \
-			        -s 4,ahci-hd,/dev/zvol/$pool/iohyve/$name/disk0 \
+			        -s 4,ahci-hd,/dev/zvol/$dataset/disk0 \
 			        -s 10,virtio-net,$tap \
 			        -s 31,lpc \
 			        -l com1,/dev/${con}A \
@@ -705,7 +711,7 @@ __destroy() {
 __rename() {
   local name="$2"
   local newname="$3"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+  local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
   echo "Renaming $name to $newname..."
   zfs rename $pool/iohyve/$name $pool/iohyve/$newname
   zfs set iohyve:name=$newname $pool/iohyve/$newname
@@ -714,10 +720,10 @@ __rename() {
 # Delete guest
 __delete() {
   local name="$2"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  read -p "Are you sure you want to delete $name [Y/N]? " an </dev/tty
+  local datasets="$(zfs list -H -t filesystem -o name | grep iohyve | grep $name)"
+  read -p "Are you sure you want to delete $name and all associated datasets [Y/N]? " an </dev/tty
   case "$an" in
-	y|Y) zfs destroy -rR $pool/iohyve/$name
+	y|Y) for d in $datasets; do zfs destroy -rR $d; done
 	  ;;
 	*) echo "Not deleted..."
 	  ;;
@@ -730,7 +736,7 @@ __set() {
 	local propval="$3"
 	local prop="$(echo $propval | cut -d '=' -f1 )"
 	local sprop="$(echo $propval | cut -d '"' -f2 | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
 	echo "Setting $name prop $propval..."
 	if [ $prop = "description" ]; then
 		zfs set iohyve:$sprop $pool/iohyve/$name
@@ -745,7 +751,7 @@ __set() {
 __get() {
   local name="$2"
   local prop="$3"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+  local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
   echo "Getting $name prop $prop..."
   zfs get -H -o value iohyve:$prop $pool/iohyve/$name
 }
@@ -755,7 +761,7 @@ __rmpci() {
   local name="$2"
   local prop="$3"
   local pciprop="$(echo "$prop" | grep pcidev:)"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+  local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
   # Make sure it's a valid pcidev property as to not shoot foot
   if [ -z $pciprop ]; then
 	echo "Not a valid PCIDEV property"
@@ -774,7 +780,7 @@ __rmpci() {
 # Get all ZFS props
 __getall() {
 	local name="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Getting $name props..."
 	zfs get -H all $pool/iohyve/$name | grep iohyve: | cut -w -f2-3 | cut -c8- | column -t
 }
@@ -782,38 +788,41 @@ __getall() {
 # Fix legacy bhyve arguments
 __fixbargs() {
 	local name="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Setting default bargs flags for bhyve to $name..."
-	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name	
+	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
 
 # Add a new disk to guest
 __add() {
   local name="$2"
   local size="$3"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+  local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+  # optionally allow the pool for the new disk to be specified. If not set, its set to $pool
+  local newpool="${4-$pool}"
   # Find the last disk number and increment one
   local lastdisk="$(zfs list -H | grep $name | grep disk | cut -d '/' -f4 | cut -f1 | \
 	sort -V | cut -c5- | tail -n1)"
   local newdisk="$(expr $lastdisk + 1)"
   echo "Creating new zvol for $name..."
-  zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk$newdisk
+  zfs create $newpool/iohyve/$name 2> /dev/null
+  zfs create -V $size -o volmode=dev $newpool/iohyve/$name/disk$newdisk
   # Find the last pcidev and increment by one
-  local lastpci="$(zfs get -H all $pool/iohyve/$name | grep pcidev | cut -f2 | \
+  local lastpci="$(zfs get -H all | grep iohyve/$name | grep pcidev | cut -f2 | \
 	cut -d ':' -f3 | sort -V | tail -n1)"
   if [ -z $lastpci ]; then
 	local newpci='1'
   else
 	local newpci="$(expr $lastpci + 1)"
   fi
-  zfs set iohyve:pcidev:$newpci=ahci-hd,/dev/zvol/$pool/iohyve/$name/disk$newdisk $pool/iohyve/$name
+  zfs set iohyve:pcidev:$newpci=ahci-hd,/dev/zvol/$newpool/iohyve/$name/disk$newdisk $pool/iohyve/$name
 }
 
 # Remove disk from guest
 __remove() {
   local name="$2"
   local disk="$3"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+  local pool="$(zfs list -H -o name | grep $name | grep $disk | cut -d '/' -f 1)"
   local pciprop="$(zfs get -H all $pool/iohyve/$name | grep pcidev | grep $disk | cut -f2 )"
   # Make sure it's a valid pcidev property as to not shoot foot
   if [ -z $pciprop ]; then
@@ -835,14 +844,14 @@ __resize(){
 	local name="$2"
 	local disk="$3"
 	local size="$4"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -o name | grep $name | grep $disk | cut -d '/' -f 1)"
 	# Check if guest exists
 	echo "Resizing $disk to $size"
-	if [ -d /iohyve/$name ]; then
+    if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
-			zfs set volsize=$size $pool/iohyve/$name/$disk 
+			zfs set volsize=$size $pool/iohyve/$name/$disk
 		else
 			echo "Please stop the guest first"
 		fi
@@ -864,11 +873,11 @@ __disks() {
 # Snapshot a guest
 __snapguest() {
 	local fullsnap="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
 	echo "Taking snapshot $fullsnap"
 	# Check if guest exists
-	if [ -d /iohyve/$name ]; then
+    if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		zfs snap -r $pool/iohyve/$fullsnap
 	else
 		echo "Not a valid guest name"
@@ -878,14 +887,14 @@ __snapguest() {
 # Rollback guest
 __rollguest() {
 	local fullsnap="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
 	local snap="$(echo $fullsnap | cut -d '@' -f2)"
 	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
                                 cut -f1 | cut -d '/' -f4-)"
 	# Check if guest exists
 	echo "Rolling back to $fullsnap"
-	if [ -d /iohyve/$name ]; then
+    if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
@@ -907,10 +916,10 @@ __cloneguest() {
         local name="$2"
 	local cname="$3"
 	local description="$(date | sed -e 's/ /_/g')"
-        local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+        local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
         # Check if guest exists
         echo "Cloning $name to $cname"
-        if [ -d /iohyve/$name ]; then
+        if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
                 # Check to make sure guest isn't running
                 local running=$(pgrep -fx "bhyve: ioh-$name")
                 if [ -z $running ]; then
@@ -941,11 +950,10 @@ __snaplist() {
 
 # List taps in use
 __taplist() {
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  local guestlist="$(zfs list | grep iohyve | grep -v ISO | grep -v disk  | grep -v Firmware | cut -d ' ' -f 1 | cut -d '/' -f 3 | sed 1d)"
+  local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
   echo "Listing all network taps:"
   for i in $guestlist ; do
-        conprop="$(zfs get -H -o value iohyve:tap $pool/iohyve/$i)"
+        conprop="$(zfs get -H -o value iohyve:tap $i)"
         printf $i'......'$conprop'\n'
   done
 }
@@ -972,8 +980,8 @@ __conlist() {
 # Run console (dirty pre-zfs workaround)
 __console() {
   local name="$2"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$name)"
+  local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+  local con="$(zfs get -H -o value iohyve:con $pool)"
   echo "Starting console on $name..."
   echo "~~. to escape console [uses cu(1) for console]"
   cu -l /dev/${con}B -s 9600
@@ -1005,7 +1013,7 @@ SYNOPSIS
   iohyve cpfw [path]
   iohyve renamefw [firmware] [newname]
   iohyve rmfw [firmware]
-  iohyve create [name] [size]
+  iohyve create [name] [size] [[pool]]
   iohyve install [name] [ISO]
   iohyve load [name]
   iohyve boot [name] [ISO]
@@ -1019,7 +1027,7 @@ SYNOPSIS
   iohyve get [name] [prop]
   iohyve rmpci [name] [pcidev:N]
   iohyve getall [name]
-  iohyve add [name] [size]
+  iohyve add [name] [size] [[pool]]
   iohyve remove [name] [diskN]
   iohyve resize [name] [diskN] [size]
   iohyve disks [name]
@@ -1057,11 +1065,12 @@ OPTIONS
   setup     Installs required zfs datasets for iohyve to function.
 
             Usage: 'iohyve setup [poolname]' where [poolname] is the zpool
-                    you want to install iohyve on.
+                    you want to install iohyve on. Multiple pools are supported,
+                    additional pools get mounted in /iohyve/poolname
 
   list      Lists the zfs dataset directorys for iohyve.
 
-  info      Lists all the guests along with their RAM, CPU, Size, 
+  info      Lists all the guests along with their RAM, CPU, Size,
             OS, Loader, and Description (if -d is passed)
 
   isolist   Lists the installed ISOs in the /iohyve/ISO directory.
@@ -1074,11 +1083,11 @@ OPTIONS
             Usage: 'iohyve fetch [URL]' where [URL] is the HTTP or FTP URL to
                     fetch from the internet.
 
-  cpiso     Copies installation ISO or install image from your host and 
+  cpiso     Copies installation ISO or install image from your host and
             creates a dataset for it.
 
             Usage: 'iohyve cpiso [path]' where [path] is the full path to
-                    ISO file on the host machine. 
+                    ISO file on the host machine.
 
   renameiso Renames an ISO
 
@@ -1103,21 +1112,22 @@ OPTIONS
 
   renamefw  Renames a Firmware
 
-            Usage: 'iohyve renamefw [firmware] [newname]' where [firmware] 
-                   is the name of the firmware you would like to rename. 
+            Usage: 'iohyve renamefw [firmware] [newname]' where [firmware]
+                   is the name of the firmware you would like to rename.
                    [newname] is a new name.
 
   rmfw      Removes installed firmware from /iohyve/Firmware
 
-            Usage: 'iohyve rmfw [firmware]' where [firmware] is the name of 
+            Usage: 'iohyve rmfw [firmware]' where [firmware] is the name of
                     the firmware you would like to delete.
 
   create    Creates new guest operating system.
 
-            Usage: 'iohyve create [name] [size]' where [name] is
+            Usage: 'iohyve create [name] [size] [[pool]]' where [name] is
                     the name you would like to use, [size] is the size of the
                     virtual block device in '16G' format where the capital G
-                    signifies gigabytes.
+                    signifies gigabytes. If you specify the pool, the first disk
+                    gets added on that pool.
 
   install   Loads and boots into ISO for guest installation.
 
@@ -1219,24 +1229,25 @@ OPTIONS
 
   add       Adds a new disk to the guest.
 
-            Usage: 'iohyve add [name] [size]' where [name] is
+            Usage: 'iohyve add [name] [size] [[pool]]' where [name] is
                     the name of the guest, [size] is the size of the
                     virtual block device in '16G' format where the capital G
-                    signifies gigabytes.
+                    signifies gigabytes. If pool is specified, the disk gets
+                    added on that pool
 
   remove    Removes a disk from the guest. Cannot be disk0.
 
             Usage: 'iohyve remove [name] [diskN]' where [name] is
                     the name of the guest, [diskN] is the disk you would
                     like to remove from the guest. See 'iohyve disks' for
-                    a list of disks for a guest 
+                    a list of disks for a guest
 
   resize    Resizes a disk. THIS CAN BREAK THINGS ON THE GUEST.
 
             Usage: 'iohyve resize [name] [diskN] [size]' where [name] is
                     the name of the guest, [diskN] is the disk you would
-                    like to remove from the guest, and [size] is the size 
-                    of the virtual block device in '16G' format where the 
+                    like to remove from the guest, and [size] is the size
+                    of the virtual block device in '16G' format where the
                     capital G signifies gigabytes.
                     See 'iohyve disks' for a list of disks for a guest
 
@@ -1245,28 +1256,28 @@ OPTIONS
             Usage: 'iohyve disks [name]' where [name] is the name
                     of the guest operating system.
 
-  snap      Take a snapshot of a guest. 
+  snap      Take a snapshot of a guest.
 
-            Usage: 'iohyve snap [name]@[snapshot]' where [name] is the 
-                    name of the guest and [snapshot] is what you would 
+            Usage: 'iohyve snap [name]@[snapshot]' where [name] is the
+                    name of the guest and [snapshot] is what you would
                     like to name the snapshot.
 
-  roll      Rollback guest to a snapshot. 
+  roll      Rollback guest to a snapshot.
 
             Usage: 'iohyve roll [name]@[snapshot]' where [name] is the
                     name of the guest and [snapshot] is what you would
                     like to name the snapshot.
 
-  clone     Clone a guest. Note that this will clone all of the properties. 
-            If you want to use the clone and the original guest at the 
+  clone     Clone a guest. Note that this will clone all of the properties.
+            If you want to use the clone and the original guest at the
             same time you will need to change the tap and nmdm properties
 
             Usage: 'iohyve clone [name] [clonename]' where [name] is the
                     name of the guest and [clonename] is what you would
                     like to name the new clone.
 
-  snaplist  List all of the snapshots for all the guests. Does not show 
-            snapshots of disks (they are there, though). 
+  snaplist  List all of the snapshots for all the guests. Does not show
+            snapshots of disks (they are there, though).
 
   taplist   Lists all of the network taps taken by iohyve guests
             This will list taps that are not active as well.
@@ -1401,7 +1412,7 @@ iohyve  version
         get [name] [prop]
 	rmpci [name] [pcidev:N]
         getall [name]
-	add [name] [size]
+	add [name] [size] [[pool]]
 	remove [name] [diskN]
 	resize [name] [diskN] [size]
 	disks [name]
