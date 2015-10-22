@@ -887,8 +887,8 @@ __snapguest() {
 # Rollback guest
 __rollguest() {
 	local fullsnap="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
+    local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local snap="$(echo $fullsnap | cut -d '@' -f2)"
 	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
                                 cut -f1 | cut -d '/' -f4-)"
