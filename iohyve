@@ -328,7 +328,7 @@ __deletefw() {
 # Create guest
 __create() {
   local name="$2"
-  local pool="${4-$(zfs list -H -t volume | grep iohyve | cut -d '/' -f 1 | head -n1)}"
+  local pool="${4-$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)}"
   local size="$3"
   local description="$(date | sed -e 's/ /_/g')"
   local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
