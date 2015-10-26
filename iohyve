@@ -153,18 +153,19 @@ __version() {
 
 # Setup iohyve
 __setup() {
-  local pool="$2"
-  echo "Setting up iohyve..."
-  zfs create $pool/iohyve
-  if [ -d /iohyve/ISO ]; then
-      zfs set mountpoint="/iohyve/$pool" $pool/iohyve
-  else
-      zfs set mountpoint="/iohyve"
-      zfs create $pool/iohyve/ISO
-      zfs set mountpoint="/iohyve/ISO" $pool/iohyve/ISO
-      zfs create $pool/iohyve/Firmware
-      zfs set mountpoint="/iohyve/Firmware" $pool/iohyve/Firmware
-  fi
+	local pool="$2"
+	echo "Setting up iohyve..."
+	zfs create $pool/iohyve
+	if [ -d /iohyve/ISO ]; then
+		echo "Secondary pool set up..."
+		zfs set mountpoint="/iohyve/$pool" $pool/iohyve
+	else
+		zfs set mountpoint="/iohyve" $pool/iohyve
+		zfs create $pool/iohyve/ISO
+		zfs set mountpoint="/iohyve/ISO" $pool/iohyve/ISO
+		zfs create $pool/iohyve/Firmware
+		zfs set mountpoint="/iohyve/Firmware" $pool/iohyve/Firmware
+	fi
 }
 
 __get_bhyve_cmd() {
