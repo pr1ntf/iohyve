@@ -735,8 +735,8 @@ __set() {
 	echo "Setting $name prop $propval..."
 	if [ $prop = "description" ]; then
 		zfs set iohyve:$sprop $pool/iohyve/$name
-        elif [ $prop = "bargs" ]; then
-                zfs set iohyve:$sprop $pool/iohyve/$name
+	elif [ $prop = "bargs" ]; then
+		zfs set iohyve:$sprop $pool/iohyve/$name
 	else
 		zfs set iohyve:$propval $pool/iohyve/$name
 	fi
