@@ -282,10 +282,10 @@ __renameiso() {
 
 # Delete ISO
 __deleteiso() {
-  local name="$2"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  echo "Deleting $name..."
-  zfs destroy $pool/iohyve/ISO/$name
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	echo "Deleting $name..."
+	zfs destroy $pool/iohyve/ISO/$name
 }
 
 # Fetch Firmware
