@@ -379,41 +379,39 @@ __create() {
 __install() {
 	local name="$2"
 	local iso="$3"
-    local pool="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f1)"
+	local pool="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f1)"
 	local dataset="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1-3 | head -n1)"
-        # Check if guest exists
-        if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
-
-                # Check to make sure guest isn't running
-                local running=$(pgrep -fx "bhyve: ioh-$name")
-                if [ -z $running ]; then
+	# Check if guest exists
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+		# Check to make sure guest isn't running
+		local running=$(pgrep -fx "bhyve: ioh-$name")
+		if [ -z $running ]; then
 			local ram="$(zfs get -H -o value iohyve:ram $dataset)"
-                	local con="$(zfs get -H -o value iohyve:con $dataset)"
-                	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
+			local con="$(zfs get -H -o value iohyve:con $dataset)"
+			local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
 			local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
 			local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
 			echo "Installing $name..."
-                	# Set install prop
-                	zfs set iohyve:install=yes $pool/iohyve/$name
-                	# Load from CD
-                	__load "$name" "/iohyve/ISO/$iso/$iso"
-                	# Prepare and start guest
-                	pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
-                	local pci_args=$(__get_bhyve_cmd "$pci" )
+			# Set install prop
+			zfs set iohyve:install=yes $pool/iohyve/$name
+			# Load from CD
+			__load "$name" "/iohyve/ISO/$iso/$iso"
+			# Prepare and start guest
+			pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
+			local pci_args=$(__get_bhyve_cmd "$pci" )
 			if [ $bargexist = '-' ]; then
-	                	bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+				bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 				echo "This version of your guest is outdated."
 				echo "Please run iohyve fix-bargs guestname to update."
 			else
 				bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-                	fi
-                else
-                        echo "Guest is already running."
-                fi
-        else
-                echo "Not a valid guest name"
-
-        fi
+			fi
+		else
+			echo "Guest is already running."
+		fi
+	else
+		echo "Not a valid guest name"
+	fi
 }
 
 # Load guest
