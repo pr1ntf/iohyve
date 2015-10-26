@@ -272,12 +272,12 @@ __cpiso() {
 
 # Rename an ISO
 __renameiso() {
-local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-local iso="$2"
-local name="$3"
-echo "Renaming ISO $2 to $3..."
-mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
-zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local iso="$2"
+	local name="$3"
+	echo "Renaming ISO $2 to $3..."
+	mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
+	zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
 }
 
 # Delete ISO
