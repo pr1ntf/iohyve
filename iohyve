@@ -252,12 +252,12 @@ __fwlist() {
 
 # Fetch ISO
 __fetch() {
-  local url="$2"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  local name="$(basename $2)"
-  echo "Fetching $url..."
-  zfs create -o mountpoint=/iohyve/ISO/$name $pool/iohyve/ISO/$name
-  fetch $url -o /iohyve/ISO/$name
+	local url="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $2)"
+	echo "Fetching $url..."
+	zfs create -o mountpoint=/iohyve/ISO/$name $pool/iohyve/ISO/$name
+	fetch $url -o /iohyve/ISO/$name
 }
 
 # Copy ISO from local machine
