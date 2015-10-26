@@ -904,34 +904,33 @@ __rollguest() {
 
 # Clone a guest
 __cloneguest() {
-    local name="$2"
+	local name="$2"
 	local cname="$3"
 	local description="$(date | sed -e 's/ /_/g')"
-    local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-    # Check if guest exists
-    echo "Cloning $name to $cname"
-    if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
-            # Check to make sure guest isn't running
-            local running=$(pgrep -fx "bhyve: ioh-$name")
-            if [ -z $running ]; then
-		# Take snapshot
-		zfs snap -r $pool/iohyve/$name@$cname
-		# zfs send that snap and desendants then receive to cname
-		zfs send -R $pool/iohyve/$name@$cname | \
-		zfs recv $pool/iohyve/$cname
-		# clean up
-		zfs destroy -rR $pool/iohyve/$name@$cname
-		zfs destroy -rR $pool/iohyve/$cname@$cname
-		# rename the guest
-		zfs set iohyve:name=$cname $pool/iohyve/$cname
-		zfs set iohyve:description=$description $pool/iohyve/$cname
-            else
-                    echo "Please stop the guest first"
-            fi
-    else
-            echo "Not a valid guest name"
-
-    fi
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	# Check if guest exists
+	echo "Cloning $name to $cname"
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+		# Check to make sure guest isn't running
+		local running=$(pgrep -fx "bhyve: ioh-$name")
+		if [ -z $running ]; then
+			# Take snapshot
+			zfs snap -r $pool/iohyve/$name@$cname
+			# zfs send that snap and desendants then receive to cname
+			zfs send -R $pool/iohyve/$name@$cname | \
+			zfs recv $pool/iohyve/$cname
+			# clean up
+			zfs destroy -rR $pool/iohyve/$name@$cname
+			zfs destroy -rR $pool/iohyve/$cname@$cname
+			# rename the guest
+			zfs set iohyve:name=$cname $pool/iohyve/$cname
+			zfs set iohyve:description=$description $pool/iohyve/$cname
+		else
+			echo "Please stop the guest first"
+		fi
+	else
+		echo "Not a valid guest name"
+	fi
 }
 
 # List all the snapshots
