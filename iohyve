@@ -688,18 +688,18 @@ __stop() {
 
 # Gracefully shut down all guests via ACPI (Does not destroy)
 __scram() {
-  echo "Shutting down all guests..."
-  killall bhyve
+	echo "Shutting down all guests..."
+	killall bhyve
 }
 
 # Destroy guest
 __destroy() {
-  local name="$2"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  echo "Destroying $name..."
-# zfs set iohyve:persist=0 $pool/iohyve/$name
-  bhyvectl --force-poweroff --vm=ioh-$name
-  bhyvectl --destroy --vm=ioh-$name
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	echo "Destroying $name..."
+#	zfs set iohyve:persist=0 $pool/iohyve/$name
+	bhyvectl --force-poweroff --vm=ioh-$name
+	bhyvectl --destroy --vm=ioh-$name
 }
 
 # Rename the guest
