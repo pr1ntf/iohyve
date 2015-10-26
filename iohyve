@@ -866,10 +866,10 @@ __disks() {
 __snapguest() {
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
-    local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Taking snapshot $fullsnap"
 	# Check if guest exists
-    if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		zfs snap -r $pool/iohyve/$fullsnap
 	else
 		echo "Not a valid guest name"
@@ -880,13 +880,13 @@ __snapguest() {
 __rollguest() {
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
-    local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local snap="$(echo $fullsnap | cut -d '@' -f2)"
 	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
-                                cut -f1 | cut -d '/' -f4-)"
+				cut -f1 | cut -d '/' -f4-)"
 	# Check if guest exists
 	echo "Rolling back to $fullsnap"
-    if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
@@ -899,7 +899,6 @@ __rollguest() {
 		fi
 	else
 		echo "Not a valid guest name"
-
 	fi
 }
 
