@@ -704,12 +704,12 @@ __destroy() {
 
 # Rename the guest
 __rename() {
-  local name="$2"
-  local newname="$3"
-  local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
-  echo "Renaming $name to $newname..."
-  zfs rename $pool/iohyve/$name $pool/iohyve/$newname
-  zfs set iohyve:name=$newname $pool/iohyve/$newname
+	local name="$2"
+	local newname="$3"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	echo "Renaming $name to $newname..."
+	zfs rename $pool/iohyve/$name $pool/iohyve/$newname
+	zfs set iohyve:name=$newname $pool/iohyve/$newname
 }
 
 # Delete guest
