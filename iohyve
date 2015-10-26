@@ -418,15 +418,14 @@ __install() {
 __load() {
 	local name="$1"
 	local media="$2"
-    local disk="${3-$(zfs list -H -t volume -o name | grep $name | grep disk0 | head -n1)}"
-    local dataset="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local disk="${3-$(zfs list -H -t volume -o name | grep $name | grep disk0 | head -n1)}"
+	local dataset="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	local install="$(zfs get -H -o value iohyve:install $dataset)"
 	local os="$(zfs get -H -o value iohyve:os $dataset)"
 	local autogrub="$(zfs get -H -o value iohyve:autogrub $dataset)"
-
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
 			if [ $os = "openbsd" ]; then
@@ -434,61 +433,61 @@ __load() {
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 /5.7/amd64/bsd.rd\nboot\n' | \
 				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
-                        elif [ $os = "netbsd" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                printf 'knetbsd -h -r cd0a /netbsd\nboot\n' | \
-                                grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
-                        elif [ $os = "debian" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                printf '\n' | \
-                                grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
-                        elif [ $os = "centos6" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' | \
-                                grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
-                        elif [ $os = "arch" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+			elif [ $os = "netbsd" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'knetbsd -h -r cd0a /netbsd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+			elif [ $os = "debian" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf '\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+			elif [ $os = "centos6" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+			elif [ $os = "arch" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_'$(date +%Y%m)' ro\ninitrd (cd0)/arch/boot/x86_64/archiso.img\nboot\n' | \
-                                grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			else
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 			fi
 		elif [ $install = "no" ]; then
-                        if [ $os = "openbsd" ]; then
+			if [ $os = "openbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-	                        printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
-	                        grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name
-                        elif [ $os = "netbsd" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                printf 'knetbsd -h -r sd0a /netbsd\nboot\n' | \
-                                grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
-                        elif [ $os = "debian" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                printf '\n' | \
-                                grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
-                        elif [ $os = "centos6" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                printf '\n' | \
-                                grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
-                        elif [ $os = "custom" ]; then
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                printf $autogrub | \
-                                grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name
+			elif [ $os = "netbsd" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'knetbsd -h -r sd0a /netbsd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+			elif [ $os = "debian" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf '\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+			elif [ $os = "centos6" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf '\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
+			elif [ $os = "custom" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf $autogrub | \
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
 			else
-                                printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-                                printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-                                grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
 			fi
 		fi
 	else
@@ -505,19 +504,17 @@ __boot() {
 	#   2 = always persist (start again even if guest is powering off)
 	local runmode="$2"
 	local pci="$3"
-    local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
 	local persist="$(zfs get -H -o value iohyve:persist $dataset)"
 	local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
 	local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
-        # Set install prop
-        zfs set iohyve:install=no $dataset
-
+	# Set install prop
+	zfs set iohyve:install=no $dataset
 	# Generate list of bhyve -s commands for all devices
 	local pci_args=$(__get_bhyve_cmd "$pci" )
-
 	# Handle the starting of the guest inside a spawned subshell so the guest
 	# can be restarted automatically if the guest reboots or crashes
 	local runstate="1"
@@ -525,13 +522,13 @@ __boot() {
 		while [ $runstate = "1" ]
 		do
 			__load "$name" "/dev/zvol/$dataset/disk0"
-                        if [ $bargexist = '-' ]; then
-                                bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+			if [ $bargexist = '-' ]; then
+				bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 				echo "This version of your guest is outdated."
 				echo "Please run iohyve fix-bargs guestname to update."
-                        else
-                                bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-                        fi
+			else
+				bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+			fi
 			local vmpid=$!
 			wait $vmpid
 			vmrc=$?
