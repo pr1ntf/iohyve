@@ -169,25 +169,25 @@ __setup() {
 }
 
 __get_bhyve_cmd() {
-  local devices="$1"
-  local pci_slot_count=0
-  for device in $devices ; do
-    echo "-s $pci_slot_count,$device"
-    pci_slot_count=$(( pci_slot_count + 1 ))
-  done
+	local devices="$1"
+	local pci_slot_count=0
+	for device in $devices ; do
+		echo "-s $pci_slot_count,$device"
+		pci_slot_count=$(( pci_slot_count + 1 ))
+	done
 }
 
 # Get PCI device config from zfs
 __get_zfs_pcidev_conf() {
-  local pool="$1"
-  local oldifs=$IFS
-  #local pci
-  IFS=$'\n'
-  for pcidev in $(zfs get -H -o property,value all $pool | grep iohyve:pcidev: | sort )
-  do
-    echo $pcidev | cut -f2-
-  done
-  IFS=$oldifs
+	local pool="$1"
+	local oldifs=$IFS
+	#local pci
+	IFS=$'\n'
+	for pcidev in $(zfs get -H -o property,value all $pool | grep iohyve:pcidev: | sort )
+	do
+		echo $pcidev | cut -f2-
+	done
+	IFS=$oldifs
 }
 
 # List Guests
