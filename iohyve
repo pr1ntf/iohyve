@@ -197,7 +197,7 @@ __list() {
 	(
 	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
 	for g in $guestlist; do
-        local guest=$(echo $g | cut -d'/' -f3)
+		local guest=$(echo $g | cut -d'/' -f3)
 		local vmm="/dev/vmm/ioh-$guest"
 		if [ -e $vmm ]; then
 			vmm="YES"
