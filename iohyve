@@ -789,48 +789,48 @@ __fixbargs() {
 
 # Add a new disk to guest
 __add() {
-  local name="$2"
-  local size="$3"
-  local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
-  # optionally allow the pool for the new disk to be specified. If not set, its set to $pool
-  local newpool="${4-$pool}"
-  # Find the last disk number and increment one
-  local lastdisk="$(zfs list -H | grep $name | grep disk | cut -d '/' -f4 | cut -f1 | \
-	sort -V | cut -c5- | tail -n1)"
-  local newdisk="$(expr $lastdisk + 1)"
-  echo "Creating new zvol for $name..."
-  zfs create $newpool/iohyve/$name 2> /dev/null
-  zfs create -V $size -o volmode=dev $newpool/iohyve/$name/disk$newdisk
-  # Find the last pcidev and increment by one
-  local lastpci="$(zfs get -H all | grep iohyve/$name | grep pcidev | cut -f2 | \
-	cut -d ':' -f3 | sort -V | tail -n1)"
-  if [ -z $lastpci ]; then
-	local newpci='1'
-  else
-	local newpci="$(expr $lastpci + 1)"
-  fi
-  zfs set iohyve:pcidev:$newpci=ahci-hd,/dev/zvol/$newpool/iohyve/$name/disk$newdisk $pool/iohyve/$name
+	local name="$2"
+	local size="$3"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	# optionally allow the pool for the new disk to be specified. If not set, its set to $pool
+	local newpool="${4-$pool}"
+	# Find the last disk number and increment one
+	local lastdisk="$(zfs list -H | grep $name | grep disk | cut -d '/' -f4 | cut -f1 | \
+		sort -V | cut -c5- | tail -n1)"
+	local newdisk="$(expr $lastdisk + 1)"
+	echo "Creating new zvol for $name..."
+	zfs create $newpool/iohyve/$name 2> /dev/null
+	zfs create -V $size -o volmode=dev $newpool/iohyve/$name/disk$newdisk
+	# Find the last pcidev and increment by one
+	local lastpci="$(zfs get -H all | grep iohyve/$name | grep pcidev | cut -f2 | \
+		cut -d ':' -f3 | sort -V | tail -n1)"
+	if [ -z $lastpci ]; then
+		local newpci='1'
+	else
+		local newpci="$(expr $lastpci + 1)"
+	fi
+	zfs set iohyve:pcidev:$newpci=ahci-hd,/dev/zvol/$newpool/iohyve/$name/disk$newdisk $pool/iohyve/$name
 }
 
 # Remove disk from guest
 __remove() {
-  local name="$2"
-  local disk="$3"
-  local pool="$(zfs list -H -o name | grep $name | grep $disk | cut -d '/' -f 1)"
-  local pciprop="$(zfs get -H all $pool/iohyve/$name | grep pcidev | grep $disk | cut -f2 )"
-  # Make sure it's a valid pcidev property as to not shoot foot
-  if [ -z $pciprop ]; then
-	echo "Not a valid PCIDEV property"
-  else
-	read -p "Are you sure you want to remove $disk from $name [Y/N]? " an </dev/tty
-	case "$an" in
-		y|Y)	zfs inherit  -r $pciprop $pool/iohyve/$name
-			zfs destroy $pool/iohyve/$name/$disk
-	  	;;
-		*) echo "Not removed..."
-	  	;;
-	esac
-  fi
+	local name="$2"
+	local disk="$3"
+	local pool="$(zfs list -H -o name | grep $name | grep $disk | cut -d '/' -f 1)"
+	local pciprop="$(zfs get -H all $pool/iohyve/$name | grep pcidev | grep $disk | cut -f2 )"
+	# Make sure it's a valid pcidev property as to not shoot foot
+	if [ -z $pciprop ]; then
+		echo "Not a valid PCIDEV property"
+	else
+		read -p "Are you sure you want to remove $disk from $name [Y/N]? " an </dev/tty
+		case "$an" in
+			y|Y)	zfs inherit  -r $pciprop $pool/iohyve/$name
+				zfs destroy $pool/iohyve/$name/$disk
+			;;
+			*) echo "Not removed..."
+			;;
+		esac
+	fi
 }
 
 # Resize a disk
@@ -841,7 +841,7 @@ __resize(){
 	local pool="$(zfs list -H -o name | grep $name | grep $disk | cut -d '/' -f 1)"
 	# Check if guest exists
 	echo "Resizing $disk to $size"
-    if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
@@ -851,7 +851,6 @@ __resize(){
 		fi
 	else
 		echo "Not a valid guest name"
-
 	fi
 }
 
