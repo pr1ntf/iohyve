@@ -744,32 +744,31 @@ __set() {
 
 # Get ZFS props
 __get() {
-  local name="$2"
-  local prop="$3"
-  local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
-  echo "Getting $name prop $prop..."
-  zfs get -H -o value iohyve:$prop $pool/iohyve/$name
+	local name="$2"
+	local prop="$3"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	echo "Getting $name prop $prop..."
+	zfs get -H -o value iohyve:$prop $pool/iohyve/$name
 }
 
 # Remove a PCIDEV property
 __rmpci() {
-  local name="$2"
-  local prop="$3"
-  local pciprop="$(echo "$prop" | grep pcidev:)"
-  local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
-  # Make sure it's a valid pcidev property as to not shoot foot
-  if [ -z $pciprop ]; then
-	echo "Not a valid PCIDEV property"
-  else
-	read -p "Are you sure you want to remove $prop [Y/N]? " an </dev/tty
-	case "$an" in
-		y|Y) zfs inherit  -r iohyve:$prop $pool/iohyve/$name
-	  	;;
-		*) echo "Not removed..."
-	  	;;
-	esac
-  fi
-
+	local name="$2"
+	local prop="$3"
+	local pciprop="$(echo "$prop" | grep pcidev:)"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	# Make sure it's a valid pcidev property as to not shoot foot
+	if [ -z $pciprop ]; then
+		echo "Not a valid PCIDEV property"
+	else
+		read -p "Are you sure you want to remove $prop [Y/N]? " an </dev/tty
+		case "$an" in
+			y|Y) zfs inherit  -r iohyve:$prop $pool/iohyve/$name
+			;;
+			*) echo "Not removed..."
+			;;
+		esac
+	fi
 }
 
 # Get all ZFS props
