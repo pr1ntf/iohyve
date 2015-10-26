@@ -300,12 +300,12 @@ __fetchfw() {
 
 # Copy Firmware from local machine
 __cpfw() {
-        local loc="$2"
-        local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-        local name="$(basename $loc)"
-        echo "Copying $name from $loc..."
-        zfs create $pool/iohyve/Firmware/$name
-        cp $loc /iohyve/Firmware/$name
+	local loc="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $loc)"
+	echo "Copying $name from $loc..."
+	zfs create $pool/iohyve/Firmware/$name
+	cp $loc /iohyve/Firmware/$name
 }
 
 # Rename Firmware
