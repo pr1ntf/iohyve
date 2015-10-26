@@ -940,18 +940,18 @@ __snaplist() {
 
 # List taps in use
 __taplist() {
-  local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
-  echo "Listing all network taps:"
-  for i in $guestlist ; do
-        conprop="$(zfs get -H -o value iohyve:tap $i)"
-        printf $i'......'$conprop'\n'
-  done
+	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
+	echo "Listing all network taps:"
+	for i in $guestlist ; do
+		conprop="$(zfs get -H -o value iohyve:tap $i)"
+		printf $i'......'$conprop'\n'
+	done
 }
 
 # List active taps in use
 __activetaps() {
   echo "Listing active network taps..."
-  ls /dev | grep tap
+	ls /dev | grep tap
 }
 
 # List consoles in use
@@ -967,19 +967,19 @@ __conlist() {
 	) | column -t
 }
 
-# Run console (dirty pre-zfs workaround)
+# Run console 
 __console() {
-  local name="$2"
-  local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
-  local con="$(zfs get -H -o value iohyve:con $pool)"
-  echo "Starting console on $name..."
-  echo "~~. to escape console [uses cu(1) for console]"
-  cu -l /dev/${con}B -s 9600
+	local name="$2"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local con="$(zfs get -H -o value iohyve:con $pool)"
+	echo "Starting console on $name..."
+	echo "~~. to escape console [uses cu(1) for console]"
+	cu -l /dev/${con}B -s 9600
 }
 
 # Reset all consoles. This kills the cu(1)
 __conreset() {
-  killall cu
+	killall cu
 }
 
 # Print man page
