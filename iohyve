@@ -676,14 +676,14 @@ __uefi() {
 
 # Gracefully stop a guest
 __stop() {
-  local name="$2"
-  local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-  local pid=$(pgrep -fx "bhyve: ioh-$name")
-  echo "Stopping $name..."
-# zfs set iohyve:persist=0 $pool/iohyve/$name
-  kill $pid
-#  sleep 20
-#  bhyvectl --destroy --vm=ioh-$name
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local pid=$(pgrep -fx "bhyve: ioh-$name")
+	echo "Stopping $name..."
+#	zfs set iohyve:persist=0 $pool/iohyve/$name
+	kill $pid
+#	sleep 20
+#	bhyvectl --destroy --vm=ioh-$name
 }
 
 # Gracefully shut down all guests via ACPI (Does not destroy)
