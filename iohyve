@@ -148,7 +148,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-  echo 'iohyve v0.6.6 2015/10/15 You sed what edition'
+	echo 'iohyve v0.6.6 2015/10/15 You sed what edition'
 }
 
 # Setup iohyve
