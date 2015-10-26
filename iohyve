@@ -1128,14 +1128,14 @@ OPTIONS
   load      Loads the guest operating system bootloader and resources.
 
             Usage: 'iohyve load [name] [ISO]'
-					where [name]    is the name of the guest operating system.
-                          [bootimg] is the path to the boot medium
+                    where [name]    is the name of the guest operating system.
+                    [bootimg] is the path to the boot medium
 
   boot      Boots the guest into the operating system. 'iohyve run' needs
             to be run before this is done.
 
             Usage: 'iohyve boot [name] [runmode] [pci]'
-					where [name]    is the name of the guest operating system.
+                    where [name]    is the name of the guest operating system.
                           [runmode] describes how to start the guest:
                                     0 = start only once
                                     1 = regular persist
@@ -1300,16 +1300,17 @@ EXAMPLES
 	iohyve setup tank
 
   Fetch FreeBSD install ISO for later:
-	iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+	iohyve fetch ftp://ftp.freebsd.org/.../10.2/FreeBSD....iso
 
-  Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
+  Create a new FreeBSD guest named bsdguest on console nmdm0 with 
+   an 8Gigabyte virtual HDD:
 	iohyve create bsdguest 8G
 
   List ISO's:
 	iohyve isolist
 
   Install the FreeBSD guest bsdguest:
-	iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+	iohyve install bsdguest FreeBSD-10.2-RELEASE-amd64-bootonly.iso
 
   Console into the intallation:
 	iohyve console bsdguest
@@ -1320,7 +1321,7 @@ EXAMPLES
   Now that the guest is installed, it can be started like usual:
 	iohyve start bsdguest
 
-  Some guest os's (Like FreeBSD and Debian Linux Distros) can be gracefully stopped:
+  Some guest os's can be gracefully stopped:
 	iohyve stop bsdguest
 
   List all guests created with:
