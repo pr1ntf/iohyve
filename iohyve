@@ -618,14 +618,14 @@ __start() {
 __uefi() {
 	local name="$2"
 	local media="$3"
-    local dataset="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1-3 | head -n1)"
+	local dataset="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1-3 | head -n1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
-        local con="$(zfs get -H -o value iohyve:con $dataset)"
-        local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
+	local con="$(zfs get -H -o value iohyve:con $dataset)"
+	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
 	local fw="$(zfs get -H -o value iohyve:fw $dataset)"
 	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
 	local bargs="$(zfs get -H -o value iohyve:bargs $dataset | sed -e 's/_/ /g')"
-    local pool="$(zfs list -H -t volume -o name | grep $name | cut -d '/' -f1)"
+	local pool="$(zfs list -H -t volume -o name | grep $name | cut -d '/' -f1)"
 	# Create tap if needed
 	if [ $tap != "tap0" ]; then
 		# no need to create tap0, should be installed already via README
@@ -646,10 +646,10 @@ __uefi() {
 		echo "EX: iohyve uefi winguest null.iso"
 	fi
 	# Check if guest exists
-        if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
-                # Check to make sure guest isn't running
-                local running=$(pgrep -fx "bhyve: ioh-$name")
-                if [ -z $running ]; then
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+		# Check to make sure guest isn't running
+		local running=$(pgrep -fx "bhyve: ioh-$name")
+		if [ -z $running ]; then
 			# The good stuff...
 			bhyve -c $cpu $bargs -m $ram \
 			        -s 0,hostbridge \
@@ -660,14 +660,12 @@ __uefi() {
 			        -l com1,/dev/${con}A \
 			        -l bootrom,/iohyve/Firmware/$fw/$fw \
 			        ioh-$name &
-                else
-                        echo "Guest is already running."
-                fi
-        else
-                echo "Not a valid guest name"
-
-        fi
-
+		else
+			echo "Guest is already running."
+		fi
+	else
+		echo "Not a valid guest name"
+	fi
 }
 
 # Gracefully stop a guest
