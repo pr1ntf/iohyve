@@ -191,6 +191,18 @@ __setup() {
 					echo "kmod=1 to load modules"
 					echo "kmod=0 to unload modules"
 				fi
+			elif [ $prop = "net" ]; then
+				local bridgeif="$('ifconfig' -a | grep bridge0: | cut -c1-6)"
+				if [ -z $bridgeif ]; then
+					echo "Seting up bridge0 on $val..."
+					ifconfig tap0 create
+					sysctl net.link.tap.up_on_open=1
+					ifconfig bridge0 create
+					ifconfig bridge0 addm $val addm tap0
+					ifconfig bridge0 up
+				else
+					echo "bridge0 is already enabled on this machine..."
+				fi
 			fi	
 		fi
 	done
