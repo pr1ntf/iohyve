@@ -23,6 +23,10 @@ The first step to creating a virtual machine in bhyve is configuring the host sy
     kldload vmm
     kldload nmdm
 
+NOTE: iohyve can now load/unload the kernel modules:
+````
+iohyve setup kmod=1	#load kernel modules required for iohyve
+````
 Then, create a tap interface for the network device in the virtual machine to attach to. In order for the network device to participate in the network, also create a bridge interface containing the tap 
 interface ane the physical interface as members. In this example, the physical interface is igb0:
 
@@ -42,7 +46,7 @@ to bridge0 automatically as of v0.3.2 master branch.
 iohyve  
 
 version
-setup [pool]
+setup pool=[poolname] kmod=[0/1]
 list
 info [-d]
 isolist
@@ -110,7 +114,7 @@ and iohyve will set a default.
 
 Setup iohyve by telling it what zpool to use
 
-    iohyve setup tank
+    iohyve setup pool=tank
 
 **General Usage**
 
