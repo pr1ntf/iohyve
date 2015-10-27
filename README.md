@@ -15,30 +15,32 @@ DO YOU EVEN MAN PAGE?
 
 **Pre-Flight Checklist**
 
-[Taken from the FreeBSD handbook https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html]
-
-
-The first step to creating a virtual machine in bhyve is configuring the host system. First, load the bhyve kernel module:
-
-    kldload vmm
-    kldload nmdm
-
-NOTE: iohyve can now load/unload the kernel modules:
+As of v0.7 `iohyve` takes care of setting up your machine if you let it. 
+Once you have created your ZFS pool named 'tank' you can run:
 ````
-iohyve setup kmod=1			#load kernel modules required for iohyve
+iohyve setup pool=tank
 ````
-Then, create a tap interface for the network device in the virtual machine to attach to. In order for the network device to participate in the network, also create a bridge interface containing the tap 
-interface ane the physical interface as members. In this example, the physical interface is igb0:
+If you want `iohyve` to take care of networking, so you don't have to set up `rc.conf` you can do the following:
+````
+iohyve setup net=em0		# 'em0' is the interface I want bridge0 attached to.
+````
+You can even have `iohyve` load the required kernel modules:
+````
+iohyve setup kmod=1
+````
+You can also do all of the above at once:
+````
+iohyve setup pool=tank kmod=1 net=em0
+````
+If you want `iohyve` to set up the kernel modules and bridge0 every time you boot, add these lines to `/etc/rc.conf`:
+````
+iohyve_enable="YES"
+iohyve_flags="kmod=1 net=em0"
 
-    ifconfig tap0 create
-    sysctl net.link.tap.up_on_open=1
-        net.link.tap.up_on_open: 0 -> 1
-    ifconfig bridge0 create
-    ifconfig bridge0 addm igb0 addm tap0
-    ifconfig bridge0 up
+````
 
-Once you have created tap0, there is no need to create more tap interfaces for iohyve, it will create them and add them 
-to bridge0 automatically as of v0.3.2 master branch.
+If you want more control over your setup, feel free to read the [handbook](https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html).
+
 
 **Usage**
 
