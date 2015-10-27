@@ -649,7 +649,7 @@ __start() {
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	# Check if loader is UEFI
 	if [ $loader = "uefi" ]; then
-		__uefi "$name" "$flag"
+		__uefi "$name" "null.iso"
 	fi
 	# Check if guest exists
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
