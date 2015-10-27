@@ -1047,7 +1047,7 @@ NAME
 
 SYNOPSIS
   iohyve version
-  iohyve setup pool=[poolname] kmod=[0/1] 
+  iohyve setup pool=[poolname] kmod=[0/1] net=[interface]
   iohyve list
   iohyve info [-d]
   iohyve isolist
@@ -1111,9 +1111,11 @@ OPTIONS
 
   setup     Installs required zfs datasets and kernel modules for iohyve.
 
-            Usage: 'iohyve setup pool=poolname kmod=0/1' where [poolname] is the
-            pool you want to install iohyve on, kmod=[0/1] is if you want iohyve
-            to load or unload the kernel modules required by iohyve. 1 is load. 
+            Usage: 'iohyve setup pool=poolname kmod=0/1 net=[iface]' 
+            where [poolname] is the pool you want to install iohyve on,
+            kmod=[0/1] is if you want iohyve to load or unload the
+            kernel modules required by iohyve. 1 is load. net=[iface]
+            will set up the network bridge to the specified interface. 
             Multiple pools are supported, additional pools get mounted
             in /iohyve/poolname
 
@@ -1435,7 +1437,7 @@ EOT
 __help() {
 cat << 'EOT'
 iohyve  version
-        setup pool=[poolname] kmod=[0/1]
+        setup pool=[poolname] kmod=[0/1] net=[interface]
         list
 	info [-d]
         isolist
