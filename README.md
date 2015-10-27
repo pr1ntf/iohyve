@@ -25,7 +25,7 @@ The first step to creating a virtual machine in bhyve is configuring the host sy
 
 NOTE: iohyve can now load/unload the kernel modules:
 ````
-iohyve setup kmod=1	#load kernel modules required for iohyve
+iohyve setup kmod=1			#load kernel modules required for iohyve
 ````
 Then, create a tap interface for the network device in the virtual machine to attach to. In order for the network device to participate in the network, also create a bridge interface containing the tap 
 interface ane the physical interface as members. In this example, the physical interface is igb0:
