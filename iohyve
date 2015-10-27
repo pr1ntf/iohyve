@@ -1112,8 +1112,8 @@ OPTIONS
   setup     Installs required zfs datasets and kernel modules for iohyve.
 
             Usage: 'iohyve setup pool=poolname kmod=0/1' where [poolname] is the
-            pool you want to install iohyve on, kmod=[0/1] is if you want iohyve to
-            load or unload the kernel modules required by iohyve. 1 is load. 
+            pool you want to install iohyve on, kmod=[0/1] is if you want iohyve
+            to load or unload the kernel modules required by iohyve. 1 is load. 
             Multiple pools are supported, additional pools get mounted
             in /iohyve/poolname
 
