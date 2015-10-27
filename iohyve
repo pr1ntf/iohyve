@@ -9,9 +9,12 @@ __parse_cmd () {
       version)  __version
                 exit
       ;;
-      setup)    __setup "$@"
+      oldsetup)	__oldsetup "$@"
                 exit
       ;;
+      setup)    __setup "$@"
+                exit
+      ;;     
       list)     __list
                 exit
       ;;
@@ -153,6 +156,48 @@ __version() {
 
 # Setup iohyve
 __setup() {
+	local args="$@"
+	for arg in $args; do
+		if [ $arg != "setup" ]; then
+			local prop="$(echo $arg | cut -d '=' -f1)"
+			local val="$(echo $arg | cut -d '=' -f2)"
+			if [ $prop = "pool" ]; then
+				local pool="$val"
+				echo "Setting up iohyve pool..."
+				zfs create $pool/iohyve
+				# iohyve is already setup on a pool
+				if [ -d /iohyve/ISO ]; then
+					echo "Secondary pool set up..."
+					zfs set mountpoint="/iohyve/$pool" $pool/iohyve
+				# iohyve is not set up yet
+				else
+					zfs set mountpoint="/iohyve" $pool/iohyve
+					zfs create $pool/iohyve/ISO
+					zfs set mountpoint="/iohyve/ISO" $pool/iohyve/ISO
+					zfs create $pool/iohyve/Firmware
+					zfs set mountpoint="/iohyve/Firmware" $pool/iohyve/Firmware
+				fi
+			elif [ $prop = "kmod" ]; then
+				if [ $val = "1" ]; then
+					echo "Loading kernel modules..."
+					kldload vmm
+					kldload nmdm
+				elif [ $val = "0" ]; then
+					echo "Unloading kernel modules..."
+					kldunload vmm
+					kldunload nmdm
+				else
+					echo "Improper syntax"
+					echo "kmod=1 to load modules"
+					echo "kmod=0 to unload modules"
+				fi
+			fi	
+		fi
+	done
+}
+
+# Setup iohyve
+__oldsetup() {
 	local pool="$2"
 	echo "Setting up iohyve..."
 	zfs create $pool/iohyve
