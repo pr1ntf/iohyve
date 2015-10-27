@@ -48,7 +48,7 @@ If you want more control over your setup, feel free to read the [handbook](https
 iohyve  
 
 version
-setup pool=[poolname] kmod=[0/1]
+setup pool=[poolname] kmod=[0/1] net=[interface]
 list
 info [-d]
 isolist
@@ -111,12 +111,6 @@ Please run iohyve fix-bargs guestname to update.
 ````
 To set default arguments, I have added the `fix-bargs` function. Simply run `iohyve fix-bargs bsdguest`
 and iohyve will set a default. 
-
-**Setup**
-
-Setup iohyve by telling it what zpool to use
-
-    iohyve setup pool=tank
 
 **General Usage**
 
