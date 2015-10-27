@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.6.6 2015/10/15 "You sed what edition"
+# iohyve v0.7 2015/10/27 "Im Here for the Party Edition"
 
 # Process command line
 __parse_cmd () {
@@ -148,7 +148,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-	echo 'iohyve v0.6.6 2015/10/15 You sed what edition'
+	echo 'iohyve v0.7 2015/10/27 Im Here for the Party Edition'
 }
 
 # Setup iohyve
