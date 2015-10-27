@@ -90,7 +90,7 @@ conreset
 help
 man 
 ```
-**Quick note about upgrading from v6.0 to v6.5 and above**
+**Quick note about upgrading from v0.6.0 to v0.6.5 and above**
 
 
 iohyve can now set custom bhyve flags when launching guests. Instead of being stuck with the default
