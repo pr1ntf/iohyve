@@ -9,9 +9,11 @@ The idea is based on iocage, a jail manager utilizing some of the same principle
 
 
 DO YOU EVEN MAN PAGE?
+````
+man iohyve			# Installs with 'make install'
 
-    iohyve man 
-
+cat iohyve.8.txt | less		# Quick and dirty txt file
+````
 
 **Pre-Flight Checklist**
 
@@ -88,7 +90,6 @@ conlist
 console [name]
 conreset
 help
-man 
 ```
 **Quick note about upgrading from v0.6.0 to v0.6.5 and above**
 
