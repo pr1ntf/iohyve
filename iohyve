@@ -1035,7 +1035,7 @@ NAME
 
 SYNOPSIS
   iohyve version
-  iohyve setup [pool]
+  iohyve setup pool=[poolname] kmod=[0/1] 
   iohyve list
   iohyve info [-d]
   iohyve isolist
@@ -1097,11 +1097,13 @@ DESCRIPTION
 OPTIONS
   version   Prints the current running version of iohyve
 
-  setup     Installs required zfs datasets for iohyve to function.
+  setup     Installs required zfs datasets and kernel modules for iohyve.
 
-            Usage: 'iohyve setup [poolname]' where [poolname] is the zpool
-                    you want to install iohyve on. Multiple pools are supported,
-                    additional pools get mounted in /iohyve/poolname
+            Usage: 'iohyve setup pool=poolname kmod=0/1' where [poolname] is the
+            pool you want to install iohyve on, kmod=[0/1] is if you want iohyve to
+            load or unload the kernel modules required by iohyve. 1 is load. 
+            Multiple pools are supported, additional pools get mounted
+            in /iohyve/poolname
 
   list      Lists the zfs dataset directorys for iohyve.
 
@@ -1342,7 +1344,7 @@ OPTIONS
 
 EXAMPLES
   Setup iohyve zpool named tank:
-	iohyve setup tank
+	iohyve setup pool=tank
 
   Fetch FreeBSD install ISO for later:
 	iohyve fetch ftp://ftp.freebsd.org/.../10.2/FreeBSD....iso
@@ -1421,7 +1423,7 @@ EOT
 __help() {
 cat << 'EOT'
 iohyve  version
-        setup [pool]
+        setup pool=[poolname] kmod=[0/1]
         list
 	info [-d]
         isolist
