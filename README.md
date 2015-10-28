@@ -38,7 +38,6 @@ If you want `iohyve` to set up the kernel modules and bridge0 every time you boo
 ````
 iohyve_enable="YES"
 iohyve_flags="kmod=1 net=em0"
-
 ````
 
 If you want more control over your setup, feel free to read the [handbook](https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html).
@@ -106,7 +105,7 @@ Note that you must put your arguments inbetween double quotes ("). iohyve will t
 As to not break guests created before v6.5, iohyve will still launch with defaults, but will throw the error:
 ````
 iohyve start bsdguest
-Starting snappy... (Takes 15 seconds for FreeBSD guests)
+Starting bsdguest... (Takes 15 seconds for FreeBSD guests)
 This version of your guest is outdated.
 Please run iohyve fix-bargs guestname to update.
 ````
