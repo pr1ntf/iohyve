@@ -413,7 +413,7 @@ __create() {
 	fi
 	echo "Creating $name..."
 	zfs create $pool/iohyve/$name
-	zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk0
+	zfs create -V $size -b 4K -o volmode=dev $pool/iohyve/$name/disk0
 	zfs set iohyve:name=$name $pool/iohyve/$name
 	zfs set iohyve:size=$size $pool/iohyve/$name
 	zfs set iohyve:ram=256M $pool/iohyve/$name
