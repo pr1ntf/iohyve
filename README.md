@@ -72,7 +72,7 @@ scram
 destroy [name]
 rename [name] [newname]
 delete [name]
-set [name] [prop=value]
+set [name] [prop1=value] [prop2=value]...
 get [name] [prop]
 getall [name]
 add [name] [size]
@@ -122,10 +122,12 @@ You can change guest properties by using set:
 
     iohyve set bsdguest ram=512M                 #set ram to 512 Megabytes
     iohyve set bsdguest cpu=1                    #set cpus to 1 core
-    iohyve set bsdguest tap=tap0                 #set tap device for ethernet
-    iohyve set bsdguest con=nmdm0                #set the console to attach to
     iohyve set bsdguest pcidev:1=passthru,2/0/0  #pass through a pci device
 
+You can also set more than one property at once:
+```
+iohyve set bsdguest tap=tap0 con=nmdm0		#set tap0 and nmdm0
+```
 You can also set a description that can be a double quoted (") string with no equals sign (=). 
 All spaces are turned into underscores (_). At guest creation, the description is the output of `date`
 ````
