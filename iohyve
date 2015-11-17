@@ -230,7 +230,7 @@ __get_zfs_pcidev_conf() {
 # List Guests
 __list() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local guestlist="$(zfs list -H | grep iohyve | grep -v disk | grep -v ISO | grep -v Firmware | sed 1d | cut -f1 | cut -d'/' -f3)"
+	local guestlist="$(zfs list -H | grep iohyve | grep -Ev "disk|ISO|Firmware" | sed 1d | cut -f1 | cut -d'/' -f3)"
 	(
 	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
 	for g in $guestlist; do
@@ -264,11 +264,11 @@ __info() {
 	if [ -z $dflag ]; then
 		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\n';  \
 			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader | \
-			grep iohyve | grep -v Firmware | grep -v ISO  |  cut -d '/' -f3- | sed 1d) | column -t
+			grep iohyve | grep -Ev "disk|ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
 	elif [ $dflag = "-d" ]; then
 		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\tDescription\n';  \
 			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader,iohyve:description | \
-			grep iohyve | grep -v Firmware | grep -v ISO  |  cut -d '/' -f3- | sed 1d) | column -t
+			grep iohyve | grep -Ev "disk|ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
 	else
 		echo "Invalid flag..."
 	fi
