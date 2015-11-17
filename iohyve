@@ -467,6 +467,11 @@ __load() {
 			if [ $os = "openbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 /5.8/amd64/bsd.rd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+			elif [ $os = "openbsd57" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 /5.7/amd64/bsd.rd\nboot\n' | \
 				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			elif [ $os = "netbsd" ]; then
