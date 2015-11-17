@@ -9,7 +9,7 @@ __parse_cmd () {
       version)  __version
                 exit
       ;;
-      oldsetup)	__oldsetup "$@"
+      oldset)	__oldset "$@"
                 exit
       ;;
       setup)    __setup "$@"
@@ -762,8 +762,31 @@ __delete() {
 	esac
 }
 
-# Set ZFS props
+# Set ZFS properties
 __set() {
+	local name="$2"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	shift 2
+	for arg in "$@"; do
+		local prop="$(echo $arg | cut -d '=' -f1)"
+		local val="$(echo $arg | cut -d '=' -f2)"
+		if [ $prop = "bargs" ]; then
+			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
+			echo "Setting $name $prop=$val..."
+			zfs set iohyve:$prop=$sval $pool/iohyve/$name
+		elif [ $prop = "description" ]; then
+			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
+			echo "Setting $name $prop=$val..."
+			zfs set iohyve:$prop=$sval $pool/iohyve/$name
+		else
+			echo "Setting $name $prop=$val..."
+			zfs set iohyve:$prop=$val $pool/iohyve/$name
+		fi
+	done
+}
+
+# Set ZFS props [retro style]
+__oldset() {
 	local name="$2"
 	local propval="$3"
 	local prop="$(echo $propval | cut -d '=' -f1 )"
