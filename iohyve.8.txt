@@ -26,7 +26,7 @@ iohyve scram
 iohyve destroy [name]
 iohyve rename [name] [newname]
 iohyve delete [name]
-iohyve set [name] [prop=value]
+iohyve set [name] [prop1=value] [prop2=value]...
 iohyve get [name] [prop]
 iohyve rmpci [name] [pcidev:N]
 iohyve getall [name]
@@ -171,8 +171,8 @@ delete		Deletes all data for the guest.
 		of the guest operating system.
 
 set		Sets ZFS properties for guests one at a time
-		Usage: 'iohyve set [name] [prop=value]' where [name] is the name
-		of the guest operating system.
+		Usage: 'iohyve set [name] [prop1=value] [prop2=value]...' where
+		[name] is the name of the guest operating system.
 		Properties:
 		ram=512M or ram=2G (M for megabytes, G for gigabtyes)
 		cpu=1 (number of cpu cores)
