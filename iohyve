@@ -230,31 +230,30 @@ __get_zfs_pcidev_conf() {
 # List Guests
 __list() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
+	local guestlist="$(zfs list -H | grep iohyve | grep -v disk | grep -v ISO | grep -v Firmware | sed 1d | cut -f1 | cut -d'/' -f3)"
 	(
 	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
 	for g in $guestlist; do
-		local guest=$(echo $g | cut -d'/' -f3)
-		local vmm="/dev/vmm/ioh-$guest"
+		local vmm="/dev/vmm/ioh-$g"
 		if [ -e $vmm ]; then
 			vmm="YES"
 		else
 			vmm="NO"
 		fi
-		local running=$(pgrep -fx "bhyve: ioh-$guest")
+		local running=$(pgrep -fx "bhyve: ioh-$g")
 		if [ -z $running ]; then
 			running="NO"
 		else
 			running="YES"
 		fi
-		local boot="$(zfs get -H -o value iohyve:boot $g)"
+		local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$g)"
 		if [ $boot = '1' ]; then
 			boot="YES"
 		else
 			boot="NO"
 		fi
-		local description="$(zfs get -H -o value iohyve:description $g)"
-		printf $guest'\t'$vmm'\t'$running'\t'$boot'\t'$description'\n'
+		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
+		printf $g'\t'$vmm'\t'$running'\t'$boot'\t'$description'\n'
 	done
 	) | column -t
 }
