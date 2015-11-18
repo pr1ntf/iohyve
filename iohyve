@@ -230,7 +230,7 @@ __get_zfs_pcidev_conf() {
 # List Guests
 __list() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local guestlist="$(zfs list -H | grep iohyve | grep -Ev "disk|ISO|Firmware" | sed 1d | cut -f1 | cut -d'/' -f3)"
+	local guestlist="$(zfs list -H | grep iohyve | grep -Ev "disk|ISO|Firmware" | sed 1d | awk 'BEGIN { FS = "/" } ; { print $NF }')"
 	(
 	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
 	for g in $guestlist; do
