@@ -484,6 +484,11 @@ __load() {
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
 				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+			elif [ $os = "d8lvm" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf '\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			elif [ $os = "centos6" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
