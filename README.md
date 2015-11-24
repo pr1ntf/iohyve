@@ -90,27 +90,6 @@ console [name]
 conreset
 help
 ```
-**Quick note about upgrading from v0.6.0 to v0.6.5 and above**
-
-
-iohyve can now set custom bhyve flags when launching guests. Instead of being stuck with the default
-I set up as `bhyve -A -H -P etc...` you can now edit those flags using the `bargs` property. 
-
-For instance, if you want the bhyve RTC to use UTC time, do the following:
-````
-iohyve set bsdguest bargs="-A -H -P -u"
-````
-Note that you must put your arguments inbetween double quotes ("). iohyve will take care of the rest. 
-
-As to not break guests created before v6.5, iohyve will still launch with defaults, but will throw the error:
-````
-iohyve start bsdguest
-Starting bsdguest... (Takes 15 seconds for FreeBSD guests)
-This version of your guest is outdated.
-Please run iohyve fix-bargs guestname to update.
-````
-To set default arguments, I have added the `fix-bargs` function. Simply run `iohyve fix-bargs bsdguest`
-and iohyve will set a default. 
 
 **General Usage**
 
