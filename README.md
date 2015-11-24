@@ -209,7 +209,7 @@ iohyve console nbsdguest
 ````
 **Linux flavors:**
 
-Try out Debian or Ubuntu _(note LVM installs are a bit wonky at times)_:
+Try out Debian or Ubuntu _(note LVM installs should work with os=d8lvm)_:
 ````
 iohyve set debguest loader=grub-bhyve
 iohyve set debguest os=debian
