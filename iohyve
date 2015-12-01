@@ -229,11 +229,12 @@ __get_zfs_pcidev_conf() {
 
 # List Guests
 __list() {
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local guestlist="$(zfs list -H | grep iohyve | grep -Ev "disk|ISO|Firmware" | sed 1d | cut -f1 | cut -d'/' -f3)"
+	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
 	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
-	for g in $guestlist; do
+	for pool in $pools; do
+            local guests="$(zfs list -H | grep iohyve | grep -Ev "disk|ISO|Firmware" | grep -i $pool | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
+            for g in $guests; do
 		local vmm="/dev/vmm/ioh-$g"
 		if [ -e $vmm ]; then
 			vmm="YES"
@@ -254,6 +255,7 @@ __list() {
 		fi
 		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
 		printf $g'\t'$vmm'\t'$running'\t'$boot'\t'$description'\n'
+            done
 	done
 	) | column -t
 }
