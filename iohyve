@@ -713,7 +713,7 @@ __uefi() {
 			bhyve -c $cpu $bargs -m $ram \
 			        -s 0,hostbridge \
 			        -s 3,ahci-cd,/iohyve/ISO/$media/$media \
-			        -s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=4K \
+			        -s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
 			        -s 10,virtio-net,$tap \
 			        -s 31,lpc \
 			        -l com1,/dev/${con}A \
