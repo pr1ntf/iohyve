@@ -14,7 +14,7 @@ __parse_cmd () {
       ;;
       setup)    __setup "$@"
                 exit
-      ;;     
+      ;;
       list)     __list
                 exit
       ;;
@@ -170,9 +170,7 @@ __setup() {
 				else
 					zfs set mountpoint="/iohyve" $pool/iohyve
 					zfs create $pool/iohyve/ISO
-					zfs set mountpoint="/iohyve/ISO" $pool/iohyve/ISO
 					zfs create $pool/iohyve/Firmware
-					zfs set mountpoint="/iohyve/Firmware" $pool/iohyve/Firmware
 				fi
 			elif [ $prop = "kmod" ]; then
 				if [ $val = "1" ]; then
@@ -200,7 +198,7 @@ __setup() {
 				else
 					echo "bridge0 is already enabled on this machine..."
 				fi
-			fi	
+			fi
 		fi
 	done
 }
@@ -294,7 +292,7 @@ __fetch() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $2)"
 	echo "Fetching $url..."
-	zfs create -o mountpoint=/iohyve/ISO/$name $pool/iohyve/ISO/$name
+	zfs create $pool/iohyve/ISO/$name
 	fetch $url -o /iohyve/ISO/$name
 }
 
@@ -332,7 +330,7 @@ __fetchfw() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $2)"
 	echo "Fetching $url..."
-	zfs create -o mountpoint=/iohyve/Firmware/$name $pool/iohyve/Firmware/$name
+	zfs create $pool/iohyve/Firmware/$name
 	fetch $url -o /iohyve/Firmware/$name
 }
 
@@ -761,7 +759,7 @@ __rename() {
 	local newname="$3"
 	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
 	echo "Renaming $name to $newname..."
-	zfs rename $pool/iohyve/$name $pool/iohyve/$newname
+	zfs rename -f $pool/iohyve/$name $pool/iohyve/$newname
 	zfs set iohyve:name=$newname $pool/iohyve/$newname
 }
 
@@ -1053,7 +1051,7 @@ __conlist() {
 	) | column -t
 }
 
-# Run console 
+# Run console
 __console() {
 	local name="$2"
 	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
