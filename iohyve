@@ -231,7 +231,7 @@ __get_zfs_pcidev_conf() {
 __list() {
 	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
-	printf 'Guest\tVMM?\tRunning?\trcboot?\tDescription\n'
+        printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
 	for pool in $pools; do
             local guests="$(zfs list -H | grep iohyve | grep -Ev "disk|ISO|Firmware" | grep -i $pool | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
             for g in $guests; do
@@ -254,10 +254,10 @@ __list() {
 			boot="NO"
 		fi
 		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
-		printf $g'\t'$vmm'\t'$running'\t'$boot'\t'$description'\n'
+                printf "%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$description"
             done
 	done
-	) | column -t
+	) | column -ts^
 }
 
 # Display info about all guests.
@@ -791,9 +791,9 @@ __set() {
 			echo "Setting $name $prop=$val..."
 			zfs set iohyve:$prop=$sval $pool/iohyve/$name
 		elif [ $prop = "description" ]; then
-			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
+			local sval="$(echo $val | cut -d '"' -f2)"
 			echo "Setting $name $prop=$val..."
-			zfs set iohyve:$prop=$sval $pool/iohyve/$name
+			zfs set "iohyve:$prop=$sval" $pool/iohyve/$name
 		else
 			echo "Setting $name $prop=$val..."
 			zfs set iohyve:$prop=$val $pool/iohyve/$name
