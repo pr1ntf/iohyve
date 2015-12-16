@@ -1116,4 +1116,9 @@ iohyve  version
 EOT
 }
 
+if [ -z "$1" ] ; then
+    __help
+    exit 0
+fi
+
 __parse_cmd "$@"
