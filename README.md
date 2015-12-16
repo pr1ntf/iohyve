@@ -1,11 +1,11 @@
 # iohyve v0.7
 "I'm Here for the Party Edition"
 
-FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools. 
+FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
 *Over the hill to 1.0*
 
-iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features. 
-The idea is based on iocage, a jail manager utilizing some of the same principles. 
+iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features.
+The idea is based on iocage, a jail manager utilizing some of the same principles.
 
 
 DO YOU EVEN MAN PAGE?
@@ -17,7 +17,7 @@ cat iohyve.8.txt | less		# Quick and dirty txt file
 
 **Pre-Flight Checklist**
 
-As of v0.7 `iohyve` takes care of setting up your machine if you let it. 
+As of v0.7 `iohyve` takes care of setting up your machine if you let it.
 Once you have created your ZFS pool named 'tank' you can run:
 ````
 iohyve setup pool=tank
@@ -107,7 +107,7 @@ You can also set more than one property at once:
 ```
 iohyve set bsdguest tap=tap0 con=nmdm0		#set tap0 and nmdm0
 ```
-You can also set a description that can be a double quoted (") string with no equals sign (=). 
+You can also set a description that can be a double quoted (") string with no equals sign (=).
 All spaces are turned into underscores (_). At guest creation, the description is the output of `date`
 ````
 iohyve set bsdguest description="This is my string"
@@ -123,7 +123,7 @@ Get all guest properties:
 
 Do cool ZFS stuff to a guest:
 ````
-#Take a snapshot of a guest. 
+#Take a snapshot of a guest.
 iohyve snap bsdguest@beforeupdate  #take snapshot
 iohyve snaplist                    #list snapshots
 iohyve roll bsdguest@beforeupdate  #rollback to snapshot
@@ -154,7 +154,7 @@ Install the FreeBSD guest bsdguest:
 
     iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
 
-Console into the intallation:
+Console into the installation:
 
     iohyve console bsdguest
 
