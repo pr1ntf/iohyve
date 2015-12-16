@@ -369,7 +369,7 @@ __create() {
 	local name="$2"
 	local pool="${4-$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)}"
 	local size="$3"
-	local description="$(date | sed -e 's/ /_/g')"
+	local description="$(date)"
 	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
 	listtaps(){
 		for i in $guestlist ; do
@@ -409,7 +409,7 @@ __create() {
 	zfs set iohyve:loader=bhyveload $pool/iohyve/$name
 	zfs set iohyve:os=default $pool/iohyve/$name
 	zfs set iohyve:autogrub='\n' $pool/iohyve/$name
-	zfs set iohyve:description=$description $pool/iohyve/$name
+	zfs set "iohyve:description=$description" $pool/iohyve/$name
 	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
 
