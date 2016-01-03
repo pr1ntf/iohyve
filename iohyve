@@ -477,11 +477,10 @@ __load() {
     local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
     #Testing if -S is in the bargs settings. If then pass -S to bhyveload.
     local test_for_wire_memory="-S"
-    if [ ! "${bargs/$test_for_wire_memory}" = "$bargs" ]; then
-        local wire_memory="-S"
-    else
-        local wire_memory=""
-    fi
+    case $bargs in
+        *${test_for_wire_memory}*) local wire_memory="-S" ;;
+        *) local wire_memory="" ;;
+    esac
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
 			if [ $os = "openbsd" ]; then
