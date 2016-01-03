@@ -473,87 +473,96 @@ __load() {
 	local install="$(zfs get -H -o value iohyve:install $dataset)"
 	local os="$(zfs get -H -o value iohyve:os $dataset)"
 	local autogrub="$(zfs get -H -o value iohyve:autogrub $dataset)"
+    local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
+    local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
+    #Testing if -S is in the bargs settings. If then pass -S to bhyveload.
+    local test_for_wire_memory="-S"
+    if [ ! "${bargs/$test_for_wire_memory}" = "$bargs" ]; then
+        local wire_memory="-S"
+    else
+        local wire_memory=""
+    fi
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
 			if [ $os = "openbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 /5.8/amd64/bsd.rd\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			elif [ $os = "openbsd57" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 /5.7/amd64/bsd.rd\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			elif [ $os = "netbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'knetbsd -h -r cd0a /netbsd\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			elif [ $os = "debian" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			elif [ $os = "d8lvm" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			elif [ $os = "centos6" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			elif [ $os = "arch" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_'$(date +%Y%m)' ro\ninitrd (cd0)/arch/boot/x86_64/archiso.img\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
 			else
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 			fi
 		elif [ $install = "no" ]; then
 			if [ $os = "openbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name
 			elif [ $os = "netbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'knetbsd -h -r sd0a /netbsd\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
 			elif [ $os = "debian" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
 			elif [ $os = "d8lvm" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
 			elif [ $os = "centos6" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
 			elif [ $os = "custom" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf $autogrub | \
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
 			else
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
 			fi
 		fi
 	else
-		bhyveload -m $ram -d $media -c /dev/${con}A ioh-$name
+		bhyveload $wire_memory -m $ram -d $media -c /dev/${con}A ioh-$name
 	fi
 }
 
@@ -796,6 +805,8 @@ __set() {
 		local prop="$(echo $arg | cut -d '=' -f1)"
 		local val="$(echo $arg | cut -d '=' -f2)"
 		if [ $prop = "bargs" ]; then
+            #This is hackish.. if the user wants to unset the standard they are unable to do that.
+            val="-A -H -P $val"
 			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
 			echo "Setting $name $prop=$val..."
 			zfs set iohyve:$prop=$sval $pool/iohyve/$name
