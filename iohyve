@@ -475,7 +475,12 @@ __load() {
 	local autogrub="$(zfs get -H -o value iohyve:autogrub $dataset)"
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
-			if [ $os = "openbsd" ]; then
+			if [ $os = "openbsd59" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 /5.9/amd64/bsd.rd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+			elif [ $os = "openbsd58" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 /5.8/amd64/bsd.rd\nboot\n' | \
@@ -516,7 +521,17 @@ __load() {
 				grub-bhyve -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 			fi
 		elif [ $install = "no" ]; then
-			if [ $os = "openbsd" ]; then
+			if [ $os = "openbsd59" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name
+			elif [ $os = "openbsd58" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name
+			elif [ $os = "openbsd57" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
