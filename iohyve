@@ -804,8 +804,6 @@ __set() {
 		local prop="$(echo $arg | cut -d '=' -f1)"
 		local val="$(echo $arg | cut -d '=' -f2)"
 		if [ $prop = "bargs" ]; then
-            #This is hackish.. if the user wants to unset the standard they are unable to do that.
-            val="-A -H -P $val"
 			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
 			echo "Setting $name $prop=$val..."
 			zfs set iohyve:$prop=$sval $pool/iohyve/$name
