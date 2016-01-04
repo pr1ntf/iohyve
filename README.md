@@ -174,9 +174,8 @@ Some guest os's can be gracefully stopped:
 
 Try out OpenBSD:
 ````
-iohyve set obsdguest loader=grub-bhyve
-iohyve set obsdguest os=openbsd
-iohyve install obsdguest install57.iso
+iohyve set obsdguest loader=grub-bhyve os=openbsd58
+iohyve install obsdguest install58.iso
 iohyve console obsdguest
 ````
 Try out NetBSD:
