@@ -641,6 +641,7 @@ __prepare_guest() {
 	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local pci="$(__get_zfs_pcidev_conf $dataset)"
 	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
+	local mac="$(zfs get -H -o value iohyve:mac $dataset)"
 	# Setup tap if needed
 	if [ $tap ] && [ $tap != "-" ]; then
 		if [ $tap != "tap0" ]; then
@@ -655,7 +656,11 @@ __prepare_guest() {
 			fi
 		fi
 		# Add a virtio-net pci device for the tap
-		pci="virtio-net,$tap $pci"
+		if [ $mac = "-" ]; then
+			pci="virtio-net,$tap $pci"
+		else
+			pci="virtio-net,${tap},mac=${mac} $pci"
+		fi
 	fi
 	#Add disk as second PCI device
 	pci="ahci-hd,/dev/zvol/$dataset/disk0 $pci"
