@@ -1135,7 +1135,8 @@ iohyve  version
         load [name] [path/to/bootdisk]
         boot [name] [runmode] [pcidevices]
         start [name] [-s | -a]
-        stop [name]
+	stop [name]
+	forcekill [name]
         scram
         destroy [name]
 	rename [name] [newname]

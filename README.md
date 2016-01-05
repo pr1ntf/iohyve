@@ -68,6 +68,7 @@ load [name] [path/to/bootdisk]
 boot [name] [runmode] [pcidevices]
 start [name] [-s | -a]
 stop [name]
+forcekill [name]
 scram
 destroy [name]
 rename [name] [newname]
@@ -176,6 +177,11 @@ Some guest os's can be gracefully stopped:
 
     iohyve stop bsdguest
 
+If you are having problems with a guest that is unresponsive you can forcekill it as a last resort.
+USE THIS WITH CAUTION, IT WILL KILL ALL PROCESSES THAT MATCH THE NAME OF THE GUEST. 
+```
+iohyve forcekill grubguest
+```
 **Other BSDs:**
 
 Try out OpenBSD:
