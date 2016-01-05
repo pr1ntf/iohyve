@@ -769,7 +769,11 @@ __stop() {
 # Gracefully shut down all guests via ACPI (Does not destroy)
 __scram() {
 	echo "Shutting down all guests..."
-	killall bhyve
+	local pids="$(pgrep -f ioh-)"
+	for apid in "$pids"; do
+		kill $apid
+	done
+	wait_for_pids $pids
 }
 
 # Destroy guest
