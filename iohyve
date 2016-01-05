@@ -86,6 +86,9 @@ __parse_cmd () {
       stop)     __stop "$@"
                 exit
       ;;
+      forcekill) __forcekill "$@"
+                exit
+      ;;
       scram)    __scram
                 exit
       ;;
@@ -764,6 +767,17 @@ __stop() {
 	kill $pid
 #	sleep 20
 #	bhyvectl --destroy --vm=ioh-$name
+}
+
+# Force kill -9 everyting matching $name and destroy
+# THIS WILL KILL EVERYTHING MATCHING $NAME
+__forcekill() {
+	local name="$2"
+	local pids="$(pgrep -f $name)"
+	for apid in "$pids"; do
+		kill -9 $apid
+	done
+	bhyvectl --destroy --vm=ioh-$name	
 }
 
 # Gracefully shut down all guests via ACPI (Does not destroy)
