@@ -112,6 +112,12 @@ All spaces are turned into underscores (_). At guest creation, the description i
 ````
 iohyve set bsdguest description="This is my string"
 ````
+It's always prudent to `destroy` a guest before changing settings that may affect a running guest.
+It's also a good idea to `destroy` a guest after your installation phase has completed. 
+Destroying a guest does not `delete` a guest from the host, it `destroys` the guest in `VMM`.
+```
+iohyve destroy bsdguest
+```
 
 Get a specific guest property:
 
