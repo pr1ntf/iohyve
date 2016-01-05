@@ -9,7 +9,7 @@ PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 # and therefore doesn't need root credentials
 __readonly_cmd () {
     case "$1" in
-        help|-h|list|isolist|fwlist|info|get|getall|snaplist|taplist|conlist|activetaps) echo "0"
+        help|-h|activetaps|conlist|fwlist|get|getall|info|isolist|list|snaplist|taplist|version) echo "0"
             ;;
         *) echo "1"
             ;;
