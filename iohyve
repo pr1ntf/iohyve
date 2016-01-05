@@ -720,7 +720,7 @@ __uefi() {
 	if [ $tap != "tap0" ]; then
 		# no need to create tap0, should be installed already via README
 		# check to see if tap is already created before attempting to create new tap interface
-		local tapif="$('ifconfig' -a | grep $tap: | cut -c1-4)"
+		local tapif="$('ifconfig' -l | grep $tap | cut -c1)"
 		if [ -z $tapif ]; then
 			# create tap interface
 			ifconfig $tap create
