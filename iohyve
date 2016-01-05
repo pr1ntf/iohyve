@@ -2,6 +2,9 @@
 
 # iohyve v0.7.1 2015/12/08 "I'm Here for the Party Edition"
 
+# Set proper path thanks to iocage
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
+
 # See whether given command is readonly
 # and therefore doesn't need root credentials
 __readonly_cmd () {
