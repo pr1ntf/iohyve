@@ -22,6 +22,7 @@ iohyve load [name]
 iohyve boot [name] [ISO]
 iohyve start [name] [-a | -s]
 iohyve stop [name]
+iohyve forcekill [name]
 iohyve scram
 iohyve destroy [name]
 iohyve rename [name] [newname]
@@ -155,6 +156,11 @@ start		Starts the guest operating system. (Combines load & boot)
 stop		Gracefully stops guest operating system.
 		Usage: 'iohyve stop [name]' where [name] is the name
 		of the guest operating system.
+
+forcekill	Forces the guest to stop. Runs kill -9 and destroys the guest
+		in VMM. USE WITH EXTREME CAUTION AND AS A LAST RESORT. Can be
+		used to kill guests stuck at the GRUB console that you 
+		do not have access to.
 
 scram		Gracefully stop all bhyve guests. Does not destroy resources.
 

@@ -2,11 +2,14 @@
 
 # iohyve v0.7.1 2015/12/08 "I'm Here for the Party Edition"
 
+# Set proper path thanks to iocage
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
+
 # See whether given command is readonly
 # and therefore doesn't need root credentials
 __readonly_cmd () {
     case "$1" in
-        help|-h|list|isolist|fwlist|info|get|getall|snaplist|taplist|conlist|activetaps) echo "0"
+        help|-h|activetaps|conlist|fwlist|get|getall|info|isolist|list|snaplist|taplist|version) echo "0"
             ;;
         *) echo "1"
             ;;
@@ -81,6 +84,9 @@ __parse_cmd () {
 		exit
       ;;
       stop)     __stop "$@"
+                exit
+      ;;
+      forcekill) __forcekill "$@"
                 exit
       ;;
       scram)    __scram
@@ -483,77 +489,92 @@ __load() {
     esac
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
-			if [ $os = "openbsd" ]; then
+			if [ $os = "openbsd59" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 /5.9/amd64/bsd.rd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name > /dev/null
+			elif [ $os = "openbsd58" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 /5.8/amd64/bsd.rd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name > /dev/null
 			elif [ $os = "openbsd57" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 /5.7/amd64/bsd.rd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory-m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name > /dev/null
 			elif [ $os = "netbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'knetbsd -h -r cd0a /netbsd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name > /dev/null
 			elif [ $os = "debian" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory-m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
 			elif [ $os = "d8lvm" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
 			elif [ $os = "centos6" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
 			elif [ $os = "arch" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_'$(date +%Y%m)' ro\ninitrd (cd0)/arch/boot/x86_64/archiso.img\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
 			else
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 			fi
 		elif [ $install = "no" ]; then
-			if [ $os = "openbsd" ]; then
+			if [ $os = "openbsd59" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name  > /dev/null
+			elif [ $os = "openbsd58" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name  > /dev/null
+			elif [ $os = "openbsd57" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
+				grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name  > /dev/null
 			elif [ $os = "netbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'knetbsd -h -r sd0a /netbsd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name  > /dev/null
 			elif [ $os = "debian" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name  > /dev/null
 			elif [ $os = "d8lvm" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name  > /dev/null
 			elif [ $os = "centos6" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name  > /dev/null
 			elif [ $os = "custom" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf $autogrub | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name  > /dev/null
 			else
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
@@ -628,12 +649,14 @@ __prepare_guest() {
 	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local pci="$(__get_zfs_pcidev_conf $dataset)"
 	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
+	local mac="$(zfs get -H -o value iohyve:mac $dataset)"
 	# Setup tap if needed
 	if [ $tap ] && [ $tap != "-" ]; then
 		if [ $tap != "tap0" ]; then
 			# no need to create tap0, should be installed already via README
 			# check to see if tap is already created before attempting to create new tap interface
-			local tapif="$('ifconfig' -a | grep $tap: | cut -c1-4)"
+			# Simple hacky check for tapif
+			local tapif="$('ifconfig' -l | grep $tap | cut -c1)"
 			if [ -z $tapif ]; then
 				# create tap interface
 				ifconfig $tap create
@@ -641,7 +664,11 @@ __prepare_guest() {
 			fi
 		fi
 		# Add a virtio-net pci device for the tap
-		pci="virtio-net,$tap $pci"
+		if [ $mac = "-" ]; then
+			pci="virtio-net,$tap $pci"
+		else
+			pci="virtio-net,${tap},mac=${mac} $pci"
+		fi
 	fi
 	#Add disk as second PCI device
 	pci="ahci-hd,/dev/zvol/$dataset/disk0 $pci"
@@ -706,7 +733,7 @@ __uefi() {
 	if [ $tap != "tap0" ]; then
 		# no need to create tap0, should be installed already via README
 		# check to see if tap is already created before attempting to create new tap interface
-		local tapif="$('ifconfig' -a | grep $tap: | cut -c1-4)"
+		local tapif="$('ifconfig' -l | grep $tap | cut -c1)"
 		if [ -z $tapif ]; then
 			# create tap interface
 			ifconfig $tap create
@@ -756,10 +783,25 @@ __stop() {
 #	bhyvectl --destroy --vm=ioh-$name
 }
 
+# Force kill -9 everyting matching $name and destroy
+# THIS WILL KILL EVERYTHING MATCHING $NAME
+__forcekill() {
+	local name="$2"
+	local pids="$(pgrep -f $name)"
+	for apid in "$pids"; do
+		kill -9 $apid
+	done
+	bhyvectl --destroy --vm=ioh-$name
+}
+
 # Gracefully shut down all guests via ACPI (Does not destroy)
 __scram() {
 	echo "Shutting down all guests..."
-	killall bhyve
+	local pids="$(pgrep -f ioh-)"
+	for apid in "$pids"; do
+		kill $apid
+	done
+	wait_for_pids $pids
 }
 
 # Destroy guest
@@ -1107,7 +1149,8 @@ iohyve  version
         load [name] [path/to/bootdisk]
         boot [name] [runmode] [pcidevices]
         start [name] [-s | -a]
-        stop [name]
+	stop [name]
+	forcekill [name]
         scram
         destroy [name]
 	rename [name] [newname]

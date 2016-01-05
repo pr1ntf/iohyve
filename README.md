@@ -68,6 +68,7 @@ load [name] [path/to/bootdisk]
 boot [name] [runmode] [pcidevices]
 start [name] [-s | -a]
 stop [name]
+forcekill [name]
 scram
 destroy [name]
 rename [name] [newname]
@@ -112,6 +113,12 @@ All spaces are turned into underscores (_). At guest creation, the description i
 ````
 iohyve set bsdguest description="This is my string"
 ````
+It's always prudent to `destroy` a guest before changing settings that may affect a running guest.
+It's also a good idea to `destroy` a guest after your installation phase has completed. 
+Destroying a guest does not `delete` a guest from the host, it `destroys` the guest in `VMM`.
+```
+iohyve destroy bsdguest
+```
 
 Get a specific guest property:
 
@@ -170,13 +177,17 @@ Some guest os's can be gracefully stopped:
 
     iohyve stop bsdguest
 
+If you are having problems with a guest that is unresponsive you can forcekill it as a last resort.
+USE THIS WITH CAUTION, IT WILL KILL ALL PROCESSES THAT MATCH THE NAME OF THE GUEST. 
+```
+iohyve forcekill grubguest
+```
 **Other BSDs:**
 
 Try out OpenBSD:
 ````
-iohyve set obsdguest loader=grub-bhyve
-iohyve set obsdguest os=openbsd
-iohyve install obsdguest install57.iso
+iohyve set obsdguest loader=grub-bhyve os=openbsd58
+iohyve install obsdguest install58.iso
 iohyve console obsdguest
 ````
 Try out NetBSD:
