@@ -166,7 +166,8 @@ scram		Gracefully stop all bhyve guests. Does not destroy resources.
 
 destroy		Destroys guest resources.
 		Usage: 'iohyve destroy [name]' where [name] is the name
-		of the guest operating system.
+		of the guest operating system. Destroying a guest does
+		not [delete] a guest from the host, it destroys the guest in VMM.
 
 rename		Renames the guest
 		Usage: 'iohyve rename [name] [newname]' where [name] is the
