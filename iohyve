@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.7.1 2015/12/08 "I'm Here for the Party Edition"
+# iohyve v0.7.3 2016/01/08 "Bear in a Datacenter Edition"
 
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
@@ -165,7 +165,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-	echo "iohyve v0.7.1 2015/12/08 I'm Here for the Party Edition"
+	echo "iohyve v0.7.3 2016/01/08 Bear in a Datacenter Edition"
 }
 
 # Setup iohyve
