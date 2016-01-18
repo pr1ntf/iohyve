@@ -37,7 +37,7 @@ iohyve resize [name] [diskN] [size]
 iohyve disks [name]
 iohyve snap [name]@[snapshotname]
 iohyve roll [name]@[snapshotname]
-iohyve clone [name] [clonename]
+iohyve clone [-c | -r] [name] [clonename]
 iohyve snaplist
 iohyve taplist
 iohyve activetaps
@@ -166,8 +166,7 @@ scram		Gracefully stop all bhyve guests. Does not destroy resources.
 
 destroy		Destroys guest resources.
 		Usage: 'iohyve destroy [name]' where [name] is the name
-		of the guest operating system. Destroying a guest does
-		not [delete] a guest from the host, it destroys the guest in VMM.
+		of the guest operating system.
 
 rename		Renames the guest
 		Usage: 'iohyve rename [name] [newname]' where [name] is the
@@ -249,8 +248,9 @@ roll		Rollback guest to a snapshot.
 clone		Clone a guest. Note that this will clone all of the properties.
 		If you want to use the clone and the original guest at the
 		same time you will need to change the tap and nmdm properties
-		Usage: 'iohyve clone [name] [clonename]' where [name] is the
-		name of the guest and [clonename] is what you would
+		or use the -r option to have iohyve do this for you
+		Usage: 'iohyve clone [-c | -r] [name] [clonename]' where [name]
+		is the name of the guest and [clonename] is what you would
 		like to name the new clone.
 
 snaplist	List all of the snapshots for all the guests. Does not show
