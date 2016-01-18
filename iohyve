@@ -1049,8 +1049,9 @@ __rollguest() {
 
 # Clone a guest
 __cloneguest() {
-	local name="$2"
-	local cname="$3"
+	local flag="$2"
+	local name="$3"
+	local cname="$4"
 	local description="$(date | sed -e 's/ /_/g')"
 	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	# Check if guest exists
@@ -1070,6 +1071,38 @@ __cloneguest() {
 			# rename the guest
 			zfs set iohyve:name=$cname $pool/iohyve/$cname
 			zfs set iohyve:description=$description $pool/iohyve/$cname
+                        # change con and tap properties to next available if -r is specified
+                        if [ "$flag" == "-r" ]; then
+                                local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
+                                listtaps(){
+                                        for i in $guestlist ; do
+                                                local tapprop="$(zfs get -H -o value iohyve:tap $i)"
+                                                printf $tapprop'\n'
+                                        done
+                                }
+                                local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
+                                if [ -z $taplast ]; then
+                                        local tap='0'
+                                else
+                                        local tap="$(expr $taplast + 1)"
+                                fi
+                                listcons(){
+                                        for i in $guestlist ; do
+                                                local conprop="$(zfs get -H -o value iohyve:con $i)"
+                                                printf $conprop'\n'
+                                        done
+                                }
+                                local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
+                                if [ -z $conlast ]; then
+                                        local con='0'
+                                else
+                                        local con="$(expr $conlast + 1)"
+                                fi
+
+                                zfs set iohyve:tap=tap$tap $pool/iohyve/$cname
+                                zfs set iohyve:con=nmdm$con $pool/iohyve/$cname
+                        fi
+
 		else
 			echo "Please stop the guest first"
 		fi
