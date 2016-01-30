@@ -1056,9 +1056,6 @@ __cloneguest() {
 	# Check if guest exists
 	echo "Cloning $name to $cname"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
-		# Check to make sure guest isn't running
-		local running=$(pgrep -fx "bhyve: ioh-$name")
-		if [ -z $running ]; then
 			# Take snapshot
 			zfs snap -r $pool/iohyve/$name@$cname
 			# zfs send that snap and desendants then receive to cname
@@ -1070,9 +1067,6 @@ __cloneguest() {
 			# rename the guest
 			zfs set iohyve:name=$cname $pool/iohyve/$cname
 			zfs set iohyve:description=$description $pool/iohyve/$cname
-		else
-			echo "Please stop the guest first"
-		fi
 	else
 		echo "Not a valid guest name"
 	fi
