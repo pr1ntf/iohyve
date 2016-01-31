@@ -981,6 +981,7 @@ __resize(){
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
 			zfs set volsize=$size $pool/iohyve/$name/$disk
+			zfs set iohyve:size=$size $pool/iohyve/$name
 		else
 			echo "Please stop the guest first"
 		fi
