@@ -412,7 +412,7 @@ __create() {
 	fi
 	echo "Creating $name..."
 	zfs create $pool/iohyve/$name
-	zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk0
+	zfs create -V $size -o volmode=dev -o volblocksize=128K $pool/iohyve/$name/disk0
 	zfs set iohyve:name=$name $pool/iohyve/$name
 	zfs set iohyve:size=$size $pool/iohyve/$name
 	zfs set iohyve:ram=256M $pool/iohyve/$name
@@ -935,7 +935,7 @@ __add() {
 	local newdisk="$(expr $lastdisk + 1)"
 	echo "Creating new zvol for $name..."
 	zfs create $newpool/iohyve/$name 2> /dev/null
-	zfs create -V $size -o volmode=dev $newpool/iohyve/$name/disk$newdisk
+	zfs create -V $size -o volmode=dev -o volblocksize=128K $newpool/iohyve/$name/disk$newdisk
 	# Find the last pcidev and increment by one
 	local lastpci="$(zfs get -H all | grep iohyve/$name | grep pcidev | cut -f2 | \
 		cut -d ':' -f3 | sort -V | tail -n1)"
