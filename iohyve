@@ -204,7 +204,7 @@ __setup() {
 					echo "kmod=0 to unload modules"
 				fi
 			elif [ $prop = "net" ]; then
-				local bridgeif="$('ifconfig' -a | grep bridge0: | cut -c1-6)"
+				local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1-6)"
 				if [ -z $bridgeif ]; then
 					echo "Seting up bridge0 on $val..."
 					ifconfig tap0 create descr "iohyve-default-tap"
