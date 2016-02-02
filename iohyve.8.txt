@@ -271,6 +271,9 @@ console		Consoles into a guest operating system. Utilizes nmdm(4) and
 		uses cu(1), you will need to press the tilde (~) twice
 		then period (.) to exit the console.
 		(Think typing ~~. real fast to exit console)
+		If that fails to work, try pressing tilde (~) then press
+		Control + D (^D). Note that on some machines, you cannot 
+		escape the console. See conreset below to escape all consoles.
 		Usage: 'iohyve console [name]' where [name] is the name
 		of the guest operating system.
 
