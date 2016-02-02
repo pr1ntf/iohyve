@@ -41,7 +41,7 @@
 \fBiohyve\fP \fIdisks\fP [\fIname\fP]
 \fBiohyve\fP \fIsnap\fP [\fIname\fP]@[snapshotname]
 \fBiohyve\fP \fIroll\fP [\fIname\fP]@[snapshotname]
-\fBiohyve\fP \fIclone\fP [\fIname\fP] [\fIclonename\fP]
+\fBiohyve\fP \fIclone\fP [\fB-c\fP | \fB-r\fP] [\fIname\fP] [\fIclonename\fP]
 \fBiohyve\fP \fIsnaplist\fP
 \fBiohyve\fP \fItaplist\fP
 \fBiohyve\fP \fIactivetaps\fP
@@ -334,8 +334,9 @@ like to \fIname\fP the snapshot.
 Clone a guest. Note that this will \fIclone\fP all of the properties.
 If you want to use the \fIclone\fP and the original guest at the
 same time you will need to change the tap and nmdm properties
-Usage: '\fBiohyve\fP \fIclone\fP [\fIname\fP] [\fIclonename\fP]' where [\fIname\fP] is the
-\fIname\fP of the guest and [\fIclonename\fP] is what you would
+or use the \fB-r\fP option to have \fBiohyve\fP do this for you
+Usage: '\fBiohyve\fP \fIclone\fP [\fB-c\fP | \fB-r\fP] [\fIname\fP] [\fIclonename\fP]' where [\fIname\fP]
+is the \fIname\fP of the guest and [\fIclonename\fP] is what you would
 like to \fIname\fP the new \fIclone\fP.
 .TP
 .B
