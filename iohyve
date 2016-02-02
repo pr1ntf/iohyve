@@ -209,7 +209,7 @@ __setup() {
 					echo "Seting up bridge0 on $val..."
 					sysctl net.link.tap.up_on_open=1
 					ifconfig bridge0 create descr "iohyve-bridge"
-					ifconfig bridge0 addm $val addm tap0
+					ifconfig bridge0 addm $val
 					ifconfig bridge0 up
 				else
 					echo "bridge0 is already enabled on this machine..."
