@@ -248,7 +248,10 @@ cpu=1 (number of cpu cores)
 con=nmdm0 (where to attach null modem \fIconsole\fP)
 tap=tap0 (tap device for virtio-net)
 \fIsize\fP=\fIsize\fP of block device
-\fIname\fP=\fIname\fP of guest
+mac=[MAC Address]
+Forces a specific MAC address to be attached to the 
+network adapter in the guest OS. \fBiohyve\fP does not check
+for a valid MAC address, so double check the property.
 pcidev:[n]=[spec]
 Generic way to \fIadd\fP devices to the guest.
 [n] is a generic random number or string

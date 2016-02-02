@@ -186,7 +186,10 @@ set		Sets ZFS properties for guests one at a time
 		con=nmdm0 (where to attach null modem console)
 		tap=tap0 (tap device for virtio-net)
 		size=size of block device
-		name=name of guest
+		mac=[MAC Address]
+			Forces a specific MAC address to be attached to the 
+			network adapter in the guest OS. iohyve does not check
+			for a valid MAC address, so double check the property.
 		pcidev:[n]=[spec]
 			Generic way to add devices to the guest.
 			[n] is a generic random number or string
