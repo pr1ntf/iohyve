@@ -651,16 +651,13 @@ __prepare_guest() {
 	local mac="$(zfs get -H -o value iohyve:mac $dataset)"
 	# Setup tap if needed
 	if [ $tap ] && [ $tap != "-" ]; then
-		if [ $tap != "tap0" ]; then
-			# no need to create tap0, should be installed already via README
-			# check to see if tap is already created before attempting to create new tap interface
-			# Simple hacky check for tapif
-			local tapif="$('ifconfig' -l | grep -F "$tap " | cut -c1)"
-			if [ -z $tapif ]; then
-				# create tap interface
-				ifconfig $tap create descr "iohyve-$name"
-				ifconfig bridge0 addm $tap
-			fi
+		# check to see if tap is already created before attempting to create new tap interface
+		# Simple hacky check for tapif
+		local tapif="$('ifconfig' -l | grep -F "$tap " | cut -c1)"
+		if [ -z $tapif ]; then
+			# create tap interface
+			ifconfig $tap create descr "iohyve-$name"
+			ifconfig bridge0 addm $tap
 		fi
 		# Add a virtio-net pci device for the tap
 		if [ $mac = "-" ]; then
@@ -729,15 +726,12 @@ __uefi() {
 	local bargs="$(zfs get -H -o value iohyve:bargs $dataset | sed -e 's/_/ /g')"
 	local pool="$(zfs list -H -t volume -o name | grep $name | cut -d '/' -f1)"
 	# Create tap if needed
-	if [ $tap != "tap0" ]; then
-		# no need to create tap0, should be installed already via README
-		# check to see if tap is already created before attempting to create new tap interface
-		local tapif="$('ifconfig' -l | grep -F "$tap " | cut -c1)"
-		if [ -z $tapif ]; then
-			# create tap interface
-			ifconfig $tap create descr "iohyve-$name"
-			ifconfig bridge0 addm $tap
-		fi
+	# check to see if tap is already created before attempting to create new tap interface
+	local tapif="$('ifconfig' -l | grep -F "$tap " | cut -c1)"
+	if [ -z $tapif ]; then
+		# create tap interface
+		ifconfig $tap create descr "iohyve-$name"
+		ifconfig bridge0 addm $tap
 	fi
 	# Make sure everything is in order...
 	if [ $fw = '-' ]; then
