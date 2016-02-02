@@ -207,7 +207,6 @@ __setup() {
 				local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1)"
 				if [ -z $bridgeif ]; then
 					echo "Seting up bridge0 on $val..."
-					ifconfig tap0 create descr "iohyve-default-tap"
 					sysctl net.link.tap.up_on_open=1
 					ifconfig bridge0 create descr "iohyve-bridge"
 					ifconfig bridge0 addm $val addm tap0
