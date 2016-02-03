@@ -248,7 +248,7 @@ __list() {
 	(
         printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
 	for pool in $pools; do
-            local guests="$(zfs list -H | grep iohyve | grep -Ev "disk|ISO|Firmware" | grep -i $pool | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
+            local guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
             for g in $guests; do
 		local vmm="/dev/vmm/ioh-$g"
 		if [ -e $vmm ]; then
