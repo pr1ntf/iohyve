@@ -184,9 +184,14 @@ set		Sets ZFS properties for guests one at a time
 		ram=512M or ram=2G (M for megabytes, G for gigabtyes)
 		cpu=1 (number of cpu cores)
 		con=nmdm0 (where to attach null modem console)
-		tap=tap0 (tap device for virtio-net)
+		tap=tap[n](,tap[n]) (tap device for virtio-net)
+			[n] is a generic number to specify the tap interface to use
+			Specify a list o tap separated by comma for multiple tap
+			Single tap: iohyve set [name] tap=tap0
+			Multiple tap : iohyve set [name] tap=tap0,tap1,tap2,tap3
 		size=size of block device
-		mac=[MAC Address]
+		mac_tap[n]=[MAC Address]
+			[n] is a generic number to specify the tap interface to use
 			Forces a specific MAC address to be attached to the 
 			network adapter in the guest OS. iohyve does not check
 			for a valid MAC address, so double check the property.
