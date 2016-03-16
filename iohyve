@@ -819,15 +819,22 @@ __rename() {
 
 # Delete guest
 __delete() {
-	local name="$2"
-	local datasets="$(zfs list -H -t filesystem -o name | grep iohyve | grep $name)"
-	read -p "Are you sure you want to delete $name and all associated datasets [Y/N]? " an </dev/tty
-	case "$an" in
-		y|Y) for d in $datasets; do zfs destroy -rR $d; done
-		;;
-		*) echo "Not deleted..."
-		;;
-	esac
+	local flagone="$2"
+	local flagtwo="$3"
+	if [ $flagone = "-f" ]; then
+		local datasets="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagtwo)"
+		echo "Forcing deletion of $flagtwo"
+		for d in $datasets; do zfs destroy -rR $d; done
+	else
+		local datasets="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagone)"
+		read -p "Are you sure you want to delete $flagone and all associated datasets [Y/N]? " an </dev/tty
+		case "$an" in
+			y|Y) for d in $datasets; do zfs destroy -rR $d; done
+			;;
+			*) echo "Not deleted..."
+			;;
+		esac
+	fi
 }
 
 # Set ZFS properties
