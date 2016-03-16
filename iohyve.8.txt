@@ -26,13 +26,13 @@ iohyve forcekill [name]
 iohyve scram
 iohyve destroy [name]
 iohyve rename [name] [newname]
-iohyve delete [name]
+iohyve delete [-f] [name]
 iohyve set [name] [prop1=value] [prop2=value]...
 iohyve get [name] [prop]
-iohyve rmpci [name] [pcidev:N]
+iohyve rmpci [-f] [name] [pcidev:N]
 iohyve getall [name]
 iohyve add [name] [size] [[pool]]
-iohyve remove [name] [diskN]
+iohyve remove [-f] [name] [diskN]
 iohyve resize [name] [diskN] [size]
 iohyve disks [name]
 iohyve snap [name]@[snapshotname]
@@ -175,7 +175,8 @@ rename		Renames the guest
 
 delete		Deletes all data for the guest.
 		Usage: 'iohyve delete [name]' where [name] is the name
-		of the guest operating system.
+		of the guest operating system. If [-f] is supplied before the
+		[name], there is no prompt to delete.
 
 set		Sets ZFS properties for guests one at a time
 		Usage: 'iohyve set [name] [prop1=value] [prop2=value]...' where
@@ -213,7 +214,8 @@ get		Gets ZFS properties for guests one at a time
 rmpci		Removes a pcidev from the guest
 		Usage: 'iohyve rmpci [name] [pcidev:N]' where [name] is the name
 		of the guest operating system. [pcidev:N] is the PCI
-		device you want removed. Ex: 'pcidev:3'
+		device you want removed. Ex: 'pcidev:3' If [-f] is supplied 
+		before the [name], there is no prompt to remove.
 
 getall		Gets all the ZFS properties for a guest
 		Usage: 'iohyve getall [name]' where [name] is the name
@@ -230,7 +232,8 @@ remove		Removes a disk from the guest. Cannot be disk0.
 		Usage: 'iohyve remove [name] [diskN]' where [name] is
 		the name of the guest, [diskN] is the disk you would
 		like to remove from the guest. See 'iohyve disks' for
-		a list of disks for a guest
+		a list of disks for a guest. If [-f] is supplied before the
+		[name], there is no prompt to remove.
 
 resize		Resizes a disk. THIS CAN BREAK THINGS ON THE GUEST.
 		Usage: 'iohyve resize [name] [diskN] [size]' where [name] is
