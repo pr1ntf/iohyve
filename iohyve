@@ -654,7 +654,8 @@ __prepare_guest() {
                         local tapif="$('ifconfig' -a | grep $tap: | cut -c1-4)"
                         if [ -z $tapif ]; then
                                 # create tap interface
-                                ifconfig $tap create descr "iohyve-$name"
+				ifconfig $tap create descr "iohyve-$name"
+				ifconfig bridge0 addm $tap
                         fi
 
                         # Add a virtio-net pci device for the tap
