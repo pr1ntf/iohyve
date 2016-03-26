@@ -651,7 +651,7 @@ __prepare_guest() {
         local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
         for tap in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
                 if [ $tap ] && [ $tap != "-" ]; then
-                        local tapif="$('ifconfig' -a | grep $tap: | cut -c1-4)"
+                        local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
                         if [ -z $tapif ]; then
                                 # create tap interface
 				ifconfig $tap create descr "iohyve-$name"
@@ -728,7 +728,7 @@ __uefi() {
 	local pool="$(zfs list -H -t volume -o name | grep $name | cut -d '/' -f1)"
 	# Create tap if needed
 	# check to see if tap is already created before attempting to create new tap interface
-	local tapif="$('ifconfig' -l | grep -F "$tap " | cut -c1)"
+	local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
 	if [ -z $tapif ]; then
 		# create tap interface
 		ifconfig $tap create descr "iohyve-$name"
