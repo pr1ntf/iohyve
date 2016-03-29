@@ -40,6 +40,13 @@ iohyve_enable="YES"
 iohyve_flags="kmod=1 net=em0"
 ````
 
+**NOTE**
+
+If you are using FreeNAS, you must also run this one-liner to link your datasets correctly.
+```
+ln -s /mnt/iohyve /iohyve
+```
+
 If you want more control over your setup, feel free to read the [handbook](https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html).
 
 
