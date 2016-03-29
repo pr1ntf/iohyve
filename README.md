@@ -43,7 +43,7 @@ If you want more control over your setup, feel free to read the [handbook](https
 
 **NOTE**
 
-If you are using FreeNAS, you must also run this one-liner to link your datasets correctly.
+If you are using [FreeNAS](http://doc.freenas.org/9.10/freenas_jails.html#using-iohyve), you must also run this one-liner to link your datasets correctly.
 ```
 ln -s /mnt/iohyve /iohyve
 ```
