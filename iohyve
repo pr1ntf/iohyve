@@ -823,16 +823,24 @@ __delete() {
 	local flagone="$2"
 	local flagtwo="$3"
 	if [ $flagone = "-f" ]; then
-		local datasets="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagtwo)"
-		echo "Forcing deletion of $flagtwo"
-		for d in $datasets; do zfs destroy -rR $d; done
+		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagtwo | head -n1)"
+		echo ""
+		echo "[WARNING] Forcing permanent deletion of $flagtwo"
+		echo "Location: $target_dataset including children and clones"
+		echo ""
+		echo "Hit Ctrl+C in the next 10 seconds to cancel..."
+		sleep 10
+		echo "Deleting $flagtwo at $target_dataset..."
+		zfs destroy -rR $target_dataset
 	else
-		local datasets="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagone)"
-		read -p "Are you sure you want to delete $flagone and all associated datasets [Y/N]? " an </dev/tty
+		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagone | head -n1)"
+		echo ""
+		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
+		read -p "Location: $target_dataset [Y/N]? " an </dev/tty
 		case "$an" in
-			y|Y) for d in $datasets; do zfs destroy -rR $d; done
+			y|Y) zfs destroy -r $target_dataset
 			;;
-			*) echo "Not deleted..."
+			*) echo "$flagone not deleted..."
 			;;
 		esac
 	fi
