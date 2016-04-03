@@ -931,9 +931,9 @@ __rmpci() {
 # Get all ZFS props
 __getall() {
 	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Getting $name props..."
-	zfs get -H all $pool/iohyve/$name | grep iohyve: | cut -w -f2-3 | cut -c8- | column -t
+	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
 }
 
 # Fix legacy bhyve arguments
