@@ -224,3 +224,4 @@ iohyve set centosguest loader=grub-bhyve
 iohyve set centosguest os=centos7
 iohyve install centosguest CentOS-7-x86_64-Everything-1511.iso
 iohyve console centosguest
+````
