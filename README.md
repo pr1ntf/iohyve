@@ -218,7 +218,7 @@ iohyve set archguest os=arch
 iohyve install archguest archlinux-2015.10.01-dual.iso
 iohyve console archguest
 ````
-Try out CentOS or RHEL _(note version 6 would use os=centos6)
+Try out CentOS or RHEL (note version 6 would use os=centos6):
 ````
 iohyve set centosguest loader=grub-bhyve
 iohyve set centosguest os=centos7
