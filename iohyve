@@ -431,8 +431,8 @@ __create() {
 __install() {
 	local name="$2"
 	local iso="$3"
-	local pool="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f1)"
-	local dataset="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1-3 | head -n1)"
+	local pool="$(zfs list -H -t volume -o name | grep iohyve/$name | grep disk0 | cut -d '/' -f1)"
+	local dataset="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1-3 | head -n1)"
 	# Check if guest exists
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
@@ -470,8 +470,8 @@ __install() {
 __load() {
 	local name="$1"
 	local media="$2"
-	local disk="${3-$(zfs list -H -t volume -o name | grep $name | grep disk0 | head -n1)}"
-	local dataset="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local disk="${3-$(zfs list -H -t volume -o name | grep iohyve/$name | grep disk0 | head -n1)}"
+	local dataset="$(zfs list -H -t volume -o name | grep iohyve/$name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
@@ -594,7 +594,7 @@ __boot() {
 	#   2 = always persist (start again even if guest is powering off)
 	local runmode="$2"
 	local pci="$3"
-	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local dataset="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -645,7 +645,7 @@ __boot() {
 
 __prepare_guest() {
 	local name="$1"
-	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local dataset="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local pci="$(__get_zfs_pcidev_conf $dataset)"
         # Setup tap if needed
         local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
@@ -681,8 +681,8 @@ __start() {
 	local flag="$3"
 	local pci=""
 	local runmode="1"
-	local pool="$(zfs list -H -t volume -o name | grep $name| grep disk0 | cut -d '/' -f1)"
-	local dataset="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local pool="$(zfs list -H -t volume -o name | grep iohyve/$name | grep disk0 | cut -d '/' -f1)"
+	local dataset="$(zfs list -H -t volume -o name | grep iohyve/$name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	# Check if loader is UEFI
 	if [ $loader = "uefi" ]; then
@@ -718,14 +718,14 @@ __start() {
 __uefi() {
 	local name="$2"
 	local media="$3"
-	local dataset="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1-3 | head -n1)"
+	local dataset="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1-3 | head -n1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
 	local fw="$(zfs get -H -o value iohyve:fw $dataset)"
 	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
 	local bargs="$(zfs get -H -o value iohyve:bargs $dataset | sed -e 's/_/ /g')"
-	local pool="$(zfs list -H -t volume -o name | grep $name | cut -d '/' -f1)"
+	local pool="$(zfs list -H -t volume -o name | grep iohyve/$name | cut -d '/' -f1)"
 	# Create tap if needed
 	# check to see if tap is already created before attempting to create new tap interface
 	local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
@@ -812,7 +812,7 @@ __destroy() {
 __rename() {
 	local name="$2"
 	local newname="$3"
-	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	echo "Renaming $name to $newname..."
 	zfs rename -f $pool/iohyve/$name $pool/iohyve/$newname
 	zfs set iohyve:name=$newname $pool/iohyve/$newname
@@ -841,7 +841,7 @@ __delete() {
 # Set ZFS properties
 __set() {
 	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	shift 2
 	for arg in "$@"; do
 		local prop="$(echo $arg | cut -d '=' -f1)"
@@ -867,7 +867,7 @@ __oldset() {
 	local propval="$3"
 	local prop="$(echo $propval | cut -d '=' -f1 )"
 	local sprop="$(echo $propval | cut -d '"' -f2 | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	echo "Setting $name prop $propval..."
 	if [ $prop = "description" ]; then
 		zfs set iohyve:$sprop $pool/iohyve/$name
@@ -882,7 +882,7 @@ __oldset() {
 __get() {
 	local name="$2"
 	local prop="$3"
-	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	echo "Getting $name prop $prop..."
 	zfs get -H -o value iohyve:$prop $pool/iohyve/$name
 }
@@ -923,7 +923,7 @@ __rmpci() {
 # Get all ZFS props
 __getall() {
 	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Getting $name props..."
 	zfs get -H all $pool/iohyve/$name | grep iohyve: | cut -w -f2-3 | cut -c8- | column -t
 }
@@ -931,7 +931,7 @@ __getall() {
 # Fix legacy bhyve arguments
 __fixbargs() {
 	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Setting default bargs flags for bhyve to $name..."
 	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
@@ -940,11 +940,11 @@ __fixbargs() {
 __add() {
 	local name="$2"
 	local size="$3"
-	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	# optionally allow the pool for the new disk to be specified. If not set, its set to $pool
 	local newpool="${4-$pool}"
 	# Find the last disk number and increment one
-	local lastdisk="$(zfs list -H | grep $name | grep disk | cut -d '/' -f4 | cut -f1 | \
+	local lastdisk="$(zfs list -H | grep iohyve/$name | grep disk | cut -d '/' -f4 | cut -f1 | \
 		sort -V | cut -c5- | tail -n1)"
 	local newdisk="$(expr $lastdisk + 1)"
 	echo "Creating new zvol for $name..."
@@ -1001,7 +1001,7 @@ __resize(){
 	local name="$2"
 	local disk="$3"
 	local size="$4"
-	local pool="$(zfs list -H -o name | grep $name | grep $disk | cut -d '/' -f 1)"
+	local pool="$(zfs list -H -o name | grep iohyve/$name | grep $disk | cut -d '/' -f 1)"
 	# Check if guest exists
 	echo "Resizing $disk to $size"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -1040,7 +1040,7 @@ __disks() {
 __snapguest() {
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Taking snapshot $fullsnap"
 	# Check if guest exists
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -1054,10 +1054,9 @@ __snapguest() {
 __rollguest() {
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local snap="$(echo $fullsnap | cut -d '@' -f2)"
-	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
-				cut -f1 | cut -d '/' -f4-)"
+	local disklist="$(zfs list -H | grep iohyve/$name | grep disk | cut -f1 | cut -d '/' -f4-)"
 	# Check if guest exists
 	echo "Rolling back to $fullsnap"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -1082,7 +1081,7 @@ __cloneguest() {
 	local name="$2"
 	local cname="$3"
 	local description="$(date | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	# Check if guest exists
 	echo "Cloning $name to $cname"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -1171,7 +1170,7 @@ __conlist() {
 # Run console
 __console() {
 	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local con="$(zfs get -H -o value iohyve:con $pool)"
 	echo "Starting console on $name..."
 	echo "~~. to escape console [uses cu(1) for console]"
