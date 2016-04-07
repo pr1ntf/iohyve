@@ -177,17 +177,22 @@ __setup() {
 			local val="$(echo $arg | cut -d '=' -f2)"
 			if [ $prop = "pool" ]; then
 				local pool="$val"
-				echo "Setting up iohyve pool..."
-				zfs create $pool/iohyve
-				# iohyve is already setup on a pool
-				if [ -d /iohyve/ISO ]; then
-					echo "Secondary pool set up..."
-					zfs set mountpoint="/iohyve/$pool" $pool/iohyve
-				# iohyve is not set up yet
+				local poolexist="$(zfs list -H | grep ${pool}/iohyve | head -n1 | cut -c1)"
+				if [ -z $poolexist ]; then
+					echo "Setting up iohyve pool..."
+					zfs create $pool/iohyve
+					# iohyve is already setup on a pool
+					if [ -d /iohyve/ISO ]; then
+						echo "Secondary pool set up..."
+						zfs set mountpoint="/iohyve/$pool" $pool/iohyve
+						# iohyve is not set up yet
+					else
+						zfs set mountpoint="/iohyve" $pool/iohyve
+						zfs create $pool/iohyve/ISO
+						zfs create $pool/iohyve/Firmware
+					fi
 				else
-					zfs set mountpoint="/iohyve" $pool/iohyve
-					zfs create $pool/iohyve/ISO
-					zfs create $pool/iohyve/Firmware
+					echo "iohyve already exists on $pool"
 				fi
 			elif [ $prop = "kmod" ]; then
 				if [ $val = "1" ]; then
