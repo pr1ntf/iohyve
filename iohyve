@@ -218,6 +218,13 @@ __setup() {
 					ifconfig bridge0 up
 				else
 					echo "bridge0 is already enabled on this machine..."
+					local sysctlexist="$(sysctl net.link.tap.up_on_open | grep 1 | cut -c1)"
+					if [ -z $sysctlexist ]; then
+						echo "Setting up correct sysctl value..."
+						sysctl net.link.tap.up_on_open=1
+					else
+						echo "sysctl already setup properly as well..."
+					fi
 				fi
 			fi
 		fi
