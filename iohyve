@@ -276,18 +276,18 @@ __list() {
 
 # Display info about all guests.
 __info() {
-	dflag="$2"
-	if [ -z $dflag ]; then
-		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\n';  \
-			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader | \
-			grep iohyve | grep -Ev "ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
-	elif [ $dflag = "-d" ]; then
-		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\tDescription\n';  \
+	# Gather the names of the pools that contain active iohyve guests
+	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
+	( # This aligns both tables together but at the cost of a tacky backtick being used for visual seperation.
+	for pool in $pools; do	# Print a table for each pool on system
+		echo "\`" # Tacky way to get visual seperation that `column` would clobber otherwise (aka whitespace).
+		echo "iohyve guests on $pool"
+		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\tDescription\n';  
 			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader,iohyve:description | \
-			grep iohyve | grep -Ev "ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
-	else
-		echo "Invalid flag..."
-	fi
+			grep $pool/iohyve | grep -Ev "ISO|Firmware" | cut -d '/' -f3- | sed 1d) | \
+			awk '{print $1,"^",$2,"^",$3,"^",$4,"^",$5,"^",$6,"^",$1=$2=$3=$4=$5=$6="",$0 }'
+	done
+	) | column -ts^
 }
 
 # List iso's
