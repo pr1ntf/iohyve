@@ -245,7 +245,7 @@ __get_zfs_pcidev_conf() {
 __list() {
 	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
-        printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
+        printf "%s^%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Pool" "Description"
 	for pool in $pools; do
             local guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
             for g in $guests; do
@@ -268,7 +268,7 @@ __list() {
 			boot="NO"
 		fi
 		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
-                printf "%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$description"
+                printf "%s^%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$pool" "$description"
             done
 	done
 	) | column -ts^
