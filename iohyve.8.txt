@@ -5,7 +5,7 @@ SYNOPSIS
 iohyve version
 iohyve setup pool=[poolname] kmod=[0/1] net=[interface]
 iohyve list
-iohyve info [-d]
+iohyve info
 iohyve isolist
 iohyve fwlist
 iohyve fetch [URL]
@@ -71,7 +71,7 @@ setup		Installs required zfs datasets and kernel modules for iohyve.
 list		Lists the zfs dataset directorys for iohyve.
 
 info		Lists all the guests along with their RAM, CPU, Size,
-		OS, Loader, and Description (if -d is passed)
+		OS, Loader, and Description in a per pool table.
 
 isolist		List Lists the installed ISOs in the /iohyve/ISO directory.
 
