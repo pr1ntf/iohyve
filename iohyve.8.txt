@@ -38,6 +38,7 @@ iohyve disks [name]
 iohyve snap [name]@[snapshotname]
 iohyve roll [name]@[snapshotname]
 iohyve clone [-c | -r] [name] [clonename]
+iohyve export [name]
 iohyve snaplist
 iohyve taplist
 iohyve activetaps
@@ -264,6 +265,14 @@ clone		Clone a guest. Note that this will clone all of the properties.
 		Usage: 'iohyve clone [-c | -r] [name] [clonename]' where [name]
 		is the name of the guest and [clonename] is what you would
 		like to name the new clone.
+
+export		Export a guest with all of it's properties and disks to a 
+		GZip'd tarball. Property file is in a ucl-type format. 
+		Disks output to a raw file, allowing for other managers using
+		ahci-hd emulation to use them. Tarball is put in the guest
+		dataset ex: /iohyve/guestname/guestname.tar.gz
+		Usage: 'iohyve export [name]' where [name] is the name of the 
+		guest. 
 
 snaplist	List all of the snapshots for all the guests. Does not show
 		snapshots of disks (they are there, though).
