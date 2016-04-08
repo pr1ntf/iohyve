@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.7.3 2016/01/08 "Bear in a Datacenter Edition"
+# iohyve v0.7.4 2016/04/08 "Stop Being a Troll Edition"
 
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
@@ -137,6 +137,9 @@ __parse_cmd () {
       clone)	__cloneguest "$@"
 		exit
       ;;
+      export)	__exportguest "$@"
+		exit
+      ;;
       snaplist)	__snaplist
 		exit
       ;;
@@ -165,7 +168,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-	echo "iohyve v0.7.3 2016/01/08 Bear in a Datacenter Edition"
+	echo "iohyve v0.7.4 2016/04/08 Stop Being a Troll Edition"
 }
 
 # Setup iohyve
@@ -177,17 +180,22 @@ __setup() {
 			local val="$(echo $arg | cut -d '=' -f2)"
 			if [ $prop = "pool" ]; then
 				local pool="$val"
-				echo "Setting up iohyve pool..."
-				zfs create $pool/iohyve
-				# iohyve is already setup on a pool
-				if [ -d /iohyve/ISO ]; then
-					echo "Secondary pool set up..."
-					zfs set mountpoint="/iohyve/$pool" $pool/iohyve
-				# iohyve is not set up yet
+				local poolexist="$(zfs list -H | grep ${pool}/iohyve | head -n1 | cut -c1)"
+				if [ -z $poolexist ]; then
+					echo "Setting up iohyve pool..."
+					zfs create $pool/iohyve
+					# iohyve is already setup on a pool
+					if [ -d /iohyve/ISO ]; then
+						echo "Secondary pool set up..."
+						zfs set mountpoint="/iohyve/$pool" $pool/iohyve
+						# iohyve is not set up yet
+					else
+						zfs set mountpoint="/iohyve" $pool/iohyve
+						zfs create $pool/iohyve/ISO
+						zfs create $pool/iohyve/Firmware
+					fi
 				else
-					zfs set mountpoint="/iohyve" $pool/iohyve
-					zfs create $pool/iohyve/ISO
-					zfs create $pool/iohyve/Firmware
+					echo "iohyve already exists on $pool"
 				fi
 			elif [ $prop = "kmod" ]; then
 				if [ $val = "1" ]; then
@@ -213,6 +221,13 @@ __setup() {
 					ifconfig bridge0 up
 				else
 					echo "bridge0 is already enabled on this machine..."
+					local sysctlexist="$(sysctl net.link.tap.up_on_open | grep 1 | cut -c1)"
+					if [ -z $sysctlexist ]; then
+						echo "Setting up correct sysctl value..."
+						sysctl net.link.tap.up_on_open=1
+					else
+						echo "sysctl already setup properly as well..."
+					fi
 				fi
 			fi
 		fi
@@ -518,7 +533,7 @@ __load() {
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
-			elif [ $os = "centos6" ]; then
+			elif [ $os = "centos6" ] || [ $os = "centos7" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' | \
@@ -569,6 +584,11 @@ __load() {
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf '\n' | \
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name  > /dev/null
+			elif [ $os = "centos7" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf '\n' | \
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub2 -M $ram ioh-$name  > /dev/null
 			elif [ $os = "custom" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
@@ -823,17 +843,24 @@ __delete() {
 	local flagone="$2"
 	local flagtwo="$3"
 	if [ $flagone = "-f" ]; then
-		local datasets="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagtwo)"
-		echo "Forcing deletion of $flagtwo"
-		for d in $datasets; do zfs destroy -rR $d; done
+		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagtwo | head -n1)"
+		echo ""
+		echo "[WARNING] Forcing permanent deletion of $flagtwo"
+		echo "Location: $target_dataset including children and clones"
+		echo ""
+		echo "Hit Ctrl+C in the next 10 seconds to cancel..."
+		sleep 10
+		echo "Deleting $flagtwo at $target_dataset..."
+		zfs destroy -rR $target_dataset
 	else
-		local datasets="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagone)"
-		read -p "Are you sure you want to delete $flagone and all associated datasets [Y/N]? " an </dev/tty
+		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagone | head -n1)"
+		echo ""
+		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
+		read -p "Location: $target_dataset [Y/N]? " an </dev/tty
 		case "$an" in
-			y|Y) for d in $datasets; do zfs destroy -rR $d; done
-			;;
-			*) echo "Not deleted..."
-			;;
+			y|Y) echo "Deleting $flagone at $target_dataset..."; zfs destroy -r $target_dataset
+ 			;;
+			*) echo "$flagone not deleted..."
 		esac
 	fi
 }
@@ -923,9 +950,9 @@ __rmpci() {
 # Get all ZFS props
 __getall() {
 	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	echo "Getting $name props..."
-	zfs get -H all $pool/iohyve/$name | grep iohyve: | cut -w -f2-3 | cut -c8- | column -t
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	echo "Getting $name iohyve properties..."
+	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
 }
 
 # Fix legacy bhyve arguments
@@ -1134,6 +1161,44 @@ __cloneguest() {
 	fi
 }
 
+# Export Guest
+__exportguest() {
+	local name="$2"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
+				cut -f1 | cut -d '/' -f4-)"
+	# Check if guest exists
+	echo "Exporting $name. Note this may take some time depending on the size."
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+		# Check to make sure guest isn't running
+		local running=$(pgrep -fx "bhyve: ioh-$name")
+		if [ -z $running ]; then
+			# Create /tmp/iohyve/$name
+			echo "Creating temp directory..."
+			mkdir -p /tmp/iohyve/$name
+			# Export Properties to file
+			echo "Exporting properties..."
+			zfs get -H -o property,value all $pool/iohyve/$name | grep iohyve: | sort | \
+				sed -e 's/iohyve://g' | sed -e 's/	/=/g' > /tmp/iohyve/$name/properties.ucl
+			# Write disks to file
+			echo "Exporting disks..."
+			for disk in $disklist ; do
+				dd if=/dev/zvol/$pool/iohyve/$name/$disk of=/tmp/iohyve/$name/${disk}.img bs=1M
+			done
+			# Compress and add to archive
+			echo "Compressing to archive..."
+			tar -czf /iohyve/$name/$name.tar.gz -C /tmp/iohyve/$name/ .
+			# Remove /tmp/iohyve/
+			echo "Removing temp directory..."
+			rm -fr /tmp/iohyve
+		else
+			echo "Please stop the guest first"
+		fi
+	else
+		echo "Not a valid guest name"
+	fi
+}
+
 # List all the snapshots
 __snaplist() {
 	zfs list -H -t snap | grep iohyve | grep -v disk | cut -f1 | cut -d '/' -f3
@@ -1222,6 +1287,7 @@ iohyve  version
 	snap [name]@[snapshotname]
 	roll [name]@[snapshotname]
 	clone [-c | -r] [name] [clonename]
+	export [name]
 	snaplist
         taplist
 	activetaps

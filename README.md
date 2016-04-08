@@ -1,5 +1,5 @@
-# iohyve v0.7.3
-"Bear in a Datacenter Edition"
+# iohyve v0.7.4
+"Stop Being a Troll Edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
 *Over the hill to 1.0*
@@ -77,17 +77,19 @@ forcekill [name]
 scram
 destroy [name]
 rename [name] [newname]
-delete [name]
+delete [-f] [name]
 set [name] [prop1=value] [prop2=value]...
 get [name] [prop]
+rmpci [-f] [name] [pcidev:N]
 getall [name]
 add [name] [size]
-remove [name] [diskN]
+remove [-f] [name] [diskN]
 resize [name] [diskN] [size]
 disks [name]
 snap [name]@[snapshotname]
 roll [name]@[snapshotname]
 clone [name] [clonename]
+export [name]
 snaplist
 taplist
 activetaps
@@ -217,4 +219,11 @@ iohyve set archguest loader=grub-bhyve
 iohyve set archguest os=arch
 iohyve install archguest archlinux-2015.10.01-dual.iso
 iohyve console archguest
+````
+Try out CentOS or RHEL _(note version 6 would use os=centos6)_:
+````
+iohyve set centosguest loader=grub-bhyve
+iohyve set centosguest os=centos7
+iohyve install centosguest CentOS-7-x86_64-Everything-1511.iso
+iohyve console centosguest
 ````
