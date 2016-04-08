@@ -74,7 +74,7 @@ list		Lists the name, status for VMM, active bhyve (Running), boot
 info		Lists all the guests along with their RAM, CPU, Size,
 		OS, Loader, and Description in a per pool table.
 
-isolist		List Lists the installed ISOs in the /iohyve/ISO directory.
+isolist		Lists the installed ISOs in the /iohyve/ISO directory.
 
 fwlist		Lists the firmwares in the /iohyve/Firmware directory.
 
