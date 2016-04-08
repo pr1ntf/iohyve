@@ -137,6 +137,9 @@ __parse_cmd () {
       clone)	__cloneguest "$@"
 		exit
       ;;
+      export)	__exportguest "$@"
+		exit
+      ;;
       snaplist)	__snaplist
 		exit
       ;;
@@ -1153,6 +1156,44 @@ __cloneguest() {
 				zfs set iohyve:con=nmdm$con $pool/iohyve/$cname
 			fi
 
+	else
+		echo "Not a valid guest name"
+	fi
+}
+
+# Export Guest
+__exportguest() {
+	local name="$2"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
+				cut -f1 | cut -d '/' -f4-)"
+	# Check if guest exists
+	echo "Exporting $name. Note this may take some time depending on the size."
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+		# Check to make sure guest isn't running
+		local running=$(pgrep -fx "bhyve: ioh-$name")
+		if [ -z $running ]; then
+			# Create /tmp/iohyve/$name
+			echo "Creating temp directory..."
+			mkdir -p /tmp/iohyve/$name
+			# Export Properties to file
+			echo "Exporting properties..."
+			zfs get -H -o property,value all $pool/iohyve/$name | grep iohyve: | sort | \
+				sed -e 's/iohyve://g' | sed -e 's/	/=/g' > /tmp/iohyve/$name/properties.ucl
+			# Write disks to file
+			echo "Exporting disks..."
+			for disk in $disklist ; do
+				dd if=/dev/zvol/$pool/iohyve/$name/$disk of=/tmp/iohyve/$name/${disk}.img bs=1M
+			done
+			# Compress and add to archive
+			echo "Compressing to archive..."
+			tar -czf /iohyve/$name/$name.tar.gz -C /tmp/iohyve/$name/ .
+			# Remove /tmp/iohyve/
+			echo "Removing temp directory..."
+			rm -fr /tmp/iohyve
+		else
+			echo "Please stop the guest first"
+		fi
 	else
 		echo "Not a valid guest name"
 	fi
