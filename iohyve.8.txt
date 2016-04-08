@@ -68,7 +68,8 @@ setup		Installs required zfs datasets and kernel modules for iohyve.
 		Multiple pools are supported, additional pools get mounted
 		in /iohyve/poolname
 
-list		Lists the zfs dataset directorys for iohyve.
+list		Lists the name, status for VMM, active bhyve (Running), boot
+		on start flag (rcboot), pool and description for each guest.
 
 info		Lists all the guests along with their RAM, CPU, Size,
 		OS, Loader, and Description in a per pool table.
