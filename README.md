@@ -88,6 +88,7 @@ disks [name]
 snap [name]@[snapshotname]
 roll [name]@[snapshotname]
 clone [name] [clonename]
+export [name]
 snaplist
 taplist
 activetaps

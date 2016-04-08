@@ -1287,6 +1287,7 @@ iohyve  version
 	snap [name]@[snapshotname]
 	roll [name]@[snapshotname]
 	clone [-c | -r] [name] [clonename]
+	export [name]
 	snaplist
         taplist
 	activetaps
