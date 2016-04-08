@@ -1,5 +1,5 @@
 NAME
-iohyve(8) - bhyve manager/launcher v0.7.3 "Bear in a Datacenter Edition"
+iohyve(8) - bhyve manager/launcher v0.7.4 "Stop Being a Troll Edition"
 
 SYNOPSIS
 iohyve version

@@ -1,5 +1,5 @@
-# iohyve v0.7.3
-"Bear in a Datacenter Edition"
+# iohyve v0.7.4
+"Stop Being a Troll Edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
 *Over the hill to 1.0*
