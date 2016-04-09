@@ -29,7 +29,7 @@ __parse_cmd () {
       setup)    __setup "$@"
                 exit
       ;;
-      list)     __list
+      list)     __list "$2"
                 exit
       ;;
       info)	__info "$2"
@@ -258,6 +258,7 @@ __get_zfs_pcidev_conf() {
 
 # List Guests
 __list() {
+	local flagone="$1"
 	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
         printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
@@ -286,7 +287,16 @@ __list() {
                 printf "%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$description"
             done
 	done
-	) | column -ts^
+	) | column -ts^ | \
+	(
+		if [ "${flagone}" = "-l" ]
+		then
+			less
+		else
+			cat   
+		fi
+	)
+
 }
 
 # Display info about all guests.
