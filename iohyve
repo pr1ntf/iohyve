@@ -395,7 +395,8 @@ __info() {
 		fi
 		
 		# Get info, set variables, and print for status section (VMM, Running, rcboot)
-		if [ -n "$(echo "$flags" | grep 's')" ]; then
+		if [ -n "$(echo "$flags" | grep 's')" ] && [ -z "$(echo "$g" | grep 'disk')" ]; then
+			local vmm="/dev/vmm/ioh-$g"
 			if [ -e $vmm ]; then
 				vmm="YES"
 			else
@@ -415,8 +416,11 @@ __info() {
 			fi
 			
 			printf "^%s^%s^%s" "$vmm" "$running" "$boot"
+		# Checks to see if disk portion of guest and uses "-"s if so for this section.
+		elif [ -n "$(echo "$flags" | grep 's')" ] && [ -n "$(echo "$g" | grep 'disk')" ]; then
+			printf "^-^-^-"
 		fi
-		
+
 		# Print description if flag set 
 		if [ -n "$(echo "$flags" | grep 'd')" ]; then
 			local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
