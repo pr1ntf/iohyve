@@ -9,7 +9,7 @@
 \fBiohyve\fP \fIversion\fP
 \fBiohyve\fP \fIsetup\fP pool=[poolname] kmod=[0/1] net=[interface]
 \fBiohyve\fP \fIlist\fP
-\fBiohyve\fP \fIinfo\fP
+\fBiohyve\fP \fIinfo\fP [\fB-psvdl\fP]
 \fBiohyve\fP \fIisolist\fP
 \fBiohyve\fP \fIfwlist\fP
 \fBiohyve\fP \fIfetch\fP [\fIURL\fP]
@@ -90,8 +90,10 @@ on \fIstart\fP flag (rcboot), \fIpool\fP and description for each guest.
 .TP
 .B
 \fIinfo\fP
-Lists all the guests along with their RAM, CPU, Size,
-OS, Loader, and Description in a per \fIpool\fP table.
+Lists properties about the guests and their \fIdisks\fP using flags
+to control level of output. Fields include CPU count, RAM, Disk
+Size, Pool, OS, Loader, Tap, Console, VMM status, Running status,
+rcboot flag, and the description. Use \fB-l\fP to pipe to less.
 .TP
 .B
 \fIisolist\fP

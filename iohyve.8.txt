@@ -5,7 +5,7 @@ SYNOPSIS
 iohyve version
 iohyve setup pool=[poolname] kmod=[0/1] net=[interface]
 iohyve list
-iohyve info
+iohyve info [-psvdl]
 iohyve isolist
 iohyve fwlist
 iohyve fetch [URL]
@@ -72,8 +72,10 @@ setup		Installs required zfs datasets and kernel modules for iohyve.
 list		Lists the name, status for VMM, active bhyve (Running), boot
 		on start flag (rcboot), pool and description for each guest.
 
-info		Lists all the guests along with their RAM, CPU, Size,
-		OS, Loader, and Description in a per pool table.
+info		Lists properties about the guests and their disks using flags
+		to control level of output. Fields include CPU count, RAM, Disk
+		Size, Pool, OS, Loader, Tap, Console, VMM status, Running status,
+		rcboot flag, and the description. Use -l to pipe to less.
 
 isolist		Lists the installed ISOs in the /iohyve/ISO directory.
 

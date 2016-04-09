@@ -1346,7 +1346,7 @@ cat << 'EOT'
 iohyve  version
         setup pool=[poolname] kmod=[0/1] net=[interface]
         list
-	info
+	info [-pvsdl]
         isolist
 	fwlist
         fetch [URL]
