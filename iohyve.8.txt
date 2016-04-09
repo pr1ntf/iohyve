@@ -78,6 +78,22 @@ info		Lists properties about the guests and their disks using flags
 		Size, Pool, OS, Loader, Tap, Console, VMM status, Running status,
 		rcboot flag, and the description. Use -l to pipe to less.
 
+		-p is for pool. Shows the pool the guest belongs to.
+
+		-v is for verbose which adds the fields: OS,
+		   Loader, Tap, and Con.
+
+		-s is for status which add the fields: VMM,
+		   Running, and rcboot.
+
+		 -d is for description. Shows the guest description.
+
+		 -l is for less and pipes the final output to less.
+		
+		Order of flags is not important. The proper syntax is to use
+		the flags contiguiously. So "-ldp" is the correct way to display
+		the pool and description and have the output pipe to less.
+
 isolist		Lists the installed ISOs in the /iohyve/ISO directory.
 
 fwlist		Lists the firmwares in the /iohyve/Firmware directory.

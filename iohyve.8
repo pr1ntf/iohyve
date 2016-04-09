@@ -95,6 +95,26 @@ Lists properties about the guests and their \fIdisks\fP using flags
 to control level of output. Fields include CPU count, RAM, Disk
 Size, Pool, OS, Loader, Tap, Console, VMM status, Running status,
 rcboot flag, and the description. Use \fB-l\fP to pipe to less.
+.RS
+.PP
+\fB-p\fP is for \fIpool\fP. Shows the \fIpool\fP the guest belongs to.
+.PP
+\fB-v\fP is for verbose which adds the fields: OS,
+Loader, Tap, and Con.
+.PP
+\fB-s\fP is for status which \fIadd\fP the fields: VMM,
+Running, and rcboot.
+.RS
+.PP
+\fB-d\fP is for description. Shows the guest description.
+.PP
+\fB-l\fP is for less and pipes the final output to less.
+.RE
+.PP
+Order of flags is not important. The proper syntax is to use
+the flags contiguiously. So "\fB-ldp\fP" is the correct way to display
+the \fIpool\fP and description and have the output pipe to less.
+.RE
 .TP
 .B
 \fIisolist\fP
