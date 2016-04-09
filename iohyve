@@ -258,10 +258,25 @@ __get_zfs_pcidev_conf() {
 
 # List Guests
 __list() {
-	local flagone="$1"
+	local flags="$1"
 	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
-        printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
+	
+	# Print common header
+        printf "%s^%s^%s^%s" "Guest" "VMM?" "Running" "rcboot?"
+	
+	# Print headers for -v flag (tap, con)
+	if [ -n "$(echo "$flags" | grep 'v')" ]; then
+		printf "^%s^%s" "Tap" "Con"
+	fi
+	
+	# Print headers for -d flag (description)
+	if [ -n "$(echo "$flags" | grep 'd')" ]; then
+		printf "^%s" "Description"
+	fi
+	
+	printf "\n" # Print new line for first guest.
+	
 	for pool in $pools; do
             local guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
             for g in $guests; do
@@ -283,13 +298,29 @@ __list() {
 		else
 			boot="NO"
 		fi
-		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
-                printf "%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$description"
+		# Print common section (guest, vmm, running, rcboot)
+		printf "%s^%s^%s^%s" "$g" "$vmm" "$running" "$boot" 
+		
+		# Get variable and print for verbose section (tap, con)
+		if [ -n "$(echo "$flags" | grep 'v')" ]; then
+			local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$g)"
+			local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$g)"
+			
+			printf "^%s^%s" "$tap" "$con"
+		fi
+		
+		# Get description property and print
+		if [ -n "$(echo "$flags" | grep 'd')" ]; then
+			local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
+			printf "^%s" "$description"
+		fi
+		
+		printf "\n" #Print new line for next guest.
             done
 	done
 	) | column -ts^ | \
 	(
-		if [ "${flagone}" = "-l" ]
+		if [ -n "$(echo "$flags" | grep 'l')" ]
 		then
 			less
 		else
@@ -386,7 +417,7 @@ __info() {
 			printf "^%s^%s^%s" "$vmm" "$running" "$boot"
 		fi
 		
-		# Print description if flag set
+		# Print description if flag set 
 		if [ -n "$(echo "$flags" | grep 'd')" ]; then
 			local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
 			printf "^%s" "$description"
