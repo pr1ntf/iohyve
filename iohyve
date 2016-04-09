@@ -345,6 +345,7 @@ __renameiso() {
 	echo "Renaming ISO $2 to $3..."
 	mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
 	zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
+	zfs set mountpoint=/iohyve/ISO/$name $pool/iohyve/ISO/$name
 }
 
 # Delete ISO
