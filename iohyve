@@ -1355,7 +1355,7 @@ __help() {
 cat << 'EOT'
 iohyve  version
         setup pool=[poolname] kmod=[0/1] net=[interface]
-        list
+        list [-l]
 	info [-pvsdl]
         isolist
 	fwlist

@@ -4,7 +4,7 @@ iohyve(8) - bhyve manager/launcher v0.7.4 "Stop Being a Troll Edition"
 SYNOPSIS
 iohyve version
 iohyve setup pool=[poolname] kmod=[0/1] net=[interface]
-iohyve list
+iohyve list [-l]
 iohyve info [-psvdl]
 iohyve isolist
 iohyve fwlist
@@ -71,6 +71,7 @@ setup		Installs required zfs datasets and kernel modules for iohyve.
 
 list		Lists the name, status for VMM, active bhyve (Running), boot
 		on start flag (rcboot), pool and description for each guest.
+		Use -l flag to pipe to pipe to less.
 
 info		Lists properties about the guests and their disks using flags
 		to control level of output. Fields include CPU count, RAM, Disk
