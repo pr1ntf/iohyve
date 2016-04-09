@@ -345,7 +345,6 @@ __renameiso() {
 	echo "Renaming ISO $2 to $3..."
 	mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
 	zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
-	zfs set mountpoint=/iohyve/ISO/$name $pool/iohyve/ISO/$name
 }
 
 # Delete ISO
@@ -384,7 +383,6 @@ __renamefw() {
 	echo "Renaming Firmware $2 to $3..."
 	mv /iohyve/Firmware/$fw/$fw /iohyve/Firmware/$fw/$name
 	zfs rename $pool/iohyve/Firmware/$fw $pool/iohyve/Firmware/$name
-	zfs set mountpoint=/iohyve/Firmware/$name $pool/iohyve/Firmware/$name
 }
 
 # Delete Firmware
