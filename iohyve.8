@@ -8,7 +8,7 @@
 .fam C
 \fBiohyve\fP \fIversion\fP
 \fBiohyve\fP \fIsetup\fP pool=[poolname] kmod=[0/1] net=[interface]
-\fBiohyve\fP \fIlist\fP [\fB-l\fP]
+\fBiohyve\fP \fIlist\fP [\fB-vdl\fP]
 \fBiohyve\fP \fIinfo\fP [\fB-psvdl\fP]
 \fBiohyve\fP \fIisolist\fP
 \fBiohyve\fP \fIfwlist\fP
@@ -86,8 +86,20 @@ in /\fBiohyve\fP/poolname
 .B
 \fIlist\fP
 Lists the \fIname\fP, status for VMM, active bhyve (Running), \fIboot\fP
-on \fIstart\fP flag (rcboot), \fIpool\fP and description for each guest.
-Use \fB-l\fP flag to pipe to pipe to less.
+on \fIstart\fP flag (rcboot), tap, con, and description for each guest.
+.RS
+.PP
+\fB-v\fP is for verbose which adds the fields: Tap and Con
+.PP
+\fB-d\fP is for description
+.PP
+\fB-l\fP is for less and pipes the final output to less
+.PP
+Order of flags is not important. The proper syntax is to use
+the flags contiguiously. So "\fB-vl\fP" is the correct way to display
+the base output plus tap and con fields, and have the output
+piped to less.
+.RE
 .TP
 .B
 \fIinfo\fP
@@ -113,7 +125,8 @@ Running, and rcboot.
 .PP
 Order of flags is not important. The proper syntax is to use
 the flags contiguiously. So "\fB-ldp\fP" is the correct way to display
-the \fIpool\fP and description and have the output pipe to less.
+the base output plus \fIpool\fP, description, and then have the output
+piped to less.
 .RE
 .TP
 .B

@@ -4,7 +4,7 @@ iohyve(8) - bhyve manager/launcher v0.7.4 "Stop Being a Troll Edition"
 SYNOPSIS
 iohyve version
 iohyve setup pool=[poolname] kmod=[0/1] net=[interface]
-iohyve list [-l]
+iohyve list [-vdl]
 iohyve info [-psvdl]
 iohyve isolist
 iohyve fwlist
@@ -70,8 +70,18 @@ setup		Installs required zfs datasets and kernel modules for iohyve.
 		in /iohyve/poolname
 
 list		Lists the name, status for VMM, active bhyve (Running), boot
-		on start flag (rcboot), pool and description for each guest.
-		Use -l flag to pipe to pipe to less.
+		on start flag (rcboot), tap, con, and description for each guest.
+		
+		-v is for verbose which adds the fields: Tap and Con
+		
+		-d is for description
+		
+		-l is for less and pipes the final output to less
+		
+		Order of flags is not important. The proper syntax is to use
+		the flags contiguiously. So "-vl" is the correct way to display
+		the base output plus tap and con fields, and have the output
+		piped to less.
 
 info		Lists properties about the guests and their disks using flags
 		to control level of output. Fields include CPU count, RAM, Disk
@@ -92,7 +102,8 @@ info		Lists properties about the guests and their disks using flags
 		
 		Order of flags is not important. The proper syntax is to use
 		the flags contiguiously. So "-ldp" is the correct way to display
-		the pool and description and have the output pipe to less.
+		the base output plus pool, description, and then have the output
+		piped to less.
 
 isolist		Lists the installed ISOs in the /iohyve/ISO directory.
 
