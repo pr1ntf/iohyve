@@ -163,7 +163,7 @@ __parse_cmd () {
       help|-h)  __help
                 exit
       ;;
-      *)        __unrecognised
+      *)        __unrecognised "$@"
                 exit
       ;;
     esac
@@ -1308,7 +1308,7 @@ EOT
 __unrecognised() {
     echo "'$1' is not a valid command!"
     echo "Try 'iohyve help' for more info."
-    exit 0
+    exit 1
 }
 
 if [ -z "$1" ] ; then
