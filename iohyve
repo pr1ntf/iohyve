@@ -9,9 +9,11 @@ PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 # and therefore doesn't need root credentials
 __readonly_cmd () {
     case "$1" in
-        help|-h|activetaps|conlist|fwlist|get|getall|info|isolist|list|snaplist|taplist|version) echo "0"
+        oldset|setup|fetch|cpiso|renameiso|rmiso|fetchfw|cpfw|renamefw|rmfw|create|install|load\
+        |boot|start|uefi|stop|forcekill|scram|destroy|rename|delete|set|rmpci|fix-bargs|add|remove\
+        |resize|disks|snap|roll|clone|export|console|conreset) echo "1"
             ;;
-        *) echo "1"
+        *) echo "0"
             ;;
     esac
 }
@@ -159,6 +161,9 @@ __parse_cmd () {
                 exit
       ;;
       help|-h)  __help
+                exit
+      ;;
+      *)        __unrecognised
                 exit
       ;;
     esac
@@ -1298,12 +1303,20 @@ iohyve  version
 EOT
 }
 
+
+# Informs user that command is unrecognised.
+__unrecognised() {
+    echo "'$1' is not a valid command!"
+    echo "Try 'iohyve help' for more info."
+    exit 0
+}
+
 if [ -z "$1" ] ; then
     __help
     exit 0
 fi
 
-if [ $(__readonly_cmd "$1") != "0" -a "$(whoami)" != "root" ] ; then
+if [ $(__readonly_cmd "$1") == "1" -a "$(whoami)" != "root" ] ; then
     echo "The $1 command needs root credentials!"
     exit 1
 fi
