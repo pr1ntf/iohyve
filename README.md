@@ -55,8 +55,8 @@ iohyve
 
 version
 setup pool=[poolname] kmod=[0/1] net=[interface]
-list
-info [-d]
+list [-vdl]
+info [-psvdl]
 isolist
 fwlist
 fetch [URL]
