@@ -197,6 +197,36 @@ __setup() {
 				else
 					echo "iohyve already exists on $pool"
 				fi
+
+				# Checks to see if on FreeNAS
+				# The web UI references this file to display the version
+				if [ -e /etc/version ]; then
+					local OS=$( cat /etc/version | cut -d - -f1 ) 
+					if [ "$OS" = "FreeNAS" ]; then
+						echo "On FreeNAS installation."
+						echo "Checking for symbolic link to /iohyve from /mnt/iohyve..."
+						if [ -d /mnt/iohyve ]; then
+							if [ ! -e /iohyve ]; then
+								ln -s /mnt/iohyve /iohyve
+								if [ -L /iohyve ]; then
+									echo "Symbolic link to /iohyve from /mnt/iohyve successfully created."
+								else
+									echo "Failed to create symbolic link."
+									echo "Please manually do so by running the following as root:"
+									echo "# ln -s /mnt/iohyve /iohyve"
+								fi
+							elif [ -L /iohyve ]; then
+								echo "Symbolic link to /iohyve already exists."
+							fi
+						elif [ "$val" = "freenas-boot" ] && [ -d /iohyve ]; then
+							echo "Symbolic link not needed. /iohyve exists."
+							echo "iohyve is installed on the freenas-boot pool."
+							echo "This is not recommended configuration."
+						else
+							echo "iohyve does not seem to be setup."
+						fi
+					fi
+				fi
 			elif [ $prop = "kmod" ]; then
 				if [ $val = "1" ]; then
 					echo "Loading kernel modules..."
