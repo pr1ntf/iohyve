@@ -230,6 +230,7 @@ iohyve console centosguest
 **Use your own custom `grub.cfg` and `device.map` files**
 
 If you don't want iohyve to take care of the `grub.cfg` and `device.map` files, you can now "roll your own" and place them in the guests dataset (`/iohyve/guestname/`). 
+Of course, you must set the guest properties `loader=grub-bhyve` and `os=custom`.
 For instance, if you have an OpenBSD guest located in `/iohyve/obsd59/` and an install ISO in `/iohyve/ISO/install59.iso/` and your pool is `zroot`, your files will look like this:
 
 `device.map` file:
