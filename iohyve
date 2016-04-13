@@ -197,7 +197,6 @@ __setup() {
 				else
 					echo "iohyve already exists on $pool"
 				fi
-
 				# Checks to see if on FreeNAS
 				# The web UI references this file to display the version
 				if [ -e /etc/version ]; then
@@ -290,31 +289,31 @@ __get_zfs_pcidev_conf() {
 __list() {
 	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
-        printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
+	printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
 	for pool in $pools; do
-            local guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
-            for g in $guests; do
-		local vmm="/dev/vmm/ioh-$g"
-		if [ -e $vmm ]; then
-			vmm="YES"
-		else
-			vmm="NO"
-		fi
-		local running=$(pgrep -fx "bhyve: ioh-$g")
-		if [ -z $running ]; then
-			running="NO"
-		else
-			running="YES"
-		fi
-		local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$g)"
-		if [ $boot = '1' ]; then
-			boot="YES"
-		else
-			boot="NO"
-		fi
+	local guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
+		for g in $guests; do
+			local vmm="/dev/vmm/ioh-$g"
+			if [ -e $vmm ]; then
+				vmm="YES"
+			else
+				vmm="NO"
+			fi
+			local running=$(pgrep -fx "bhyve: ioh-$g")
+			if [ -z $running ]; then
+				running="NO"
+			else
+				running="YES"
+			fi
+			local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$g)"
+			if [ $boot = '1' ]; then
+				boot="YES"
+			else
+				boot="NO"
+			fi
 		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
-                printf "%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$description"
-            done
+		printf "%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$description"
+		done
 	done
 	) | column -ts^
 }
@@ -522,14 +521,14 @@ __load() {
 	local install="$(zfs get -H -o value iohyve:install $dataset)"
 	local os="$(zfs get -H -o value iohyve:os $dataset)"
 	local autogrub="$(zfs get -H -o value iohyve:autogrub $dataset)"
-    local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
-    local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
-    #Testing if -S is in the bargs settings. If then pass -S to bhyveload.
-    local test_for_wire_memory="-S"
-    case $bargs in
-        *${test_for_wire_memory}*) local wire_memory="-S" ;;
-        *) local wire_memory="" ;;
-    esac
+	local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
+	local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
+	#Testing if -S is in the bargs settings. If then pass -S to bhyveload.
+	local test_for_wire_memory="-S"
+	case $bargs in
+		*${test_for_wire_memory}*) local wire_memory="-S" ;;
+		*) local wire_memory="" ;;
+	esac
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
 			if [ $os = "openbsd59" ]; then
@@ -689,25 +688,24 @@ __prepare_guest() {
 	local name="$1"
 	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local pci="$(__get_zfs_pcidev_conf $dataset)"
-        # Setup tap if needed
-        local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
-        for tap in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
-                if [ $tap ] && [ $tap != "-" ]; then
-                        local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
-                        if [ -z $tapif ]; then
-                                # create tap interface
+	# Setup tap if needed
+	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
+	for tap in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
+		if [ $tap ] && [ $tap != "-" ]; then
+			local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
+			if [ -z $tapif ]; then
+				# create tap interface
 				ifconfig $tap create descr "iohyve-$name"
 				ifconfig bridge0 addm $tap
-                        fi
-
-                        # Add a virtio-net pci device for the tap
-                        local mac="$(zfs get -H -o value iohyve:mac_$tap $dataset)"
-                        if [ $mac = "-" ]; then
-                                pci="$pci virtio-net,$tap"
-                        else
-                                pci="$pci virtio-net,${tap},mac=${mac}"
-                        fi
-                fi
+			fi
+			# Add a virtio-net pci device for the tap
+			local mac="$(zfs get -H -o value iohyve:mac_$tap $dataset)"
+			if [ $mac = "-" ]; then
+				pci="$pci virtio-net,$tap"
+			else
+				pci="$pci virtio-net,${tap},mac=${mac}"
+			fi
+		fi
         done
 	#Add disk as second PCI device
 	pci="ahci-hd,/dev/zvol/$dataset/disk0 $pci"
@@ -1274,34 +1272,34 @@ __conreset() {
 __help() {
 cat << 'EOT'
 iohyve  version
-        setup pool=[poolname] kmod=[0/1] net=[interface]
-        list
+	setup pool=[poolname] kmod=[0/1] net=[interface]
+	list
 	info [-d]
-        isolist
+	isolist
 	fwlist
-        fetch [URL]
+	fetch [URL]
 	cpiso [path]
-        renameiso [ISO] [newname]
+	renameiso [ISO] [newname]
 	rmiso [ISO]
-        fetchfw [URL]
-        cpfw [path]
-        renamefw [firmware] [newname]
-        rmfw [firmware]
-        create [name] [size]
-        install [name] [ISO]
-        load [name] [path/to/bootdisk]
-        boot [name] [runmode] [pcidevices]
-        start [name] [-s | -a]
+	fetchfw [URL]
+	cpfw [path]
+	renamefw [firmware] [newname]
+	rmfw [firmware]
+	create [name] [size]
+	install [name] [ISO]
+	load [name] [path/to/bootdisk]
+	boot [name] [runmode] [pcidevices]
+	start [name] [-s | -a]
 	stop [name]
 	forcekill [name]
-        scram
-        destroy [name]
+	scram
+	destroy [name]
 	rename [name] [newname]
-        delete [-f] [name]
-        set [name] [prop1=value] [prop2=value]...
-        get [name] [prop]
+	delete [-f] [name]
+	set [name] [prop1=value] [prop2=value]...
+	get [name] [prop]
 	rmpci [-f] [name] [pcidev:N]
-        getall [name]
+	getall [name]
 	add [name] [size] [[pool]]
 	remove [-f] [name] [diskN]
 	resize [name] [diskN] [size]
@@ -1311,23 +1309,23 @@ iohyve  version
 	clone [-c | -r] [name] [clonename]
 	export [name]
 	snaplist
-        taplist
+	taplist
 	activetaps
 	conlist
-        console [name]
-        conreset
-        help
+	console [name]
+	conreset
+	help
 EOT
 }
 
 if [ -z "$1" ] ; then
-    __help
-    exit 0
+	__help
+	exit 0
 fi
 
 if [ $(__readonly_cmd "$1") != "0" -a "$(whoami)" != "root" ] ; then
-    echo "The $1 command needs root credentials!"
-    exit 1
+	echo "The $1 command needs root credentials!"
+	exit 1
 fi
 
 __parse_cmd "$@"
