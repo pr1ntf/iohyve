@@ -568,8 +568,8 @@ __load() {
 			elif [ $os = "arch" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_'$(date +%Y%m)' ro\ninitrd (cd0)/arch/boot/x86_64/archiso.img\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
+				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_'$(date +%Y%m)' ro\ninitrd (cd0)/arch/boot/x86_64/archiso.img\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "custom" ]; then
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			else
