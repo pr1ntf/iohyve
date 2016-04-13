@@ -563,8 +563,8 @@ __load() {
 			elif [ $os = "centos6" ] || [ $os = "centos7" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
+				printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "arch" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
@@ -609,13 +609,11 @@ __load() {
 			elif [ $os = "centos6" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "centos7" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub2 -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub2 -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "custom" ]; then
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			else
