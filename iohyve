@@ -467,7 +467,6 @@ __create() {
 	zfs set iohyve:boot=0 $pool/iohyve/$name
 	zfs set iohyve:loader=bhyveload $pool/iohyve/$name
 	zfs set iohyve:os=default $pool/iohyve/$name
-	zfs set iohyve:autogrub='\n' $pool/iohyve/$name
 	zfs set "iohyve:description=$description" $pool/iohyve/$name
 	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
