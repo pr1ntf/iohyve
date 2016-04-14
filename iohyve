@@ -381,7 +381,7 @@ __deleteiso() {
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	echo "Deleting $name..."
-	zfs destroy $pool/iohyve/ISO/$name
+	zfs destroy -rR $pool/iohyve/ISO/$name
 }
 
 # Fetch Firmware
@@ -419,7 +419,7 @@ __deletefw() {
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	echo "Deleting $name..."
-	zfs destroy $pool/iohyve/Firmware/$name
+	zfs destroy -rR $pool/iohyve/Firmware/$name
 }
 
 # Create guest
