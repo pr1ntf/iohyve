@@ -958,14 +958,6 @@ __getall() {
 	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
 }
 
-# Fix legacy bhyve arguments
-__fixbargs() {
-	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	echo "Setting default bargs flags for bhyve to $name..."
-	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
-}
-
 # Add a new disk to guest
 __add() {
 	local name="$2"
