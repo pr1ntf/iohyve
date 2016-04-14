@@ -59,7 +59,7 @@ list
 info [-d]
 isolist
 fwlist
-fetch [URL]
+fetchiso [URL]
 cpiso [path]
 renameiso [ISO] [newname]
 rmiso [ISO]
@@ -150,7 +150,7 @@ iohyve clone bsdguest dolly	   #make a clone of bsdguest to dolly
 
 Fetch FreeBSD install ISO for later:
 
-    iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+    iohyve fetchiso ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
 
 Rename the ISO if you would like:
 

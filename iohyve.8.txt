@@ -8,7 +8,7 @@ iohyve list
 iohyve info [-d]
 iohyve isolist
 iohyve fwlist
-iohyve fetch [URL]
+iohyve fetchiso [URL]
 iohyve cpiso [path]
 iohyve renameiso [ISO] [newname]
 iohyve rmiso [ISO]
@@ -78,10 +78,10 @@ isolist		List Lists the installed ISOs in the /iohyve/ISO directory.
 
 fwlist		Lists the firmwares in the /iohyve/Firmware directory.
 
-fetch		Fetches installation ISO or install image and creates a
+fetchiso		Fetches installation ISO or install image and creates a
 		dataset for it.
-		Usage: 'iohyve fetch [URL]' where [URL] is the HTTP or FTP URL to
-		fetch from the internet.
+		Usage: 'iohyve fetchiso [URL]' where [URL] is the HTTP or FTP URL to
+		fetchiso from the internet.
 
 cpiso		Copies installation ISO or install image from your host and
 		creates a dataset for it.
@@ -310,7 +310,7 @@ iohyve setup pool=tank
 
 Fetch FreeBSD install ISO for later:
 
-iohyve fetch ftp://ftp.freebsd.org/.../10.2/FreeBSD....iso
+iohyve fetchiso ftp://ftp.freebsd.org/.../10.2/FreeBSD....iso
 
 Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
 
