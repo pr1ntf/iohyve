@@ -23,9 +23,6 @@ __parse_cmd () {
       version)  __version
                 exit
       ;;
-      oldset)	__oldset "$@"
-                exit
-      ;;
       setup)    __setup "$@"
                 exit
       ;;
