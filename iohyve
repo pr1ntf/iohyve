@@ -38,7 +38,7 @@ __parse_cmd () {
       fwlist)	__fwlist
                 exit
       ;;
-      fetchiso|fetch)    __fetch "$@"
+      fetchiso|fetch)    __fetchiso "$@"
                 exit
       ;;
       cpiso)	__cpiso "$@"
@@ -344,7 +344,7 @@ __fwlist() {
 }
 
 # Fetch ISO
-__fetch() {
+__fetchiso() {
 	local url="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $2)"
