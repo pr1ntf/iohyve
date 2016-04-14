@@ -653,13 +653,7 @@ __boot() {
 		while [ $runstate = "1" ]
 		do
 			__load "$name" "/dev/zvol/$dataset/disk0"
-			if [ $bargexist = '-' ]; then
-				bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-				echo "This version of your guest is outdated."
-				echo "Please run iohyve fix-bargs guestname to update."
-			else
-				bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-			fi
+			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 			local vmpid=$!
 			wait $vmpid
 			vmrc=$?
