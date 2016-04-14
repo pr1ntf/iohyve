@@ -491,13 +491,7 @@ __install() {
 			# Prepare and start guest
 			pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
 			local pci_args=$(__get_bhyve_cmd "$pci" )
-			if [ $bargexist = '-' ]; then
-				bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-				echo "This version of your guest is outdated."
-				echo "Please run iohyve fix-bargs guestname to update."
-			else
-				bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-			fi
+			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 		else
 			echo "Guest is already running."
 		fi
