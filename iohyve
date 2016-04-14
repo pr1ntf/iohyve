@@ -908,23 +908,6 @@ __set() {
 	done
 }
 
-# Set ZFS props [retro style]
-__oldset() {
-	local name="$2"
-	local propval="$3"
-	local prop="$(echo $propval | cut -d '=' -f1 )"
-	local sprop="$(echo $propval | cut -d '"' -f2 | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
-	echo "Setting $name prop $propval..."
-	if [ $prop = "description" ]; then
-		zfs set iohyve:$sprop $pool/iohyve/$name
-	elif [ $prop = "bargs" ]; then
-		zfs set iohyve:$sprop $pool/iohyve/$name
-	else
-		zfs set iohyve:$propval $pool/iohyve/$name
-	fi
-}
-
 # Get ZFS props
 __get() {
 	local name="$2"
