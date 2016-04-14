@@ -1,0 +1,9 @@
+####There are two major changes in iohyve v0.7.5
+
+- The `fetch` command has been renamed to `fetchiso` to comply
+	with the naming scheme of `fetchfw`, `cpiso`, `cpfw`, etc...
+
+- The `autogrub` property is no longer supported. You can now run what
+	is in your `autogrub` property in a `grub.cfg` if you set
+	the `os` property to `os=custom`. More information can be found on the README 
+	https://github.com/pr1ntf/iohyve#use-your-own-custom-grubcfg-and-devicemap-files
