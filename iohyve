@@ -315,7 +315,7 @@ __list() {
 	done
 	) | column -ts^ | \
 	(
-		if [ "$flags" -eq '-l' ]
+		if [ "$flags" = '-l' ]
 		then
 			less
 		else
