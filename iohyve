@@ -334,12 +334,7 @@ __info() {
 		
 	( # Begining of very large table of output.
 	# Print common header
-	printf "%s^%s^%s^%s" "Guest" "Size" "CPU" "RAM"
-	
-	# Print headers for -p flag
-	if [ -n "$(echo "$flags" | grep 'p')" ]; then
-		printf "^%s" "Pool"
-	fi
+	printf "%s^%s^%s^%s^%s" "Guest" "Size" "CPU" "RAM" "Pool"
 	
 	# Print headers for -v flag
 	if [ -n "$(echo "$flags" | grep 'v')" ]; then
@@ -372,12 +367,7 @@ __info() {
 		local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$g)"
 		
 		# Print common section (guest, size, cpu, raml)
-		printf "%s^%s^%s^%s" "$g" "$size" "$cpu" "$ram"
-		
-		# Print pool section
-		if [ -n "$(echo "$flags" | grep 'p')" ]; then
-			printf "^%s" "$pool"
-		fi
+		printf "%s^%s^%s^%s^%s" "$g" "$size" "$cpu" "$ram" "$pool"
 		
 		# Get variable and print for verbose section (os, loader, tap, con)
 		if [ -n "$(echo "$flags" | grep 'v')" ]; then
