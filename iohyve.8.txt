@@ -1,14 +1,14 @@
 NAME
-iohyve(8) - bhyve manager/launcher v0.7.4 "Stop Being a Troll Edition"
+iohyve(8) - bhyve manager/launcher v0.7.5 "Tennessee Cherry Moonshine Edition"
 
 SYNOPSIS
 iohyve version
 iohyve setup pool=[poolname] kmod=[0/1] net=[interface]
-iohyve list [-vdl]
-iohyve info [-psvdl]
+iohyve list [-l]
+iohyve info [-vsdl]
 iohyve isolist
 iohyve fwlist
-iohyve fetch [URL]
+iohyve fetchiso [URL]
 iohyve cpiso [path]
 iohyve renameiso [ISO] [newname]
 iohyve rmiso [ISO]
@@ -70,25 +70,14 @@ setup		Installs required zfs datasets and kernel modules for iohyve.
 		in /iohyve/poolname
 
 list		Lists the name, status for VMM, active bhyve (Running), boot
-		on start flag (rcboot), tap, con, and description for each guest.
+		on start flag (rcboot), and description for each guest.
 		
-		-v is for verbose which adds the fields: Tap and Con
+		-l flag pipes the final output to less
 		
-		-d is for description
-		
-		-l is for less and pipes the final output to less
-		
-		Order of flags is not important. The proper syntax is to use
-		the flags contiguiously. So "-vl" is the correct way to display
-		the base output plus tap and con fields, and have the output
-		piped to less.
-
 info		Lists properties about the guests and their disks using flags
 		to control level of output. Fields include CPU count, RAM, Disk
 		Size, Pool, OS, Loader, Tap, Console, VMM status, Running status,
-		rcboot flag, and the description. Use -l to pipe to less.
-
-		-p is for pool. Shows the pool the guest belongs to.
+		rcboot flag, pool, and the description. Use -l to pipe to less.
 
 		-v is for verbose which adds the fields: OS,
 		   Loader, Tap, and Con.
@@ -96,23 +85,23 @@ info		Lists properties about the guests and their disks using flags
 		-s is for status which add the fields: VMM,
 		   Running, and rcboot.
 
-		 -d is for description. Shows the guest description.
+		-d is for description. Shows the guest description.
 
-		 -l is for less and pipes the final output to less.
+		-l is for less and pipes the final output to less.
 		
 		Order of flags is not important. The proper syntax is to use
-		the flags contiguiously. So "-ldp" is the correct way to display
-		the base output plus pool, description, and then have the output
+		the flags contiguiously. So "-ld" is the correct way to display
+		the base output plus description, and then have the output
 		piped to less.
 
 isolist		Lists the installed ISOs in the /iohyve/ISO directory.
 
 fwlist		Lists the firmwares in the /iohyve/Firmware directory.
 
-fetch		Fetches installation ISO or install image and creates a
+fetchiso	Fetches installation ISO or install image and creates a
 		dataset for it.
-		Usage: 'iohyve fetch [URL]' where [URL] is the HTTP or FTP URL to
-		fetch from the internet.
+		Usage: 'iohyve fetchiso [URL]' where [URL] is the HTTP or FTP URL to
+		fetchiso from the internet.
 
 cpiso		Copies installation ISO or install image from your host and
 		creates a dataset for it.
@@ -341,7 +330,7 @@ iohyve setup pool=tank
 
 Fetch FreeBSD install ISO for later:
 
-iohyve fetch ftp://ftp.freebsd.org/.../10.2/FreeBSD....iso
+iohyve fetchiso ftp://ftp.freebsd.org/.../10.2/FreeBSD....iso
 
 Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
 

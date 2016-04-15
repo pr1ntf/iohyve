@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.7.4 2016/04/08 "Stop Being a Troll Edition"
+# iohyve v0.7.5 2016/04/14 "Tennessee Cherry Moonshine Edition"
 
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
@@ -23,9 +23,6 @@ __parse_cmd () {
       version)  __version
                 exit
       ;;
-      oldset)	__oldset "$@"
-                exit
-      ;;
       setup)    __setup "$@"
                 exit
       ;;
@@ -41,7 +38,7 @@ __parse_cmd () {
       fwlist)	__fwlist
                 exit
       ;;
-      fetch)    __fetch "$@"
+      fetchiso|fetch)    __fetchiso "$@"
                 exit
       ;;
       cpiso)	__cpiso "$@"
@@ -168,7 +165,7 @@ __parse_cmd () {
 
 # Show version
 __version() {
-	echo "iohyve v0.7.4 2016/04/08 Stop Being a Troll Edition"
+	echo "iohyve v0.7.5 2016/04/14 Tennessee Cherry Moonshine Edition"
 }
 
 # Setup iohyve
@@ -196,6 +193,35 @@ __setup() {
 					fi
 				else
 					echo "iohyve already exists on $pool"
+				fi
+				# Checks to see if on FreeNAS
+				# The web UI references this file to display the version
+				if [ -e /etc/version ]; then
+					local OS=$( cat /etc/version | cut -d - -f1 ) 
+					if [ "$OS" = "FreeNAS" ]; then
+						echo "On FreeNAS installation."
+						echo "Checking for symbolic link to /iohyve from /mnt/iohyve..."
+						if [ -d /mnt/iohyve ]; then
+							if [ ! -e /iohyve ]; then
+								ln -s /mnt/iohyve /iohyve
+								if [ -L /iohyve ]; then
+									echo "Symbolic link to /iohyve from /mnt/iohyve successfully created."
+								else
+									echo "Failed to create symbolic link."
+									echo "Please manually do so by running the following as root:"
+									echo "# ln -s /mnt/iohyve /iohyve"
+								fi
+							elif [ -L /iohyve ]; then
+								echo "Symbolic link to /iohyve already exists."
+							fi
+						elif [ "$val" = "freenas-boot" ] && [ -d /iohyve ]; then
+							echo "Symbolic link not needed. /iohyve exists."
+							echo "iohyve is installed on the freenas-boot pool."
+							echo "This is not recommended configuration."
+						else
+							echo "iohyve does not seem to be setup."
+						fi
+					fi
 				fi
 			elif [ $prop = "kmod" ]; then
 				if [ $val = "1" ]; then
@@ -261,66 +287,35 @@ __list() {
 	local flags="$1"
 	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
-	
-	# Print common header
-        printf "%s^%s^%s^%s" "Guest" "VMM?" "Running" "rcboot?"
-	
-	# Print headers for -v flag (tap, con)
-	if [ -n "$(echo "$flags" | grep 'v')" ]; then
-		printf "^%s^%s" "Tap" "Con"
-	fi
-	
-	# Print headers for -d flag (description)
-	if [ -n "$(echo "$flags" | grep 'd')" ]; then
-		printf "^%s" "Description"
-	fi
-	
-	printf "\n" # Print new line for first guest.
-	
+	printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
 	for pool in $pools; do
-            local guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
-            for g in $guests; do
-		local vmm="/dev/vmm/ioh-$g"
-		if [ -e $vmm ]; then
-			vmm="YES"
-		else
-			vmm="NO"
-		fi
-		local running=$(pgrep -fx "bhyve: ioh-$g")
-		if [ -z $running ]; then
-			running="NO"
-		else
-			running="YES"
-		fi
-		local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$g)"
-		if [ $boot = '1' ]; then
-			boot="YES"
-		else
-			boot="NO"
-		fi
-		# Print common section (guest, vmm, running, rcboot)
-		printf "%s^%s^%s^%s" "$g" "$vmm" "$running" "$boot" 
-		
-		# Get variable and print for verbose section (tap, con)
-		if [ -n "$(echo "$flags" | grep 'v')" ]; then
-			local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$g)"
-			local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$g)"
-			
-			printf "^%s^%s" "$tap" "$con"
-		fi
-		
-		# Get description property and print
-		if [ -n "$(echo "$flags" | grep 'd')" ]; then
-			local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
-			printf "^%s" "$description"
-		fi
-		
-		printf "\n" #Print new line for next guest.
-            done
+	local guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
+		for g in $guests; do
+			local vmm="/dev/vmm/ioh-$g"
+			if [ -e $vmm ]; then
+				vmm="YES"
+			else
+				vmm="NO"
+			fi
+			local running=$(pgrep -fx "bhyve: ioh-$g")
+			if [ -z $running ]; then
+				running="NO"
+			else
+				running="YES"
+			fi
+			local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$g)"
+			if [ $boot = '1' ]; then
+				boot="YES"
+			else
+				boot="NO"
+			fi
+		local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
+		printf "%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$description"
+		done
 	done
 	) | column -ts^ | \
 	(
-		if [ -n "$(echo "$flags" | grep 'l')" ]
+		if [ "$flags" -eq '-l' ]
 		then
 			less
 		else
@@ -455,7 +450,7 @@ __fwlist() {
 }
 
 # Fetch ISO
-__fetch() {
+__fetchiso() {
 	local url="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $2)"
@@ -489,7 +484,7 @@ __deleteiso() {
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	echo "Deleting $name..."
-	zfs destroy $pool/iohyve/ISO/$name
+	zfs destroy -rR $pool/iohyve/ISO/$name
 }
 
 # Fetch Firmware
@@ -515,7 +510,7 @@ __cpfw() {
 # Rename Firmware
 __renamefw() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local isfw="$2"
+	local fw="$2"
 	local name="$3"
 	echo "Renaming Firmware $2 to $3..."
 	mv /iohyve/Firmware/$fw/$fw /iohyve/Firmware/$fw/$name
@@ -527,7 +522,7 @@ __deletefw() {
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	echo "Deleting $name..."
-	zfs destroy $pool/iohyve/Firmware/$name
+	zfs destroy -rR $pool/iohyve/Firmware/$name
 }
 
 # Create guest
@@ -574,7 +569,6 @@ __create() {
 	zfs set iohyve:boot=0 $pool/iohyve/$name
 	zfs set iohyve:loader=bhyveload $pool/iohyve/$name
 	zfs set iohyve:os=default $pool/iohyve/$name
-	zfs set iohyve:autogrub='\n' $pool/iohyve/$name
 	zfs set "iohyve:description=$description" $pool/iohyve/$name
 	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
@@ -603,13 +597,7 @@ __install() {
 			# Prepare and start guest
 			pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
 			local pci_args=$(__get_bhyve_cmd "$pci" )
-			if [ $bargexist = '-' ]; then
-				bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-				echo "This version of your guest is outdated."
-				echo "Please run iohyve fix-bargs guestname to update."
-			else
-				bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-			fi
+			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 		else
 			echo "Guest is already running."
 		fi
@@ -630,56 +618,56 @@ __load() {
 	local install="$(zfs get -H -o value iohyve:install $dataset)"
 	local os="$(zfs get -H -o value iohyve:os $dataset)"
 	local autogrub="$(zfs get -H -o value iohyve:autogrub $dataset)"
-    local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
-    local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
-    #Testing if -S is in the bargs settings. If then pass -S to bhyveload.
-    local test_for_wire_memory="-S"
-    case $bargs in
-        *${test_for_wire_memory}*) local wire_memory="-S" ;;
-        *) local wire_memory="" ;;
-    esac
+	local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
+	local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
+	#Testing if -S is in the bargs settings. If then pass -S to bhyveload.
+	local test_for_wire_memory="-S"
+	case $bargs in
+		*${test_for_wire_memory}*) local wire_memory="-S" ;;
+		*) local wire_memory="" ;;
+	esac
 	if [ $loader = "grub-bhyve" ]; then
 		if [ $install = "yes" ]; then
 			if [ $os = "openbsd59" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'kopenbsd -h com0 /5.9/amd64/bsd.rd\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name > /dev/null
+				printf 'kopenbsd -h com0 (cd0)/5.9/amd64/bsd.rd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "openbsd58" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'kopenbsd -h com0 /5.8/amd64/bsd.rd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name > /dev/null
+				printf 'kopenbsd -h com0 (cd0)/5.8/amd64/bsd.rd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "openbsd57" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'kopenbsd -h com0 /5.7/amd64/bsd.rd\nboot\n' | \
-				grub-bhyve $wire_memory-m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name > /dev/null
+				printf 'kopenbsd -h com0 (cd0)/5.7/amd64/bsd.rd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "netbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'knetbsd -h -r cd0a /netbsd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name > /dev/null
+				printf 'knetbsd -h -r cd0a (cd0)/netbsd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "debian" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf '\n' | \
-				grub-bhyve $wire_memory-m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory-m /iohyve/$name/device.map -r cd0  -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "d8lvm" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "centos6" ] || [ $os = "centos7" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
+				printf 'linux (cd0)/isolinux/vmlinuz\ninitrd (cd0)/isolinux/initrd.img\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "arch" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_'$(date +%Y%m)' ro\ninitrd (cd0)/arch/boot/x86_64/archiso.img\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -M $ram ioh-$name  > /dev/null
+				printf 'linux (cd0)/arch/boot/x86_64/vmlinuz archisobasedir=arch archisolabel=ARCH_'$(date +%Y%m)' ro\ninitrd (cd0)/arch/boot/x86_64/archiso.img\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
+			elif [ $os = "custom" ]; then
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			else
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
@@ -689,48 +677,41 @@ __load() {
 			if [ $os = "openbsd59" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name  > /dev/null
+				printf 'kopenbsd -h com0 -r sd0a (hd0,openbsd1)/bsd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "openbsd58" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name  > /dev/null
+				printf 'kopenbsd -h com0 -r sd0a (hd0,openbsd1)/bsd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "openbsd57" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'kopenbsd -h com0 -r sd0a /bsd\nboot\n' | \
-				grub-bhyve -m /iohyve/$name/device.map -r hd0,openbsd1 -M $ram ioh-$name  > /dev/null
+				printf 'kopenbsd -h com0 -r sd0a (hd0,openbsd1)/bsd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "netbsd" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf 'knetbsd -h -r sd0a /netbsd\nboot\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name  > /dev/null
+				printf 'knetbsd -h -r wd0a (hd0,msdos1)/netbsd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "debian" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "d8lvm" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "centos6" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "centos7" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf '\n' | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub2 -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub2 -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "custom" ]; then
-				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
-				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				printf $autogrub | \
-				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -M $ram ioh-$name  > /dev/null
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
 			else
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
@@ -769,13 +750,7 @@ __boot() {
 		while [ $runstate = "1" ]
 		do
 			__load "$name" "/dev/zvol/$dataset/disk0"
-			if [ $bargexist = '-' ]; then
-				bhyve -c $cpu -A -H -P -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-				echo "This version of your guest is outdated."
-				echo "Please run iohyve fix-bargs guestname to update."
-			else
-				bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
-			fi
+			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 			local vmpid=$!
 			wait $vmpid
 			vmrc=$?
@@ -804,25 +779,24 @@ __prepare_guest() {
 	local name="$1"
 	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local pci="$(__get_zfs_pcidev_conf $dataset)"
-        # Setup tap if needed
-        local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
-        for tap in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
-                if [ $tap ] && [ $tap != "-" ]; then
-                        local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
-                        if [ -z $tapif ]; then
-                                # create tap interface
+	# Setup tap if needed
+	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
+	for tap in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
+		if [ $tap ] && [ $tap != "-" ]; then
+			local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
+			if [ -z $tapif ]; then
+				# create tap interface
 				ifconfig $tap create descr "iohyve-$name"
 				ifconfig bridge0 addm $tap
-                        fi
-
-                        # Add a virtio-net pci device for the tap
-                        local mac="$(zfs get -H -o value iohyve:mac_$tap $dataset)"
-                        if [ $mac = "-" ]; then
-                                pci="$pci virtio-net,$tap"
-                        else
-                                pci="$pci virtio-net,${tap},mac=${mac}"
-                        fi
-                fi
+			fi
+			# Add a virtio-net pci device for the tap
+			local mac="$(zfs get -H -o value iohyve:mac_$tap $dataset)"
+			if [ $mac = "-" ]; then
+				pci="$pci virtio-net,$tap"
+			else
+				pci="$pci virtio-net,${tap},mac=${mac}"
+			fi
+		fi
         done
 	#Add disk as second PCI device
 	pci="ahci-hd,/dev/zvol/$dataset/disk0 $pci"
@@ -1025,23 +999,6 @@ __set() {
 	done
 }
 
-# Set ZFS props [retro style]
-__oldset() {
-	local name="$2"
-	local propval="$3"
-	local prop="$(echo $propval | cut -d '=' -f1 )"
-	local sprop="$(echo $propval | cut -d '"' -f2 | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
-	echo "Setting $name prop $propval..."
-	if [ $prop = "description" ]; then
-		zfs set iohyve:$sprop $pool/iohyve/$name
-	elif [ $prop = "bargs" ]; then
-		zfs set iohyve:$sprop $pool/iohyve/$name
-	else
-		zfs set iohyve:$propval $pool/iohyve/$name
-	fi
-}
-
 # Get ZFS props
 __get() {
 	local name="$2"
@@ -1090,14 +1047,6 @@ __getall() {
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Getting $name iohyve properties..."
 	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
-}
-
-# Fix legacy bhyve arguments
-__fixbargs() {
-	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	echo "Setting default bargs flags for bhyve to $name..."
-	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
 
 # Add a new disk to guest
@@ -1390,33 +1339,33 @@ __help() {
 cat << 'EOT'
 iohyve  version
         setup pool=[poolname] kmod=[0/1] net=[interface]
-        list [-vdl]
-	info [-pvsdl]
+        list [-l]
+	info [-vsdl]
         isolist
 	fwlist
-        fetch [URL]
+	fetchiso [URL]
 	cpiso [path]
-        renameiso [ISO] [newname]
+	renameiso [ISO] [newname]
 	rmiso [ISO]
-        fetchfw [URL]
-        cpfw [path]
-        renamefw [firmware] [newname]
-        rmfw [firmware]
-        create [name] [size]
-        install [name] [ISO]
-        load [name] [path/to/bootdisk]
-        boot [name] [runmode] [pcidevices]
-        start [name] [-s | -a]
+	fetchfw [URL]
+	cpfw [path]
+	renamefw [firmware] [newname]
+	rmfw [firmware]
+	create [name] [size]
+	install [name] [ISO]
+	load [name] [path/to/bootdisk]
+	boot [name] [runmode] [pcidevices]
+	start [name] [-s | -a]
 	stop [name]
 	forcekill [name]
-        scram
-        destroy [name]
+	scram
+	destroy [name]
 	rename [name] [newname]
-        delete [-f] [name]
-        set [name] [prop1=value] [prop2=value]...
-        get [name] [prop]
+	delete [-f] [name]
+	set [name] [prop1=value] [prop2=value]...
+	get [name] [prop]
 	rmpci [-f] [name] [pcidev:N]
-        getall [name]
+	getall [name]
 	add [name] [size] [[pool]]
 	remove [-f] [name] [diskN]
 	resize [name] [diskN] [size]
@@ -1426,23 +1375,23 @@ iohyve  version
 	clone [-c | -r] [name] [clonename]
 	export [name]
 	snaplist
-        taplist
+	taplist
 	activetaps
 	conlist
-        console [name]
-        conreset
-        help
+	console [name]
+	conreset
+	help
 EOT
 }
 
 if [ -z "$1" ] ; then
-    __help
-    exit 0
+	__help
+	exit 0
 fi
 
 if [ $(__readonly_cmd "$1") != "0" -a "$(whoami)" != "root" ] ; then
-    echo "The $1 command needs root credentials!"
-    exit 1
+	echo "The $1 command needs root credentials!"
+	exit 1
 fi
 
 __parse_cmd "$@"
