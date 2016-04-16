@@ -1,5 +1,5 @@
-# iohyve v0.7.4
-"Stop Being a Troll Edition"
+# iohyve v0.7.5
+"Tennessee Cherry Moonshine Edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
 *Over the hill to 1.0*
@@ -59,7 +59,7 @@ list
 info [-d]
 isolist
 fwlist
-fetch [URL]
+fetchiso [URL]
 cpiso [path]
 renameiso [ISO] [newname]
 rmiso [ISO]
@@ -150,7 +150,7 @@ iohyve clone bsdguest dolly	   #make a clone of bsdguest to dolly
 
 Fetch FreeBSD install ISO for later:
 
-    iohyve fetch ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+    iohyve fetchiso ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
 
 Rename the ISO if you would like:
 
@@ -227,3 +227,24 @@ iohyve set centosguest os=centos7
 iohyve install centosguest CentOS-7-x86_64-Everything-1511.iso
 iohyve console centosguest
 ````
+#####Use your own custom `grub.cfg` and `device.map` files
+
+If you don't want iohyve to take care of the `grub.cfg` and `device.map` files, you can now "roll your own" and place them in the guests dataset (`/iohyve/guestname/`). 
+Of course, you must set the guest properties `loader=grub-bhyve` and `os=custom`.
+For instance, if you have an OpenBSD guest located in `/iohyve/obsd59/` and an install ISO in `/iohyve/ISO/install59.iso/` and your pool is `zroot`, your files will look like this:
+
+`device.map` file:
+```
+(hd0) /dev/zvol/zroot/iohyve/obsd59/disk0
+(cd0) /iohyve/ISO/install59.iso/install59.iso
+```
+`grub.cfg` file for installation:
+```
+kopenbsd -h com0 (cd0)/5.9/amd64/bsd.rd
+boot
+```
+`grub.cfg` file after installation is complete:
+```
+kopenbsd -h com0 -r sd0a (hd0,openbsd1)/bsd
+boot
+```
