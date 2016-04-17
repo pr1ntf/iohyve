@@ -327,7 +327,7 @@ __info() {
 			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader,iohyve:description | \
 			grep iohyve | grep -Ev "ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
 	else
-		echo "Invalid flag..."
+		echo "Usage: $0 $1 [-d]"
 	fi
 }
 
@@ -493,7 +493,7 @@ __install() {
 			local pci_args=$(__get_bhyve_cmd "$pci" )
 			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 		else
-			echo "Guest is already running."
+			echo "$name is already running."
 		fi
 	else
 		echo "Not a valid guest name"
@@ -731,7 +731,7 @@ __start() {
 			pci="$(__prepare_guest $name)"
 			__boot "$name" "$runmode" "$pci"
 		else
-			echo "Guest is already running."
+			echo "$name is already running."
 		fi
 	else
 		echo "Not a valid guest name"
@@ -783,7 +783,7 @@ __uefi() {
 			        -l bootrom,/iohyve/Firmware/$fw/$fw \
 			        ioh-$name &
 		else
-			echo "Guest is already running."
+			echo "$name is already running."
 		fi
 	else
 		echo "Not a valid guest name"
@@ -795,9 +795,13 @@ __stop() {
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local pid=$(pgrep -fx "bhyve: ioh-$name")
-	echo "Stopping $name..."
 #	zfs set iohyve:persist=0 $pool/iohyve/$name
-	kill $pid
+	if [ -z $pid ]; then
+		echo "$2 is not running"
+	else
+		echo "Stopping $name..."
+		kill $pid
+	fi
 #	sleep 20
 #	bhyvectl --destroy --vm=ioh-$name
 }
