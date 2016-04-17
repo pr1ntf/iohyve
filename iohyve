@@ -1080,7 +1080,7 @@ __rmpci() {
 	local flagone="$2"
 	local flagtwo="$3"
 	local flagthree="$4"
-	if [ $flagone = "-f" ]; then
+	if [ "$flagone" = "-f" ]; then
 		if [ -z $flagtwo ] || [ -z $flagthree ]; then
 			echo "Usage: $0 $1 [-f] <name> <pcidev:N>"
 			return 1
@@ -1502,32 +1502,32 @@ iohyve  version
 	rmfw <firmware>
 	create <name> <size>
 	install <name> <iso>
-	load [name] [path/to/bootdisk]
-	boot [name] [runmode] [pcidevices]
-	start [name] [-s | -a]
-	stop [name]
-	forcekill [name]
+	load <name> <path/to/bootdisk>
+	boot <name> [runmode] [pcidevices]
+	start <name> [-s | -a]
+	stop <name>
+	forcekill <name>
 	scram
-	destroy [name]
-	rename [name] [newname]
-	delete [-f] [name]
-	set [name] [prop1=value] [prop2=value]...
-	get [name] [prop]
-	rmpci [-f] [name] [pcidev:N]
-	getall [name]
-	add [name] [size] [[pool]]
-	remove [-f] [name] [diskN]
-	resize [name] [diskN] [size]
-	disks [name]
-	snap [name]@[snapshotname]
-	roll [name]@[snapshotname]
-	clone [-c | -r] [name] [clonename]
-	export [name]
+	destroy <name>
+	rename <name> <newname>
+	delete [-f] <name>
+	set <name> [prop1=value] [prop2=value]...
+	get <name> <prop>
+	rmpci [-f] <name> <pcidev:N>
+	getall <name>
+	add <name> <size> [pool]
+	remove [-f] <name> <diskN>
+	resize <name> <diskN> <size>
+	disks <name>
+	snap <name>@<snapshotname>
+	roll <name>@<snapshotname>
+	clone [-c | -r] <name> <clonename>
+	export <name>
 	snaplist
 	taplist
 	activetaps
 	conlist
-	console [name]
+	console <name>
 	conreset
 	help
 EOT
