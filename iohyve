@@ -158,6 +158,9 @@ __parse_cmd () {
       help|-h)  __help
                 exit
       ;;
+      *) echo "Unrecognized command '$@'"
+		__help
+		exit
     esac
     shift
   done
