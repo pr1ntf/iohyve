@@ -1,0 +1,159 @@
+#!/bin/sh
+
+
+__setup_usage() {
+	printf "usage:\n\t$0 setup [pool=<name>] [kmod=<0|1>] [net=<iface>]\n"
+}
+
+__setup() {
+	shift
+	if [ -z "$1" ]; then
+		echo "missing argument"
+		__setup_usage
+		exit
+	fi 
+	local args="$@"
+	for arg in $args; do
+		local key="$(echo $arg | cut -d '=' -f1)"
+		local val="$(echo $arg | cut -d '=' -f2)"
+		case "$key" in
+			pool)
+				__setup_pool "$val"
+			;;
+			kmod)
+				__setup_kmod "$val"
+			;;
+			net)
+				__setup_net "$val"
+			;;
+			*)
+				echo "unrecognized key: $key"
+		esac
+	done
+}
+
+__setup_pool() {
+	local pool="$1"
+	local poolexists="$(zfs list -H -o name $pool/iohyve)"
+	local isoexists="$(zfs list -H -o name $pool/iohyve/ISO)"
+	local fwexists="$(zfs list -H -o name $pool/iohyve/Firmware)"
+	if [ -z "$poolexists" ] || [ -z "$isoexists" ] || [ -z "$fwexists" ]; then
+		printf "setting up iohyve pool: "
+		zfs create $pool/iohyve
+		# iohyve is already setup on a pool
+		if zfs list -H -o name $pool/iohyve/ISO > /dev/null 2>&1;then
+			zfs set mountpoint="/iohyve/$pool" $pool/iohyve
+		# iohyve is not set up yet
+		else
+			zfs set mountpoint="/iohyve" $pool/iohyve
+			if [ -z "$isoexists" ]; then
+				zfs create $pool/iohyve/ISO
+			fi
+			if [ -z "$fwexists" ]; then
+				zfs create $pool/iohyve/Firmware
+			fi
+		fi
+		printf "done\n"
+	else
+		echo "cannot create pool: pool already exists"
+	fi
+	# Checks to see if on FreeNAS
+	# The web UI references this file to display the version
+	if [ -e /etc/version ]; then
+		local OS=$( cat /etc/version | cut -d - -f1 )
+		if [ "$OS" = "FreeNAS" ]; then
+			__setup_pool_freenas
+		fi
+	fi
+}
+
+__setup_pool_freenas() {
+	echo "On FreeNAS installation."
+	echo "Checking for symbolic link to /iohyve from /mnt/iohyve..."
+	if [ -d /mnt/iohyve ]; then
+		if [ ! -e /iohyve ]; then
+			ln -s /mnt/iohyve /iohyve
+			if [ -L /iohyve ]; then
+				echo "Symbolic link to /iohyve from /mnt/iohyve successfully created."
+			else
+				echo "Failed to create symbolic link."
+				echo "Please manually do so by running the following as root:"
+				echo "# ln -s /mnt/iohyve /iohyve"
+			fi
+		elif [ -L /iohyve ]; then
+			echo "Symbolic link to /iohyve already exists."
+		fi
+	elif [ "$val" = "freenas-boot" ] && [ -d /iohyve ]; then
+		echo "Symbolic link not needed. /iohyve exists."
+		echo "iohyve is installed on the freenas-boot pool."
+		echo "This is not recommended configuration."
+	else
+		echo "iohyve does not seem to be setup."
+	fi
+}
+
+__setup_kmod() {
+	local val="$1"
+	if [ $val = "1" ]; then
+		if [ -z "$(kldstat | grep vmm.ko)" ]; then
+			kldload vmm
+		fi
+		if [ -z "$(kldstat | grep nmdm.ko)" ]; then
+			kldload nmdm
+		fi
+		echo "kernel modules loaded"
+	elif [ $val = "0" ]; then
+		if [ ! -z "$(kldstat | grep vmm.ko)" ]; then
+			local vmmerr="$(kldunload vmm 2>&1 > /dev/null)"
+			if [ ! -z "$vmmerr" ]; then
+				if [ ! -z "$(echo "$vmmerr" | grep "Device busy")" ]; then 
+					echo "unloading kernelmodule 'vmm' failed: are all guest shut down?"
+				else
+					echo $vmmerr
+				fi
+				return
+			fi
+		fi
+		if [ ! -z "$(kldstat | grep nmdm.ko)" ]; then
+			local nmdmerr="$(kldunload nmdm 2>&1 > /dev/null)"
+			if [ ! -z "$nmdmerr" ]; then
+				if [ ! -z "$(echo "$nmdmerr" | grep "Device busy")" ]; then 
+					echo "unloading kernelmodule 'nmdm' failed: are all guest shut down?"
+				else
+					echo $nmdmerr
+				fi
+				return
+			fi
+		fi
+		echo "kernel modules unloaded"
+	else
+		__setup_usage
+	fi
+}
+
+__setup_net() {
+	local iface="$1"
+	if [ -z "$(ifconfig -l | grep $iface)" ]; then
+		echo "cannot setup bridge with '$iface': device does not exist"
+		return
+	fi
+	#local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1)"
+	local jeff="$(ifconfig | grep -E "bridge[0-9]+:" | cut -d ":" -f 1)"
+	for bridge in $jeff; do
+		if [ ! -z "$(ifconfig $bridge | grep iohyve-bridge)" ]; then
+			local sysctlexist="$(sysctl net.link.tap.up_on_open | grep 1 | cut -c1)"
+			if [ -z $sysctlexist ]; then
+				sysctl net.link.tap.up_on_open=1
+			fi
+			echo "cannot setup network: already set up"
+			return
+		fi
+	done
+	printf "setting up network: "
+	sysctl net.link.tap.up_on_open=1
+	# TODO: Check if bridge0 already exists
+	ifconfig bridge0 create descr "iohyve-bridge"
+	ifconfig bridge0 addm $iface
+	ifconfig bridge0 up
+	printf "done\n"
+}
