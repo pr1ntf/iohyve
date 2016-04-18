@@ -131,7 +131,7 @@ __setup_kmod() {
 __setup_net() {
 	local iface="$1"
 	if [ -z "$(ifconfig -l | grep $iface)" ]; then
-		echo "cannot setup bridge with '$iface': device does not exist"
+		echo "cannot setup network with '$iface': device does not exist"
 		return
 	fi
 	#local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1)"
