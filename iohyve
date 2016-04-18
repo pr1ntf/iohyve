@@ -5,262 +5,22 @@
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 
-# See whether given command is readonly
-# and therefore doesn't need root credentials
-__readonly_cmd () {
-    case "$1" in
-        help|-h|activetaps|conlist|fwlist|get|getall|info|isolist|list|snaplist|taplist|version) echo "0"
-            ;;
-        *) echo "1"
-            ;;
-    esac
-}
+# Check if libs are available
+if [ -e "./lib/ioh-cmd" ] ; then
+    LIB="./lib"
+elif [ -e "/usr/local/lib/iohyve" ] ; then
+    LIB="/usr/local/lib/iohyve"
+else
+    echo "ERROR: missing libraries"
+    exit 1
+fi
 
-# Process command line
-__parse_cmd () {
-  while [ $# -gt 0 ] ; do
-    case "$1" in
-      version)  __version
-                exit
-      ;;
-      setup)    __setup "$@"
-                exit
-      ;;
-      list)     __list
-                exit
-      ;;
-      info)	__info "$@"
-		exit
-      ;;
-      isolist)  __isolist
-                exit
-      ;;
-      fwlist)	__fwlist
-                exit
-      ;;
-      fetchiso|fetch)    __fetchiso "$@"
-                exit
-      ;;
-      cpiso)	__cpiso "$@"
-		exit
-      ;;
-      renameiso) __renameiso "$@"
-                exit
-      ;;
-      rmiso) 	__deleteiso "$@"
-                exit
-      ;;
-      fetchfw)	__fetchfw "$@"
-                exit
-      ;;
-      cpfw)	__cpfw "$@"
-                exit
-      ;;
-      renamefw) __renamefw "$@"
-                exit
-      ;;
-      rmfw)	__deletefw "$@"
-                exit
-      ;;
-      create)   __create "$@"
-                exit
-      ;;
-      install)  __install "$@"
-                exit
-      ;;
-      load)     __load "$2" "$3"
-                exit
-      ;;
-      boot)     __boot "$2" "$3" "$4"
-                exit
-      ;;
-      start)    __start "$@"
-                exit
-      ;;
-      uefi)	__uefi "$@"
-		exit
-      ;;
-      stop)     __stop "$@"
-                exit
-      ;;
-      forcekill) __forcekill "$@"
-                exit
-      ;;
-      scram)    __scram
-                exit
-      ;;
-      destroy)  __destroy "$@"
-                exit
-      ;;
-      rename)   __rename "$@"
-                exit
-      ;;
-      delete)   __delete "$@"
-                exit
-      ;;
-      set)      __set "$@"
-                exit
-      ;;
-      get)      __get "$@"
-                exit
-      ;;
-      rmpci)	__rmpci "$@"
-		exit
-      ;;
-      getall)   __getall "$@"
-                exit
-      ;;
-      fix-bargs) __fixbargs "$@"
-		exit
-      ;;
-      add)	__add "$@"
-		exit
-      ;;
-      remove)	__remove "$@"
-		exit
-      ;;
-      resize)   __resize "$@"
-                exit
-      ;;
-      disks)	__disks "$@"
-		exit
-      ;;
-      snap|snapshot)	__snapguest "$@"
-		exit
-      ;;
-      roll|rollback)	__rollguest "$@"
-		exit
-      ;;
-      clone)	__cloneguest "$@"
-		exit
-      ;;
-      export)	__exportguest "$@"
-		exit
-      ;;
-      snaplist)	__snaplist
-		exit
-      ;;
-      taplist)  __taplist
-                exit
-      ;;
-      activetaps) __activetaps
-                exit
-      ;;
-      conlist)  __conlist
-                exit
-      ;;
-      console)  __console "$@"
-                exit
-      ;;
-      conreset) __conreset
-                exit
-      ;;
-      help|-h)  __help
-                exit
-      ;;
-      *) echo "Unrecognized command '$@'"
-		__help
-		exit
-    esac
-    shift
-  done
-}
+. "${LIB}/ioh-cmd"
+. "${LIB}/ioh-setup"
 
 # Show version
 __version() {
 	echo "iohyve v0.7.5 2016/04/14 Tennessee Cherry Moonshine Edition"
-}
-
-# Setup iohyve
-__setup() {
-	local args="$@"
-	for arg in $args; do
-		if [ $arg != "setup" ]; then
-			local prop="$(echo $arg | cut -d '=' -f1)"
-			local val="$(echo $arg | cut -d '=' -f2)"
-			if [ $prop = "pool" ]; then
-				local pool="$val"
-				local poolexist="$(zfs list -H | grep ${pool}/iohyve | head -n1 | cut -c1)"
-				if [ -z $poolexist ]; then
-					echo "Setting up iohyve pool..."
-					zfs create $pool/iohyve
-					# iohyve is already setup on a pool
-					if [ -d /iohyve/ISO ]; then
-						echo "Secondary pool set up..."
-						zfs set mountpoint="/iohyve/$pool" $pool/iohyve
-						# iohyve is not set up yet
-					else
-						zfs set mountpoint="/iohyve" $pool/iohyve
-						zfs create $pool/iohyve/ISO
-						zfs create $pool/iohyve/Firmware
-					fi
-				else
-					echo "iohyve already exists on $pool"
-				fi
-				# Checks to see if on FreeNAS
-				# The web UI references this file to display the version
-				if [ -e /etc/version ]; then
-					local OS=$( cat /etc/version | cut -d - -f1 ) 
-					if [ "$OS" = "FreeNAS" ]; then
-						echo "On FreeNAS installation."
-						echo "Checking for symbolic link to /iohyve from /mnt/iohyve..."
-						if [ -d /mnt/iohyve ]; then
-							if [ ! -e /iohyve ]; then
-								ln -s /mnt/iohyve /iohyve
-								if [ -L /iohyve ]; then
-									echo "Symbolic link to /iohyve from /mnt/iohyve successfully created."
-								else
-									echo "Failed to create symbolic link."
-									echo "Please manually do so by running the following as root:"
-									echo "# ln -s /mnt/iohyve /iohyve"
-								fi
-							elif [ -L /iohyve ]; then
-								echo "Symbolic link to /iohyve already exists."
-							fi
-						elif [ "$val" = "freenas-boot" ] && [ -d /iohyve ]; then
-							echo "Symbolic link not needed. /iohyve exists."
-							echo "iohyve is installed on the freenas-boot pool."
-							echo "This is not recommended configuration."
-						else
-							echo "iohyve does not seem to be setup."
-						fi
-					fi
-				fi
-			elif [ $prop = "kmod" ]; then
-				if [ $val = "1" ]; then
-					echo "Loading kernel modules..."
-					kldload vmm
-					kldload nmdm
-				elif [ $val = "0" ]; then
-					echo "Unloading kernel modules..."
-					kldunload vmm
-					kldunload nmdm
-				else
-					echo "Improper syntax"
-					echo "kmod=1 to load modules"
-					echo "kmod=0 to unload modules"
-				fi
-			elif [ $prop = "net" ]; then
-				local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1)"
-				if [ -z $bridgeif ]; then
-					echo "Seting up bridge0 on $val..."
-					sysctl net.link.tap.up_on_open=1
-					ifconfig bridge0 create descr "iohyve-bridge"
-					ifconfig bridge0 addm $val
-					ifconfig bridge0 up
-				else
-					echo "bridge0 is already enabled on this machine..."
-					local sysctlexist="$(sysctl net.link.tap.up_on_open | grep 1 | cut -c1)"
-					if [ -z $sysctlexist ]; then
-						echo "Setting up correct sysctl value..."
-						sysctl net.link.tap.up_on_open=1
-					else
-						echo "sysctl already setup properly as well..."
-					fi
-				fi
-			fi
-		fi
-	done
 }
 
 __get_bhyve_cmd() {
@@ -836,7 +596,7 @@ __start() {
 # Start a UEFI enabled bhyve instance.
 # This is experimental, use with caution.
 __uefi() {
-	if [ -z $2 ] || [ -z $3 ]; then 
+	if [ -z $2 ] || [ -z $3 ]; then
 		echo "Usage: $0 $1 <name> <iso>"
 		return 1
 	fi
