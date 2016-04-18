@@ -11,7 +11,7 @@ __setup() {
 		echo "missing argument"
 		__setup_usage
 		exit
-	fi 
+	fi
 	local args="$@"
 	for arg in $args; do
 		local key="$(echo $arg | cut -d '=' -f1)"
@@ -39,19 +39,16 @@ __setup_pool() {
 	local fwexists="$(zfs list -H -o name $pool/iohyve/Firmware)"
 	if [ -z "$poolexists" ] || [ -z "$isoexists" ] || [ -z "$fwexists" ]; then
 		printf "setting up iohyve pool: "
-		zfs create $pool/iohyve
+		if [ -z "$poolexists" ]; then
+			zfs create $pool/iohyve
+		fi
 		# iohyve is already setup on a pool
-		if zfs list -H -o name $pool/iohyve/ISO > /dev/null 2>&1;then
-			zfs set mountpoint="/iohyve/$pool" $pool/iohyve
-		# iohyve is not set up yet
-		else
-			zfs set mountpoint="/iohyve" $pool/iohyve
-			if [ -z "$isoexists" ]; then
-				zfs create $pool/iohyve/ISO
-			fi
-			if [ -z "$fwexists" ]; then
-				zfs create $pool/iohyve/Firmware
-			fi
+		zfs set mountpoint="/iohyve" $pool/iohyve
+		if [ -z "$isoexists" ]; then
+			zfs create $pool/iohyve/ISO
+		fi
+		if [ -z "$fwexists" ]; then
+			zfs create $pool/iohyve/Firmware
 		fi
 		printf "done\n"
 	else
@@ -106,7 +103,7 @@ __setup_kmod() {
 		if [ ! -z "$(kldstat | grep vmm.ko)" ]; then
 			local vmmerr="$(kldunload vmm 2>&1 > /dev/null)"
 			if [ ! -z "$vmmerr" ]; then
-				if [ ! -z "$(echo "$vmmerr" | grep "Device busy")" ]; then 
+				if [ ! -z "$(echo "$vmmerr" | grep "Device busy")" ]; then
 					echo "unloading kernelmodule 'vmm' failed: are all guest shut down?"
 				else
 					echo $vmmerr
@@ -117,7 +114,7 @@ __setup_kmod() {
 		if [ ! -z "$(kldstat | grep nmdm.ko)" ]; then
 			local nmdmerr="$(kldunload nmdm 2>&1 > /dev/null)"
 			if [ ! -z "$nmdmerr" ]; then
-				if [ ! -z "$(echo "$nmdmerr" | grep "Device busy")" ]; then 
+				if [ ! -z "$(echo "$nmdmerr" | grep "Device busy")" ]; then
 					echo "unloading kernelmodule 'nmdm' failed: are all guest shut down?"
 				else
 					echo $nmdmerr
