@@ -521,6 +521,8 @@ __load() {
 		*) local wire_memory="" ;;
 	esac
 	if [ $loader = "grub-bhyve" ]; then
+		echo "GRUB Process does not run in background...."
+		echo "If your terminal appears to be hanging, check iohyve console $name to complete GRUB process..."
 		if [ $install = "yes" ]; then
 			if [ $os = "openbsd59" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
