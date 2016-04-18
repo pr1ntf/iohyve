@@ -125,10 +125,10 @@ __parse_cmd () {
       disks)	__disks "$@"
 		exit
       ;;
-      snap)	__snapguest "$@"
+      snap|snapshot)	__snapguest "$@"
 		exit
       ;;
-      roll)	__rollguest "$@"
+      roll|rollback)	__rollguest "$@"
 		exit
       ;;
       clone)	__cloneguest "$@"
@@ -158,6 +158,9 @@ __parse_cmd () {
       help|-h)  __help
                 exit
       ;;
+      *) echo "Unrecognized command '$@'"
+		__help
+		exit
     esac
     shift
   done
@@ -327,7 +330,7 @@ __info() {
 			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader,iohyve:description | \
 			grep iohyve | grep -Ev "ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
 	else
-		echo "Invalid flag..."
+		echo "Usage: $0 $1 [-d]"
 	fi
 }
 
@@ -345,6 +348,10 @@ __fwlist() {
 
 # Fetch ISO
 __fetchiso() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <url>"
+		return
+	fi
 	local url="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $2)"
@@ -355,6 +362,10 @@ __fetchiso() {
 
 # Copy ISO from local machine
 __cpiso() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <path>"
+		return
+	fi
 	local loc="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $loc)"
@@ -365,9 +376,19 @@ __cpiso() {
 
 # Rename an ISO
 __renameiso() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage: $0 $1 <oldname> <newname>"
+		return
+	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local iso="$2"
 	local name="$3"
+
+	if ! zfs list -H -o name $pool/iohyve/ISO/$iso > /dev/null 2>&1; then
+	#if [ ! -d /iohyve/ISO/$iso ]; then
+		echo "cannot rename '$2': iso does not exist"
+		return
+	fi
 	echo "Renaming ISO $2 to $3..."
 	mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
 	zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
@@ -375,17 +396,33 @@ __renameiso() {
 
 # Delete ISO
 __deleteiso() {
+	if [ -z $2 ];then
+		echo "Usage: $0 $1 <iso>"
+		return
+	fi
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	if ! zfs list -H -o name $pool/iohyve/ISO/$name > /dev/null 2>&1; then
+		echo "cannot remove '$2': iso does not exist"
+		return
+	fi
 	echo "Deleting $name..."
 	zfs destroy -rR $pool/iohyve/ISO/$name
 }
 
 # Fetch Firmware
 __fetchfw() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <url>"
+		return
+	fi
 	local url="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $2)"
+	if zfs list -H -o name $pool/iohyve/Firmware/$name > /dev/null 2>&1; then
+		echo "cannot fetch '$name': firmware already exists"
+		return
+	fi
 	echo "Fetching $url..."
 	zfs create $pool/iohyve/Firmware/$name
 	fetch $url -o /iohyve/Firmware/$name
@@ -393,9 +430,17 @@ __fetchfw() {
 
 # Copy Firmware from local machine
 __cpfw() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>"
+		return
+	fi
 	local loc="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $loc)"
+	if [ ! -d $loc ]; then
+		echo "cannot copy '$loc': firmware does not exist"
+		return
+	fi
 	echo "Copying $name from $loc..."
 	zfs create $pool/iohyve/Firmware/$name
 	cp $loc /iohyve/Firmware/$name
@@ -403,9 +448,17 @@ __cpfw() {
 
 # Rename Firmware
 __renamefw() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage: $0 $1 <oldname> <newname>"
+		return
+	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local fw="$2"
 	local name="$3"
+	if ! zfs list -H -o name $pool/iohyve/Firmware/$fw > /dev/null 2>&1; then
+		echo "cannot rename '$2': firmware does not exist"
+		return
+	fi
 	echo "Renaming Firmware $2 to $3..."
 	mv /iohyve/Firmware/$fw/$fw /iohyve/Firmware/$fw/$name
 	zfs rename $pool/iohyve/Firmware/$fw $pool/iohyve/Firmware/$name
@@ -413,16 +466,32 @@ __renamefw() {
 
 # Delete Firmware
 __deletefw() {
+	if [ -z $2 ]; then
+		echo "Usage $0 $1 <name>"
+		return
+	fi
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	if ! zfs list -H -o name $pool/iohyve/Firmware/$name > /dev/null 2>&1; then
+		echo "cannot delete '$2': firmware does not exist"
+		return
+	fi
 	echo "Deleting $name..."
 	zfs destroy -rR $pool/iohyve/Firmware/$name
 }
 
 # Create guest
 __create() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage $0 $1 <name> <size>"
+		return
+	fi
 	local name="$2"
 	local pool="${4-$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)}"
+	if zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
+		echo "cannot create '$name': guest already exists"
+		return
+	fi
 	local size="$3"
 	local description="$(date)"
 	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
@@ -469,6 +538,10 @@ __create() {
 
 # Install guest
 __install() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage $0 $1 <name> <iso>"
+		return
+	fi
 	local name="$2"
 	local iso="$3"
 	local pool="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f1)"
@@ -493,15 +566,19 @@ __install() {
 			local pci_args=$(__get_bhyve_cmd "$pci" )
 			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 		else
-			echo "Guest is already running."
+			echo "$name is already running."
 		fi
 	else
-		echo "Not a valid guest name"
+		echo "cannot install '$name': guest does not exist"
 	fi
 }
 
 # Load guest
 __load() {
+	if [ -z $1 ] || [ -z $2 ]; then
+		echo "Usage: $0 load <name> <path-to-bootdisk>"
+		return
+	fi
 	local name="$1"
 	local media="$2"
 	local disk="${3-$(zfs list -H -t volume -o name | grep $name | grep disk0 | head -n1)}"
@@ -621,6 +698,10 @@ __load() {
 
 # Boot guest
 __boot() {
+	if [ -z $1 ]; then
+		echo "Usage $0 boot <name> [runmode] [pcidevices]"
+		return
+	fi
 	local name="$1"
 	# runmode (runonce/persist)
 	#   0 = once
@@ -629,6 +710,10 @@ __boot() {
 	local runmode="$2"
 	local pci="$3"
 	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	if [ -z $dataset ]; then
+		echo "cannot boot '$name': guest does not exist"
+		return
+	fi
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -704,6 +789,10 @@ __prepare_guest() {
 
 # Start guest (combine load and boot)
 __start() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name> [-s | -a]"
+		return 1
+	fi
 	local name="$2"
 	local flag="$3"
 	local pci=""
@@ -711,6 +800,12 @@ __start() {
 	local pool="$(zfs list -H -t volume -o name | grep $name| grep disk0 | cut -d '/' -f1)"
 	local dataset="$(zfs list -H -t volume -o name | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
+
+	if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
+		echo "cannot start '$name': guest does not exists"
+		return
+	fi
+
 	# Check if loader is UEFI
 	if [ $loader = "uefi" ]; then
 		__uefi "$name" "null.iso"
@@ -733,7 +828,7 @@ __start() {
 			pci="$(__prepare_guest $name)"
 			__boot "$name" "$runmode" "$pci"
 		else
-			echo "Guest is already running."
+			echo "$name is already running."
 		fi
 	else
 		echo "Not a valid guest name"
@@ -743,9 +838,17 @@ __start() {
 # Start a UEFI enabled bhyve instance.
 # This is experimental, use with caution.
 __uefi() {
+	if [ -z $2 ] || [ -z $3 ]; then 
+		echo "Usage: $0 $1 <name> <iso>"
+		return 1
+	fi
 	local name="$2"
 	local media="$3"
 	local dataset="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1-3 | head -n1)"
+	if [ -z $dataset ]; then
+		echo "cannot start '$name': guest does not exists"
+		return 1
+	fi
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -763,12 +866,13 @@ __uefi() {
 	fi
 	# Make sure everything is in order...
 	if [ $fw = '-' ]; then
-		echo "You must set a firmware file property to use UEFI..."
+		echo "cannot start '$name': firmware has to be set for uefi boot"
+		return 1
 	fi
-	if [ -z $media ]; then
-		echo "You must enter at least a zero byte ISO for some OSs..."
-		echo "EX: iohyve uefi winguest null.iso"
-	fi
+	#if [ -z $media ]; then
+	#	echo "You must enter at least a zero byte ISO for some OSs..."
+	#	echo "EX: iohyve uefi winguest null.iso"
+	#fi
 	# Check if guest exists
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
@@ -785,21 +889,30 @@ __uefi() {
 			        -l bootrom,/iohyve/Firmware/$fw/$fw \
 			        ioh-$name &
 		else
-			echo "Guest is already running."
+			echo "cannot start '$name': guest is already running"
 		fi
 	else
-		echo "Not a valid guest name"
+		echo "cannot start '$name': guest does not exist"
 	fi
 }
 
 # Gracefully stop a guest
 __stop() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>"
+		return 1
+	fi
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local pid=$(pgrep -fx "bhyve: ioh-$name")
-	echo "Stopping $name..."
 #	zfs set iohyve:persist=0 $pool/iohyve/$name
-	kill $pid
+	if [ -z $pid ]; then
+		echo "cannot stop '$name': guest is not running"
+	else
+		printf "stopping $name: "
+		kill $pid
+		printf "done\n"
+	fi
 #	sleep 20
 #	bhyvectl --destroy --vm=ioh-$name
 }
@@ -807,6 +920,10 @@ __stop() {
 # Force kill -9 everyting matching $name and destroy
 # THIS WILL KILL EVERYTHING MATCHING $NAME
 __forcekill() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>"
+		return 1
+	fi
 	local name="$2"
 	local pids="$(pgrep -f $name)"
 	for apid in "$pids"; do
@@ -817,32 +934,55 @@ __forcekill() {
 
 # Gracefully shut down all guests via ACPI (Does not destroy)
 __scram() {
-	echo "Shutting down all guests..."
+	echo "shutting down all guests: "
 	local pids="$(pgrep -f ioh-)"
-	for apid in "$pids"; do
-		kill $apid
+	local procs="$(pgrep -l -f ioh-)"
+	for proc in "$procs"; do
+		local pid="$(pgrep -l -f ioh- | cut -f1 -d' ')"
+		local name="$(pgrep -l -f ioh- | cut -f2 -d-)"
+		printf "shutting '$name' down: "
+		kill $pid
+		printf "done\n"
 	done
-	wait_for_pids $pids
+	#local pids="$(pgrep -f ioh-)"
+	#for apid in "$pids"; do
+	#	kill $apid
+	#done
+	#wait_for_pids $pids # Error: /usr/local/sbin/iohyve: wait_for_pids: not found
 }
 
 # Destroy guest
 __destroy() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>"
+		return 1
+	fi
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	echo "Destroying $name..."
+	printf "destroying '$name': "
 #	zfs set iohyve:persist=0 $pool/iohyve/$name
 	bhyvectl --force-poweroff --vm=ioh-$name
 	bhyvectl --destroy --vm=ioh-$name
+	printf "done\n"
 }
 
 # Rename the guest
 __rename() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage $0 $1 <name> <newname>"
+		return 1
+	fi
 	local name="$2"
 	local newname="$3"
 	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
-	echo "Renaming $name to $newname..."
+	if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
+		echo "cannot rename '$name': guest does not exist"
+		return
+	fi
+	printf "renaming '$name' to '$newname': "
 	zfs rename -f $pool/iohyve/$name $pool/iohyve/$newname
 	zfs set iohyve:name=$newname $pool/iohyve/$newname
+	printf "done\n"
 }
 
 # Delete guest
@@ -850,7 +990,15 @@ __delete() {
 	local flagone="$2"
 	local flagtwo="$3"
 	if [ $flagone = "-f" ]; then
-		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagtwo | head -n1)"
+		if [ -z $flagtwo ]; then
+			echo "Usage $0 $1 [-d] <name>"
+			return 1
+		fi
+		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep -v "/ISO/" | grep -v "Firmware" | grep $flagtwo | head -n1)"
+		if [ -z $target_dataset ]; then
+			echo "cannot delete '$flagtwo': guest does not exist"
+			return
+		fi
 		echo ""
 		echo "[WARNING] Forcing permanent deletion of $flagtwo"
 		echo "Location: $target_dataset including children and clones"
@@ -860,47 +1008,72 @@ __delete() {
 		echo "Deleting $flagtwo at $target_dataset..."
 		zfs destroy -rR $target_dataset
 	else
-		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagone | head -n1)"
+		if [ -z $flagone ]; then
+			echo "Usage $0 $1 [-d] <name>"
+			return
+		fi
+		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep -v "/ISO/" | grep -v "Firmware" | grep $flagone | head -n1)"
+		if [ -z $target_dataset ]; then
+			echo "cannot delete '$flagone': guest does not exist"
+			return
+		fi
 		echo ""
 		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
-		read -p "Location: $target_dataset [Y/N]? " an </dev/tty
+		read -p "Location: $target_dataset [y/N]? " an </dev/tty
 		case "$an" in
-			y|Y) echo "Deleting $flagone at $target_dataset..."; zfs destroy -r $target_dataset
+			y|Y) printf "deleting '$flagone' ($target_dataset): "; zfs destroy -r $target_dataset; printf "done\n"
  			;;
-			*) echo "$flagone not deleted..."
+			*) echo "did not delete '$flagone': user canceled deletion"
 		esac
 	fi
 }
 
 # Set ZFS properties
 __set() {
+	if [ -z $2 ]; then
+		echo "Usage $0 $1 <name>"
+		return 1
+	fi
 	local name="$2"
 	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
 	shift 2
 	for arg in "$@"; do
 		local prop="$(echo $arg | cut -d '=' -f1)"
 		local val="$(echo $arg | cut -d '=' -f2)"
+
+		local prev="$(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)"
 		if [ $prop = "bargs" ]; then
 			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
-			echo "Setting $name $prop=$val..."
+			#echo "Setting $name $prop=$val..."
 			zfs set iohyve:$prop=$sval $pool/iohyve/$name
+			echo "$name.$prop: $prev -> $sval"
 		elif [ $prop = "description" ]; then
 			local sval="$(echo $val | cut -d '"' -f2)"
-			echo "Setting $name $prop=$val..."
+			#echo "Setting $name $prop=$val..."
 			zfs set "iohyve:$prop=$sval" $pool/iohyve/$name
+			echo "$name.$prop: $prev -> $sval"
 		else
-			echo "Setting $name $prop=$val..."
+			#echo "Setting $name $prop=$val..."
 			zfs set iohyve:$prop=$val $pool/iohyve/$name
+			echo "$name.$prop: $prev -> $val"
 		fi
 	done
 }
 
 # Get ZFS props
 __get() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage: $0 $1 <name> <prop>"
+		return 1
+	fi
 	local name="$2"
 	local prop="$3"
 	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
-	echo "Getting $name prop $prop..."
+	if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
+		echo "cannot get '$name.$prop': guest does not exist"
+		return
+	fi
+	printf "$name.$prop: "
 	zfs get -H -o value iohyve:$prop $pool/iohyve/$name
 }
 
@@ -909,28 +1082,36 @@ __rmpci() {
 	local flagone="$2"
 	local flagtwo="$3"
 	local flagthree="$4"
-	if [ $flagone = "-f" ]; then
+	if [ "$flagone" = "-f" ]; then
+		if [ -z $flagtwo ] || [ -z $flagthree ]; then
+			echo "Usage: $0 $1 [-f] <name> <pcidev:N>"
+			return 1
+		fi
 		echo "Removing $flagthree from $flagtwo"
 		local pciprop="$(echo "$flagthree" | grep pcidev:)"
 		local pool="$(zfs list -H -t volume | grep $flagtwo | cut -d '/' -f 1 | head -n1)"
 		# Make sure it's a valid pcidev property as to not shoot foot
 		if [ -z $pciprop ]; then
-			echo "Not a valid PCIDEV property"
+			echo "cannot remove '$flagthree': unvalid PCIDEV property"
 		else
 			zfs inherit  -r iohyve:$flagthree $pool/iohyve/$flagtwo
 		fi
 	else
+		if [ -z $flagone ] || [ -z $flagtwo ]; then
+			echo "Usage: $0 $1 [-f] <name> <pcidev:N>"
+			return 1
+		fi
 		local pciprop="$(echo "$flagtwo" | grep pcidev:)"
 		local pool="$(zfs list -H -t volume | grep $flagone | cut -d '/' -f 1 | head -n1)"
 		# Make sure it's a valid pcidev property as to not shoot foot
 		if [ -z $pciprop ]; then
-			echo "Not a valid PCIDEV property"
+			echo "cannot remove '$flagtwo': unvalid PCIDEV property"
 		else
-			read -p "Are you sure you want to remove $flagtwo [Y/N]? " an </dev/tty
+			read -p "Are you sure you want to remove $flagtwo [y/N]? " an </dev/tty
 			case "$an" in
 				y|Y) zfs inherit  -r iohyve:$flagtwo $pool/iohyve/$flagone
 				;;
-				*) echo "Not removed..."
+				*) echo "did not remove: user canceled removal"
 				;;
 			esac
 		fi
@@ -939,14 +1120,26 @@ __rmpci() {
 
 # Get all ZFS props
 __getall() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>"
+		return 1
+	fi
 	local name="$2"
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	echo "Getting $name iohyve properties..."
+	if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
+		echo "cannot get properties of '$name': guest does not exist"
+		return 1
+	fi
+	printf "PROPERTY\tVALUE\n"
 	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
 }
 
 # Add a new disk to guest
 __add() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage: $0 $1 <name> <size> [pool]"
+		return 1
+	fi
 	local name="$2"
 	local size="$3"
 	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
@@ -956,7 +1149,7 @@ __add() {
 	local lastdisk="$(zfs list -H | grep $name | grep disk | cut -d '/' -f4 | cut -f1 | \
 		sort -V | cut -c5- | tail -n1)"
 	local newdisk="$(expr $lastdisk + 1)"
-	echo "Creating new zvol for $name..."
+	printf "creating zvol of size $size for $name: "
 	zfs create $newpool/iohyve/$name 2> /dev/null
 	zfs create -V $size -o volmode=dev $newpool/iohyve/$name/disk$newdisk
 	# Find the last pcidev and increment by one
@@ -968,6 +1161,7 @@ __add() {
 		local newpci="$(expr $lastpci + 1)"
 	fi
 	zfs set iohyve:pcidev:$newpci=ahci-hd,/dev/zvol/$newpool/iohyve/$name/disk$newdisk $pool/iohyve/$name
+	printf "done\n"
 }
 
 # Remove disk from guest
@@ -976,29 +1170,48 @@ __remove() {
 	local flagtwo="$3"
 	local flagthree="$4"
 	if [ $flagone = "-f" ]; then
-		echo "Removing $flagthree from $flagtwo"
+		if [ -z $flagtwo ] || [ -z $flagthree ]; then
+			echo "Usage: $0 $1 [-f] <name> <diskN>"
+			return
+		fi
 		local pool="$(zfs list -H -o name | grep $flagtwo | grep $flagthree | cut -d '/' -f 1)"
+		if ! zfs list -H -o name $pool/iohyve/$flagtwo/$flagthree > /dev/null 2>&1; then
+			echo "cannot remove disk '$flagthree' from '$flagtwo': disk does not exist"
+			return
+		fi
+		printf "removing $flagthree from $flagtwo: "
 		local pciprop="$(zfs get -H all $pool/iohyve/$flagtwo | grep pcidev | grep $flagthree | cut -f2 )"
 		# Make sure it's a valid pcidev property as to not shoot foot
 		if [ -z $pciprop ]; then
-			echo "Not a valid PCIDEV property"
+			printf "failed: unvalid PCIDEV property '$pciprop'\n"
 		else
 			zfs inherit  -r $pciprop $pool/iohyve/$flagtwo
 			zfs destroy $pool/iohyve/$flagtwo/$flagthree
+			printf "done\n"
 		fi
 	else
+		if [ -z $flagone ] || [ -z $flagtwo ]; then
+			echo "Usage: $0 $1 [-f] <name> <diskN>"
+			return
+		fi
 		local pool="$(zfs list -H -o name | grep $flagone | grep $flagtwo | cut -d '/' -f 1)"
+		if ! zfs list -H -o name $pool/iohyve/$flagone/$flagtwo > /dev/null 2>&1; then
+			echo "cannot remove disk '$flagtwo' from '$flagone': disk does not exist"
+			return
+		fi
 		local pciprop="$(zfs get -H all $pool/iohyve/$flagone | grep pcidev | grep $flagtwo | cut -f2 )"
 		# Make sure it's a valid pcidev property as to not shoot foot
 		if [ -z $pciprop ]; then
-			echo "Not a valid PCIDEV property"
+			echo "cannot remove guest: unvalid PCIDEV property '$pciprop'"
 		else
-			read -p "Are you sure you want to remove $flagtwo from $flagone [Y/N]? " an </dev/tty
+			read -p "Are you sure you want to remove $flagtwo from $flagone [y/N]? " an </dev/tty
 			case "$an" in
-				y|Y)	zfs inherit  -r $pciprop $pool/iohyve/$flagone
+				y|Y)	printf "removing $flagtwo from $flagone: "
+					zfs inherit  -r $pciprop $pool/iohyve/$flagone
 					zfs destroy $pool/iohyve/$flagone/$flagtwo
+					printf "done\n"
 				;;
-				*) echo "Not removed..."
+				*) echo "did not remove: user canceled removal"
 				;;
 			esac
 		fi
@@ -1007,23 +1220,32 @@ __remove() {
 
 # Resize a disk
 __resize(){
+	if [ -z $2 ] || [ -z $3 ] || [ -z $4 ]; then
+		echo "Usage: $0 $1 <name> <diskN> <newsize>"
+		return 1
+	fi
 	local name="$2"
 	local disk="$3"
 	local size="$4"
 	local pool="$(zfs list -H -o name | grep $name | grep $disk | cut -d '/' -f 1)"
+	if ! zfs list -H -o name $pool/iohyve/$name/$disk > /dev/null 2>&1; then
+		echo "cannot resize disk '$name/$disk': disk does not exist"
+		return
+	fi
 	# Check if guest exists
-	echo "Resizing $disk to $size"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
+			local prev="$(zfs get -H -o value volsize $pool/iohyve/$name/$disk)"
 			zfs set volsize=$size $pool/iohyve/$name/$disk
 			zfs set iohyve:size=$size $pool/iohyve/$name
+			echo "$name.$disk: $prev -> $size"
 		else
-			echo "Please stop the guest first"
+			echo "cannot resize disk: guest is running"
 		fi
 	else
-		echo "Not a valid guest name"
+		echo "cannot resize disk: guest does not exist"
 	fi
 }
 
@@ -1032,11 +1254,10 @@ __disks() {
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	if [ -z $name ]; then
-		echo "You must enter a guest name."
+		echo "Usage: $0 $1 <name>"
 	elif [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		(
-		echo "Listing disks for $name..."
-		printf "diskN\tSize\n"
+		printf "DISK\tSIZE\n"
 		zfs list -H -o name,volsize | grep -E "iohyve.*$name.*disk" | \
 			cut -d '/' -f4
 		) | column -t
@@ -1047,15 +1268,20 @@ __disks() {
 
 # Snapshot a guest
 __snapguest() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>@<snap>"
+		return 1
+	fi
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
 	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	echo "Taking snapshot $fullsnap"
 	# Check if guest exists
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+		printf "creating snapshot '$fullsnap': "
 		zfs snap -r $pool/iohyve/$fullsnap
+		printf "done\n"
 	else
-		echo "Not a valid guest name"
+		echo "cannot create snapshot of '$name': guest does not exist"
 	fi
 }
 
@@ -1065,86 +1291,110 @@ __rollguest() {
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
 	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local snap="$(echo $fullsnap | cut -d '@' -f2)"
-	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
+	if [ -z $name ] || [ -z $snap ] || [ -z "$(echo $fullsnap | grep @ )" ]; then
+		echo "Usage: $0 $1 <name>@<snap>"
+		return 1
+	fi
+	local disklist="$(zfs list -H | grep iohyve | grep $name/ | grep disk | \
 				cut -f1 | cut -d '/' -f4-)"
+
+	local snapshot="$(zfs list -r -t snapshot -o name $pool/iohyve/$name | grep -Fx $pool/iohyve/$name@$snap)"
+	if [ -z $snapshot ]; then
+		echo "cannot rollback '$name' to '$snap': snapshot does not exist"
+		return 1
+	fi
+
 	# Check if guest exists
-	echo "Rolling back to $fullsnap"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
+			printf "rolling back '$name' to '$snap': "
 			zfs rollback -rR $pool/iohyve/$fullsnap
+			printf "done\n"
 			for disk in $disklist ; do
+				printf "rolling back '$name/$disk' to '$snap': "
 				zfs rollback -rR $pool/iohyve/$name/$disk@$snap
+				printf "done\n"
 			done
 		else
-			echo "Please stop the guest first"
+			echo "cannot rollback '$name' to '$snap': guest still running"
 		fi
 	else
-		echo "Not a valid guest name"
+		echo "cannot rollback '$name' to '$snap': guest does not exist"
 	fi
 }
 
 # Clone a guest
 __cloneguest() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage: $0 $1 <name> <clonename>"
+		return 1
+	fi
 	local flag="$2"
 	local name="$2"
 	local cname="$3"
 	local description="$(date | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)" # Will fail if $2 is flag
 	# Check if guest exists
-	echo "Cloning $name to $cname"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
-			# Take snapshot
-			zfs snap -r $pool/iohyve/$name@$cname
-			# zfs send that snap and desendants then receive to cname
-			zfs send -R $pool/iohyve/$name@$cname | \
-			zfs recv $pool/iohyve/$cname
-			# clean up
-			zfs destroy -rR $pool/iohyve/$name@$cname
-			zfs destroy -rR $pool/iohyve/$cname@$cname
-			# rename the guest
-			zfs set iohyve:name=$cname $pool/iohyve/$cname
-			zfs set iohyve:description=$description $pool/iohyve/$cname
-			# change con and tap properties to next available if -r is specified
-			if [ "$flag" == "-r" ]; then
-				local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
-					listtaps(){
-						for i in $guestlist ; do
-							local tapprop="$(zfs get -H -o value iohyve:tap $i)"
-							printf $tapprop'\n'
-						done
-					}
-				local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
-				if [ -z $taplast ]; then
-					local tap='0'
-				else
-					local tap="$(expr $taplast + 1)"
-				fi
-				listcons(){
+		echo "cloning $name to $cname: "
+		# Take snapshot
+		zfs snap -r $pool/iohyve/$name@$cname
+		# zfs send that snap and desendants then receive to cname
+		zfs send -R $pool/iohyve/$name@$cname | \
+		zfs recv $pool/iohyve/$cname
+		# clean up
+		zfs destroy -rR $pool/iohyve/$name@$cname
+		zfs destroy -rR $pool/iohyve/$cname@$cname
+		# rename the guest
+		zfs set iohyve:name=$cname $pool/iohyve/$cname
+		zfs set iohyve:description=$description $pool/iohyve/$cname
+		# change con and tap properties to next available if -r is specified
+		if [ "$flag" == "-r" ]; then
+			local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
+				listtaps(){
 					for i in $guestlist ; do
-						local conprop="$(zfs get -H -o value iohyve:con $i)"
-						printf $conprop'\n'
+						local tapprop="$(zfs get -H -o value iohyve:tap $i)"
+						printf $tapprop'\n'
 					done
 				}
-				local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
-				if [ -z $conlast ]; then
-					local con='0'
-				else
-					local con="$(expr $conlast + 1)"
-				fi
-
-				zfs set iohyve:tap=tap$tap $pool/iohyve/$cname
-				zfs set iohyve:con=nmdm$con $pool/iohyve/$cname
+			local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
+			if [ -z $taplast ]; then
+				local tap='0'
+			else
+				local tap="$(expr $taplast + 1)"
+			fi
+			listcons(){
+				for i in $guestlist ; do
+					local conprop="$(zfs get -H -o value iohyve:con $i)"
+					printf $conprop'\n'
+				done
+			}
+			local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
+			if [ -z $conlast ]; then
+				local con='0'
+			else
+				local con="$(expr $conlast + 1)"
 			fi
 
+			zfs set iohyve:tap=tap$tap $pool/iohyve/$cname
+			zfs set iohyve:con=nmdm$con $pool/iohyve/$cname
+		fi
+		printf "done\n"
+
 	else
-		echo "Not a valid guest name"
+		echo "cannot clone '$name': guest does not exist"
+		return 1
 	fi
 }
 
 # Export Guest
 __exportguest() {
+	if [ -z $2 ]; then
+		"Usage: $0 $1 <name>"
+		return 1
+	fi
 	local name="$2"
 	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
@@ -1174,10 +1424,11 @@ __exportguest() {
 			echo "Removing temp directory..."
 			rm -fr /tmp/iohyve
 		else
-			echo "Please stop the guest first"
+			echo "cannot export '$name': guest still running"
 		fi
 	else
-		echo "Not a valid guest name"
+		echo "cannot export '$name': guest does not exist"
+		return 1
 	fi
 }
 
@@ -1217,6 +1468,10 @@ __conlist() {
 
 # Run console
 __console() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>"
+		return 1
+	fi
 	local name="$2"
 	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local con="$(zfs get -H -o value iohyve:con $pool)"
@@ -1239,42 +1494,42 @@ iohyve  version
 	info [-d]
 	isolist
 	fwlist
-	fetchiso [URL]
-	cpiso [path]
-	renameiso [ISO] [newname]
-	rmiso [ISO]
-	fetchfw [URL]
-	cpfw [path]
-	renamefw [firmware] [newname]
-	rmfw [firmware]
-	create [name] [size]
-	install [name] [ISO]
-	load [name] [path/to/bootdisk]
-	boot [name] [runmode] [pcidevices]
-	start [name] [-s | -a]
-	stop [name]
-	forcekill [name]
+	fetchiso <URL>
+	cpiso <path>
+	renameiso <oldname> <newname>
+	rmiso <ISO>
+	fetchfw <URL>
+	cpfw <path>
+	renamefw <firmware> <newname>
+	rmfw <firmware>
+	create <name> <size>
+	install <name> <iso>
+	load <name> <path/to/bootdisk>
+	boot <name> [runmode] [pcidevices]
+	start <name> [-s | -a]
+	stop <name>
+	forcekill <name>
 	scram
-	destroy [name]
-	rename [name] [newname]
-	delete [-f] [name]
-	set [name] [prop1=value] [prop2=value]...
-	get [name] [prop]
-	rmpci [-f] [name] [pcidev:N]
-	getall [name]
-	add [name] [size] [[pool]]
-	remove [-f] [name] [diskN]
-	resize [name] [diskN] [size]
-	disks [name]
-	snap [name]@[snapshotname]
-	roll [name]@[snapshotname]
-	clone [-c | -r] [name] [clonename]
-	export [name]
+	destroy <name>
+	rename <name> <newname>
+	delete [-f] <name>
+	set <name> [prop1=value] [prop2=value]...
+	get <name> <prop>
+	rmpci [-f] <name> <pcidev:N>
+	getall <name>
+	add <name> <size> [pool]
+	remove [-f] <name> <diskN>
+	resize <name> <diskN> <size>
+	disks <name>
+	snap <name>@<snapshotname>
+	roll <name>@<snapshotname>
+	clone [-c | -r] <name> <clonename>
+	export <name>
 	snaplist
 	taplist
 	activetaps
 	conlist
-	console [name]
+	console <name>
 	conreset
 	help
 EOT
