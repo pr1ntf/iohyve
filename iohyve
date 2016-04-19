@@ -1083,7 +1083,7 @@ __snaplist() {
 		local rest="$(echo $snapshots | tail -n +2)"
 		printf "%s^%s\n" "$guest" "$first"
 		for snap in $rest; do
-			printf "%s^%s\n" " " "$snap"
+			printf " ^%s\n" "$snap"
 		done
 	done
 	) | column -ts^
