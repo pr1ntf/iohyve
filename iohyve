@@ -1079,11 +1079,11 @@ __snaplist() {
 
 	for guest in $snapshotguests; do
 		local snapshots="$(zfs list -H -t snap | grep /iohyve/ | grep $guest@ | grep -v disk | cut -f1 | cut -d '/' -f3)"
-		local first="$(echo $snapshots | head -1)"
-		local rest="$(echo $snapshots | tail -n +2)"
+		local first="$(echo $snapshots | cut -d' ' -f1)"
+		local rest="$(echo $snapshots | cut -d' ' -s -f2-)"
 		printf "%s^%s\n" "$guest" "$first"
 		for snap in $rest; do
-			printf "' '^%s\n" "$snap"
+			printf " ^%s\n" "$snap"
 		done
 	done
 	) | column -ts^
