@@ -4,8 +4,8 @@ iohyve(8) - bhyve manager/launcher v0.7.5 "Tennessee Cherry Moonshine Edition"
 SYNOPSIS
 iohyve version
 iohyve setup pool=[poolname] kmod=[0/1] net=[interface]
-iohyve list
-iohyve info [-d]
+iohyve list [-l]
+iohyve info [-vsdl]
 iohyve isolist
 iohyve fwlist
 iohyve fetchiso [URL]
@@ -69,16 +69,36 @@ setup		Installs required zfs datasets and kernel modules for iohyve.
 		Multiple pools are supported, additional pools get mounted
 		in /iohyve/poolname
 
-list		Lists the zfs dataset directorys for iohyve.
+list		Lists the name, status for VMM, active bhyve (Running), boot
+		on start flag (rcboot), and description for each guest.
+		
+		-l flag pipes the final output to less
+		
+info		Lists properties about the guests and their disks using flags
+		to control level of output. Fields include CPU count, RAM, Disk
+		Size, Pool, OS, Loader, Tap, Console, VMM status, Running status,
+		rcboot flag, pool, and the description. Use -l to pipe to less.
 
-info		Lists all the guests along with their RAM, CPU, Size,
-		OS, Loader, and Description (if -d is passed)
+		-v is for verbose which adds the fields: OS,
+		   Loader, Tap, and Con.
 
-isolist		List Lists the installed ISOs in the /iohyve/ISO directory.
+		-s is for status which add the fields: VMM,
+		   Running, and rcboot.
+
+		-d is for description. Shows the guest description.
+
+		-l is for less and pipes the final output to less.
+		
+		Order of flags is not important. The proper syntax is to use
+		the flags contiguiously. So "-ld" is the correct way to display
+		the base output plus description, and then have the output
+		piped to less.
+
+isolist		Lists the installed ISOs in the /iohyve/ISO directory.
 
 fwlist		Lists the firmwares in the /iohyve/Firmware directory.
 
-fetchiso		Fetches installation ISO or install image and creates a
+fetchiso	Fetches installation ISO or install image and creates a
 		dataset for it.
 		Usage: 'iohyve fetchiso [URL]' where [URL] is the HTTP or FTP URL to
 		fetchiso from the internet.

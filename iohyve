@@ -26,10 +26,10 @@ __parse_cmd () {
       setup)    __setup "$@"
                 exit
       ;;
-      list)     __list
+      list)     __list "$2"
                 exit
       ;;
-      info)	__info "$@"
+      info)	__info "$2"
 		exit
       ;;
       isolist)  __isolist
@@ -284,6 +284,7 @@ __get_zfs_pcidev_conf() {
 
 # List Guests
 __list() {
+	local flags="$1"
 	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
 	printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
@@ -312,23 +313,118 @@ __list() {
 		printf "%s^%s^%s^%s^%s\n" "$g" "$vmm" "$running" "$boot" "$description"
 		done
 	done
-	) | column -ts^
+	) | column -ts^ | \
+	(
+		if [ "$flags" = '-l' ]
+		then
+			less
+		else
+			cat   
+		fi
+	)
+
 }
 
 # Display info about all guests.
 __info() {
-	dflag="$2"
-	if [ -z $dflag ]; then
-		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\n';  \
-			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader | \
-			grep iohyve | grep -Ev "ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
-	elif [ $dflag = "-d" ]; then
-		(printf 'Name\tSize\tRAM\tCPU\tOS\tLoader\tDescription\n';  \
-			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader,iohyve:description | \
-			grep iohyve | grep -Ev "ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
-	else
-		echo "Invalid flag..."
+	local flags="$1"
+	
+	# Poll to see what pools have active guests
+	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
+		
+	( # Begining of very large table of output.
+	# Print common header
+	printf "%s^%s^%s^%s^%s" "Guest" "Size" "CPU" "RAM" "Pool"
+	
+	# Print headers for -v flag
+	if [ -n "$(echo "$flags" | grep 'v')" ]; then
+		printf "^%s^%s^%s^%s" "OS" "Loader" "Tap" "Con"
 	fi
+	
+	# Print headers for -s flag
+	if [ -n "$(echo "$flags" | grep 's')" ]; then
+		printf "^%s^%s^%s" "VMM?" "Running" "rcboot?"
+	fi
+	
+	# Print headers for -d flag
+	if [ -n "$(echo "$flags" | grep 'd')" ]; then
+		printf "^%s" "Description"
+	fi
+	
+	# Print new line for first guest.
+	printf "\n" 
+	
+	# Spider through pools
+	for pool in $pools; do
+	    # Poll to see which guests are on $pool
+            local guests="$(zfs list -H -o name | grep $pool/iohyve | grep -Ev "ISO|Firmware" | cut -d '/' -f3- | sed 1d )"
+            # Spider through guests
+            for g in $guests; do
+		
+		# Poll variables for common section
+		local size="$(zfs get -H -o value volsize $pool/iohyve/$g)"
+		local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$g)"
+		local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$g)"
+		
+		# Print common section (guest, size, cpu, raml)
+		printf "%s^%s^%s^%s^%s" "$g" "$size" "$cpu" "$ram" "$pool"
+		
+		# Get variable and print for verbose section (os, loader, tap, con)
+		if [ -n "$(echo "$flags" | grep 'v')" ]; then
+			local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$g)"
+			local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$g)"
+			local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$g)"
+			local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$g)"
+			
+			printf "^%s^%s^%s^%s" "$os" "$loader" "$tap" "$con"
+		fi
+		
+		# Get info, set variables, and print for status section (VMM, Running, rcboot)
+		if [ -n "$(echo "$flags" | grep 's')" ] && [ -z "$(echo "$g" | grep 'disk')" ]; then
+			local vmm="/dev/vmm/ioh-$g"
+			if [ -e $vmm ]; then
+				vmm="YES"
+			else
+				vmm="NO"
+			fi
+			local running=$(pgrep -fx "bhyve: ioh-$g")
+			if [ -z $running ]; then
+				running="NO"
+			else
+				running="YES"
+			fi
+			local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$g)"
+			if [ $boot = '1' ]; then
+				boot="YES"
+			else
+				boot="NO"
+			fi
+			
+			printf "^%s^%s^%s" "$vmm" "$running" "$boot"
+		# Checks to see if disk portion of guest and uses "-"s if so for this section.
+		elif [ -n "$(echo "$flags" | grep 's')" ] && [ -n "$(echo "$g" | grep 'disk')" ]; then
+			printf "^-^-^-"
+		fi
+
+		# Print description if flag set 
+		if [ -n "$(echo "$flags" | grep 'd')" ]; then
+			local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
+			printf "^%s" "$description"
+		fi
+		
+		# Print new line for next guest.
+		printf "\n"
+            done
+	done
+	) | column -ts^ | \
+	(
+		if [ -n "$(echo "$flags" | grep 'l')" ]
+		then
+			less
+		else
+			cat
+		fi
+	)
 }
 
 # List iso's
@@ -1234,10 +1330,10 @@ __conreset() {
 __help() {
 cat << 'EOT'
 iohyve  version
-	setup pool=[poolname] kmod=[0/1] net=[interface]
-	list
-	info [-d]
-	isolist
+        setup pool=[poolname] kmod=[0/1] net=[interface]
+        list [-l]
+	info [-vsdl]
+        isolist
 	fwlist
 	fetchiso [URL]
 	cpiso [path]
