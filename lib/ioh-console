@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# List consoles in use
+__conlist() {
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | grep -v Firmware | sed 1d | cut -f1 | cut -d '/' -f3)"
+	(
+	printf 'GUEST\tCONSOLE\n'
+	for guest in $guestlist; do
+		local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$guest)"
+		printf $guest'\t'$con'\n'
+	done
+	) | column -t
+}
+
+# Run console
+__console() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>"
+		return 1
+	fi
+	local name="$2"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	local con="$(zfs get -H -o value iohyve:con $pool)"
+	echo "Starting console on $name..."
+	echo "~~. to escape console [uses cu(1) for console]"
+	cu -l /dev/${con}B -s 9600
+}
+
+# Reset all consoles. This kills the cu(1)
+__conreset() {
+	killall cu
+}

@@ -5,7 +5,7 @@
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 
-# Check if libs are available
+# Check if libs are available (stolen from iocage)
 if [ -e "./lib/ioh-cmd" ] ; then
     LIB="./lib"
 elif [ -e "/usr/local/lib/iohyve" ] ; then
@@ -17,6 +17,8 @@ fi
 
 . "${LIB}/ioh-cmd"
 . "${LIB}/ioh-setup"
+. "${LIB}/ioh-zfs"
+. "${LIB}/ioh-console"
 
 # Show version
 __version() {
@@ -97,13 +99,13 @@ __info() {
 # List iso's
 __isolist() {
 	echo "Listing ISO's..."
-	zfs list -H | grep iohyve/ISO | cut -f 1 | cut -d '/' -f 4 | sed 1d
+	zfs list -H | grep iohyve/ISO/ | cut -f 1 | cut -d '/' -f 4
 }
 
 # List Firmware
 __fwlist() {
 	echo "Listing Firmware..."
-	zfs list -H | grep iohyve/Firmware | cut -f1 | cut -d '/' -f 4 | sed 1d
+	zfs list -H | grep iohyve/Firmware/ | cut -f1 | cut -d '/' -f 4
 }
 
 # Fetch ISO
@@ -1024,128 +1026,7 @@ __disks() {
 	fi
 }
 
-# Snapshot a guest
-__snapguest() {
-	if [ -z $2 ]; then
-		echo "Usage: $0 $1 <name>@<snap>"
-		return 1
-	fi
-	local fullsnap="$2"
-	local name="$(echo $fullsnap | cut -d '@' -f1)"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	# Check if guest exists
-	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
-		printf "creating snapshot '$fullsnap': "
-		zfs snap -r $pool/iohyve/$fullsnap
-		printf "done\n"
-	else
-		echo "cannot create snapshot of '$name': guest does not exist"
-	fi
-}
 
-# Rollback guest
-__rollguest() {
-	local fullsnap="$2"
-	local name="$(echo $fullsnap | cut -d '@' -f1)"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	local snap="$(echo $fullsnap | cut -d '@' -f2)"
-	if [ -z $name ] || [ -z $snap ] || [ -z "$(echo $fullsnap | grep @ )" ]; then
-		echo "Usage: $0 $1 <name>@<snap>"
-		return 1
-	fi
-	local disklist="$(zfs list -H | grep iohyve | grep $name/ | grep disk | \
-				cut -f1 | cut -d '/' -f4-)"
-
-	local snapshot="$(zfs list -r -t snapshot -o name $pool/iohyve/$name | grep -Fx $pool/iohyve/$name@$snap)"
-	if [ -z $snapshot ]; then
-		echo "cannot rollback '$name' to '$snap': snapshot does not exist"
-		return 1
-	fi
-
-	# Check if guest exists
-	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
-		# Check to make sure guest isn't running
-		local running=$(pgrep -fx "bhyve: ioh-$name")
-		if [ -z $running ]; then
-			printf "rolling back '$name' to '$snap': "
-			zfs rollback -rR $pool/iohyve/$fullsnap
-			printf "done\n"
-			for disk in $disklist ; do
-				printf "rolling back '$name/$disk' to '$snap': "
-				zfs rollback -rR $pool/iohyve/$name/$disk@$snap
-				printf "done\n"
-			done
-		else
-			echo "cannot rollback '$name' to '$snap': guest still running"
-		fi
-	else
-		echo "cannot rollback '$name' to '$snap': guest does not exist"
-	fi
-}
-
-# Clone a guest
-__cloneguest() {
-	if [ -z $2 ] || [ -z $3 ]; then
-		echo "Usage: $0 $1 <name> <clonename>"
-		return 1
-	fi
-	local flag="$2"
-	local name="$2"
-	local cname="$3"
-	local description="$(date | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)" # Will fail if $2 is flag
-	# Check if guest exists
-	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
-		echo "cloning $name to $cname: "
-		# Take snapshot
-		zfs snap -r $pool/iohyve/$name@$cname
-		# zfs send that snap and desendants then receive to cname
-		zfs send -R $pool/iohyve/$name@$cname | \
-		zfs recv $pool/iohyve/$cname
-		# clean up
-		zfs destroy -rR $pool/iohyve/$name@$cname
-		zfs destroy -rR $pool/iohyve/$cname@$cname
-		# rename the guest
-		zfs set iohyve:name=$cname $pool/iohyve/$cname
-		zfs set iohyve:description=$description $pool/iohyve/$cname
-		# change con and tap properties to next available if -r is specified
-		if [ "$flag" == "-r" ]; then
-			local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
-				listtaps(){
-					for i in $guestlist ; do
-						local tapprop="$(zfs get -H -o value iohyve:tap $i)"
-						printf $tapprop'\n'
-					done
-				}
-			local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
-			if [ -z $taplast ]; then
-				local tap='0'
-			else
-				local tap="$(expr $taplast + 1)"
-			fi
-			listcons(){
-				for i in $guestlist ; do
-					local conprop="$(zfs get -H -o value iohyve:con $i)"
-					printf $conprop'\n'
-				done
-			}
-			local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
-			if [ -z $conlast ]; then
-				local con='0'
-			else
-				local con="$(expr $conlast + 1)"
-			fi
-
-			zfs set iohyve:tap=tap$tap $pool/iohyve/$cname
-			zfs set iohyve:con=nmdm$con $pool/iohyve/$cname
-		fi
-		printf "done\n"
-
-	else
-		echo "cannot clone '$name': guest does not exist"
-		return 1
-	fi
-}
 
 # Export Guest
 __exportguest() {
@@ -1192,16 +1073,16 @@ __exportguest() {
 
 # List all the snapshots
 __snaplist() {
-	zfs list -H -t snap | grep iohyve | grep -v disk | cut -f1 | cut -d '/' -f3
+	zfs list -H -t snap | grep /iohyve/ | grep -v disk | cut -f1 | cut -d '/' -f3
 }
 
 # List taps in use
 __taplist() {
 	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
-	echo "Listing all network taps:"
+	echo "GUEST\tTAPDEVICE"
 	for i in $guestlist ; do
 		conprop="$(zfs get -H -o value iohyve:tap $i)"
-		printf $i'......'$conprop'\n'
+		echo "$i\t$conprop"
 	done
 }
 
@@ -1211,37 +1092,6 @@ __activetaps() {
 	ls /dev | grep tap
 }
 
-# List consoles in use
-__conlist() {
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | grep -v Firmware | sed 1d | cut -f1 | cut -d '/' -f3)"
-	(
-	printf 'Guest\tConsole\n'
-	for guest in $guestlist; do
-		local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$guest)"
-		printf $guest'\t'$con'\n'
-	done
-	) | column -t
-}
-
-# Run console
-__console() {
-	if [ -z $2 ]; then
-		echo "Usage: $0 $1 <name>"
-		return 1
-	fi
-	local name="$2"
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
-	local con="$(zfs get -H -o value iohyve:con $pool)"
-	echo "Starting console on $name..."
-	echo "~~. to escape console [uses cu(1) for console]"
-	cu -l /dev/${con}B -s 9600
-}
-
-# Reset all consoles. This kills the cu(1)
-__conreset() {
-	killall cu
-}
 
 # Print help page
 __help() {

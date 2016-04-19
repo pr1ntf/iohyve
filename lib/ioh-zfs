@@ -1,0 +1,136 @@
+#!/bin/sh
+
+
+# Snapshot a guest
+__snapguest() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>@<snap>"
+		return 1
+	fi
+	local fullsnap="$2"
+	if [ ! -z "$(zfs list -r -t snapshot -o name tank/iohyve | grep $fullsnap)" ]; then
+		echo "cannot create snapshot '$fullsnap': snapshot with this name already exists"
+		return
+	fi
+	local name="$(echo $fullsnap | cut -d '@' -f1)"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	# Check if guest exists
+	local guestexists="$(zfs list -H -o name $pool/iohyve/$name)"
+	if [ ! -z "$guestexists" ]; then
+		printf "creating snapshot '$fullsnap': "
+		zfs snap -r $pool/iohyve/$fullsnap
+		printf "done\n"
+	else
+		echo "cannot create snapshot of '$name': guest does not exist"
+	fi
+}
+
+# Rollback guest
+__rollguest() {
+	local fullsnap="$2"
+	local name="$(echo $fullsnap | cut -d '@' -f1)"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local snap="$(echo $fullsnap | cut -d '@' -f2)"
+	if [ -z $name ] || [ -z $snap ] || [ -z "$(echo $fullsnap | grep @ )" ]; then
+		echo "Usage: $0 $1 <name>@<snap>"
+		return 1
+	fi
+	local disklist="$(zfs list -H | grep iohyve | grep $name/ | grep disk | \
+				cut -f1 | cut -d '/' -f4-)"
+
+	local snapshot="$(zfs list -r -t snapshot -o name $pool/iohyve/$name | grep -Fx $pool/iohyve/$name@$snap)"
+	if [ -z $snapshot ]; then
+		echo "cannot rollback '$name' to '$snap': snapshot does not exist"
+		return 1
+	fi
+
+	# Check if guest exists
+	local guestexists="$(zfs list -H -o name $pool/iohyve/$name)"
+	if [ ! -z "$guestexists" ]; then
+		# Check to make sure guest isn't running
+		local running=$(pgrep -fx "bhyve: ioh-$name")
+		if [ -z $running ]; then
+			printf "rolling back '$name' to '$snap': "
+			zfs rollback -rR $pool/iohyve/$fullsnap
+			printf "done\n"
+			for disk in $disklist ; do
+				printf "rolling back '$name/$disk' to '$snap': "
+				zfs rollback -rR $pool/iohyve/$name/$disk@$snap
+				printf "done\n"
+			done
+		else
+			echo "cannot rollback '$name' to '$snap': guest still running"
+		fi
+	else
+		echo "cannot rollback '$name' to '$snap': guest does not exist"
+	fi
+}
+
+# Clone a guest
+__cloneguest() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage: $0 $1 [-r] <name> <clonename>"
+		return 1
+	fi
+	local flag="$2"
+	local name="$2"
+	local cname="$3"
+	if [ "-r" = "$flag" ]; then
+		name="$3"
+		cname="$4"
+	fi
+	local description="$(date | sed -e 's/ /_/g')"
+	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)" # Will fail if $2 is flag
+	# Check if guest exists
+	local guestexists="$(zfs list -H -o name $pool/iohyve/$name)"
+	if [ ! -z "$guestexists" ]; then
+		echo "cloning $name to $cname: "
+		# Take snapshot
+		zfs snap -r $pool/iohyve/$name@$cname
+		# zfs send that snap and desendants then receive to cname
+		zfs send -R $pool/iohyve/$name@$cname | \
+		zfs recv $pool/iohyve/$cname
+		# clean up
+		zfs destroy -rR $pool/iohyve/$name@$cname
+		zfs destroy -rR $pool/iohyve/$cname@$cname
+		# rename the guest
+		zfs set iohyve:name=$cname $pool/iohyve/$cname
+		zfs set iohyve:description=$description $pool/iohyve/$cname
+		# change con and tap properties to next available if -r is specified
+		if [ "$flag" == "-r" ]; then
+			local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
+				listtaps(){
+					for i in $guestlist ; do
+						local tapprop="$(zfs get -H -o value iohyve:tap $i)"
+						printf $tapprop'\n'
+					done
+				}
+			local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
+			if [ -z $taplast ]; then
+				local tap='0'
+			else
+				local tap="$(expr $taplast + 1)"
+			fi
+			listcons(){
+				for i in $guestlist ; do
+					local conprop="$(zfs get -H -o value iohyve:con $i)"
+					printf $conprop'\n'
+				done
+			}
+			local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
+			if [ -z $conlast ]; then
+				local con='0'
+			else
+				local con="$(expr $conlast + 1)"
+			fi
+
+			zfs set iohyve:tap=tap$tap $pool/iohyve/$cname
+			zfs set iohyve:con=nmdm$con $pool/iohyve/$cname
+		fi
+		printf "done\n"
+
+	else
+		echo "cannot clone '$name': guest does not exist"
+		return 1
+	fi
+}
