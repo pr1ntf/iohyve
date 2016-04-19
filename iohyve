@@ -1073,12 +1073,14 @@ __exportguest() {
 
 # List all the snapshots
 __snaplist() {
+	(
 	printf "%s^%s\n" "GUEST" "SNAPSHOT"
 	local snapshots="$(zfs list -H -t snap | grep /iohyve/ | grep -v disk | cut -f1 | cut -d '/' -f3)"
 	for snap in $snapshots; do
 		local guest="$(echo $snap | cut -d '@' -f1)"
 		printf "%s^%s\n" "$guest" "$snap"
 	done
+	) | column -ts^
 }
 
 # List taps in use
