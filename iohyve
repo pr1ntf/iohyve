@@ -1075,10 +1075,16 @@ __exportguest() {
 __snaplist() {
 	(
 	printf "%s^%s\n" "GUEST" "SNAPSHOT"
-	local snapshots="$(zfs list -H -t snap | grep /iohyve/ | grep -v disk | cut -f1 | cut -d '/' -f3)"
-	for snap in $snapshots; do
-		local guest="$(echo $snap | cut -d '@' -f1)"
-		printf "%s^%s\n" "$guest" "$snap"
+	local snapshotguests="$(zfs list -H -t snap | grep /iohyve/ | grep -v disk | cut -f1 | cut -d '/' -f3 | cut -d '@' -f1 | uniq)"
+
+	for guest in $snapshotguests; do
+		local snapshots="$(zfs list -H -t snap | grep /iohyve/ | grep $guest@ | grep -v disk | cut -f1 | cut -d '/' -f3)"
+		local first="$(echo $snapshot | head -1)"
+		local rest="$(echo $snapshot | tail -1)"
+		printf "%s^%s\n" "$guest" "$first"
+		for snap in $rest; do
+			printf "%s^%s\n" "" "$snap"
+		done
 	done
 	) | column -ts^
 }
