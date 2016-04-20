@@ -120,6 +120,11 @@ __fetchiso() {
 	echo "Fetching $url..."
 	zfs create $pool/iohyve/ISO/$name
 	fetch $url -o /iohyve/ISO/$name
+
+	if [ "${filename##*.}" = "xz" ]; then
+		xz -d /iohyve/ISO/$name
+		rm /iohyve/ISO/$name
+	fi
 }
 
 # Copy ISO from local machine
