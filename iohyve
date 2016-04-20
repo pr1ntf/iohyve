@@ -117,13 +117,28 @@ __fetchiso() {
 	local url="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $2)"
+	local isoname="$name"
+	local extension="${name##*.}"
+	case $extension in
+		"iso")
+		;;
+		"xz")
+			isoname=${name%%.xz}
+		;;
+		*)
+			echo "cannot fetch ISO: file is not an ISO"
+			return
+		;;
+	esac
+	if zfs list -H -o name $pool/iohyve/ISO/$isoname > /dev/null 2>&1; then
+		echo "cannot fetch ISO: ISO with that name already exists"
+		return
+	fi
 	echo "Fetching $url..."
-	zfs create $pool/iohyve/ISO/$name
-	fetch $url -o /iohyve/ISO/$name
-
-	if [ "${filename##*.}" = "xz" ]; then
-		xz -d /iohyve/ISO/$name
-		rm /iohyve/ISO/$name
+	zfs create $pool/iohyve/ISO/$isoname
+	fetch $url -o /iohyve/ISO/$isoname
+	if [ "${name##*.}" = "xz" ]; then
+		xz -d /iohyve/ISO/$isoname/$name
 	fi
 }
 
@@ -286,7 +301,7 @@ __create() {
 	else
 		local con="$(expr $conlast + 1)"
 	fi
-	echo "Creating $name..."
+	printf "creating '$name': "
 	zfs create $pool/iohyve/$name
 	zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk0
 	zfs set iohyve:name=$name $pool/iohyve/$name
@@ -301,6 +316,7 @@ __create() {
 	zfs set iohyve:os=default $pool/iohyve/$name
 	zfs set "iohyve:description=$description" $pool/iohyve/$name
 	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
+	printf "done\n"
 }
 
 # Install guest
@@ -323,7 +339,7 @@ __install() {
 			local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
 			local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
 			local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
-			echo "Installing $name..."
+			printf "installing '$name'"
 			# Set install prop
 			zfs set iohyve:install=yes $pool/iohyve/$name
 			# Load from CD
@@ -332,6 +348,7 @@ __install() {
 			pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
 			local pci_args=$(__get_bhyve_cmd "$pci" )
 			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+			printf "done\n"
 		else
 			echo "$name is already running."
 		fi
