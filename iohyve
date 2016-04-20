@@ -51,7 +51,7 @@ __get_zfs_pcidev_conf() {
 __list() {
 	local pools="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | uniq )"
 	(
-	printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
+	printf "%s^%s^%s^%s^%s\n" "Guest" "VMM" "Running" "rcboot" "Description"
 	for pool in $pools; do
 	local guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
 		for g in $guests; do
@@ -199,7 +199,7 @@ __cpfw() {
 	local loc="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $loc)"
-	if [ ! -d $loc ]; then
+	if [ ! -e $loc ]; then
 		echo "cannot copy '$loc': firmware does not exist"
 		return
 	fi
