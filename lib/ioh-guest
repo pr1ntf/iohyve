@@ -62,25 +62,25 @@ __info() {
 		) | column -t
 	elif [ $dflag = "-d" ]; then
 		(
-		printf 'NAME\tSIZE\tRAM\tCPU\tOS\tLOADER\tDESCRIPTION\n'
+		printf 'NAME^SIZE^RAM^CPU^OS^LOADER^DESCRIPTION\n'
 		for guest in $guests; do
-			local guestattr="$(zfs list -H -o volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader $pool/iohyve/$guest)"
-			local guestdesc="$(zfs list -H -o  iohyve:description $pool/iohyve/$guest | tr ' ' '_')"
-			printf "%s\t%s\t%s\n" "$guest" "$guestattr" "$guestdesc"
+			local guestattr="$(zfs list -H -o volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader $pool/iohyve/$guest | tr '\t' '^')"
+			local guestdesc="$(zfs list -H -o  iohyve:description $pool/iohyve/$guest)"
+			printf "%s^%s^%s\n" "$guest" "$guestattr" "$guestdesc"
 			local disks="$(zfs list -r -H -o name $pool/iohyve/$guest | grep disk)"
 
 			local diskname=""
 			local diskattr=""
 			for disk in $disks; do
 				if [ ! -z "$diskname" ]; then
-					printf '+--%s\t%s\n' "$diskname" "$diskattr"
+					printf '+--%s^%s\n' "$diskname" "$diskattr"
 				fi
 				diskname="$(echo $disk | grep -o '[^/]*$')"
 				diskattr="$(zfs list -H -o volsize $disk)"
 			done
-			printf '\\--%s\t%s\n' "$diskname" "$diskattr"
+			printf '\\--%s^%s\n' "$diskname" "$diskattr"
 		done
-		) | column -t
+		) | column -ts^
 	else
 		printf "usage:\n\tiohyve $1 [-d]\n"
 	fi

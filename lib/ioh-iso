@@ -2,8 +2,10 @@
 
 # List iso's
 __isolist() {
-	echo "ISO"
-	zfs list -H | grep iohyve/ISO/ | cut -f 1 | cut -d '/' -f 4
+	(
+	printf "ISO\tSIZE\n"
+	zfs list -H -o name,used | grep iohyve/ISO/ | cut -d '/' -f 4
+	) | column -t
 }
 
 # Fetch ISO
