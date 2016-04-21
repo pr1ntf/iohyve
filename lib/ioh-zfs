@@ -134,3 +134,150 @@ __cloneguest() {
 		return 1
 	fi
 }
+
+# Set ZFS properties
+__set() {
+	if [ -z $2 ]; then
+		printf "usage:\n\tiohyve $1 <name> <key=value> [key=value]\n"
+		return 1
+	fi
+	local name="$2"
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	shift 2
+	for arg in "$@"; do
+		local prop="$(echo $arg | cut -d '=' -f1)"
+		local val="$(echo $arg | cut -d '=' -f2)"
+
+		local prev="$(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)"
+		if [ $prop = "bargs" ]; then
+			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
+			#echo "Setting $name $prop=$val..."
+			zfs set iohyve:$prop=$sval $pool/iohyve/$name
+			echo "$name.$prop: $prev -> $sval"
+		elif [ $prop = "description" ]; then
+			local sval="$(echo $val | cut -d '"' -f2)"
+			#echo "Setting $name $prop=$val..."
+			zfs set "iohyve:$prop=$sval" $pool/iohyve/$name
+			echo "$name.$prop: $prev -> $sval"
+		else
+			#echo "Setting $name $prop=$val..."
+			zfs set iohyve:$prop=$val $pool/iohyve/$name
+			echo "$name.$prop: $prev -> $val"
+		fi
+	done
+}
+
+# Get ZFS props
+__get() {
+	if [ -z $2 ] || [ ! "$2" = "all" ] && [ -z $3 ]; then
+		printf "usage:\n"
+		printf "\tiohyve $1 <prop> <name>\n"
+		printf "\tiohyve $1 all <name>\n"
+		printf "\tiohyve $1 all\n"
+		return 1
+	fi
+	local prop="$2"
+	local name="$3"
+	if [ "$prop" = "all" ]; then
+		__getall "$1" "$name"
+		return
+	fi
+	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
+	if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
+		echo "cannot get '$name.$prop': guest does not exist"
+		return
+	fi
+	(
+	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
+	local value="$(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)"
+	printf "%s^%s^%s\n" "$name" "$prop" "$value"
+	) | column -ts^
+}
+
+# Remove a PCIDEV property
+__rmpci() {
+	local flagone="$2"
+	local flagtwo="$3"
+	local flagthree="$4"
+	if [ "$flagone" = "-f" ]; then
+		if [ -z $flagtwo ] || [ -z $flagthree ]; then
+			printf "usage:\n\tiohyve $1 [-f] <name> <pcidev:N>\n"
+			return 1
+		fi
+		echo "Removing $flagthree from $flagtwo"
+		local pciprop="$(echo "$flagthree" | grep pcidev:)"
+		local pool="$(zfs list -H -t volume | grep $flagtwo | cut -d '/' -f 1 | head -n1)"
+		# Make sure it's a valid pcidev property as to not shoot foot
+		if [ -z $pciprop ]; then
+			echo "cannot remove '$flagthree': unvalid PCIDEV property"
+		else
+			zfs inherit  -r iohyve:$flagthree $pool/iohyve/$flagtwo
+		fi
+	else
+		if [ -z $flagone ] || [ -z $flagtwo ]; then
+			printf "usage:\n\tiohyve $1 [-f] <name> <pcidev:N>\n"
+			return 1
+		fi
+		local pciprop="$(echo "$flagtwo" | grep pcidev:)"
+		local pool="$(zfs list -H -t volume | grep $flagone | cut -d '/' -f 1 | head -n1)"
+		# Make sure it's a valid pcidev property as to not shoot foot
+		if [ -z $pciprop ]; then
+			echo "cannot remove '$flagtwo': unvalid PCIDEV property"
+		else
+			read -p "Are you sure you want to remove $flagtwo [y/N]? " an </dev/tty
+			case "$an" in
+				y|Y) zfs inherit  -r iohyve:$flagtwo $pool/iohyve/$flagone
+				;;
+				*) echo "did not remove: user canceled removal"
+				;;
+			esac
+		fi
+	fi
+}
+
+# Get all ZFS props
+__getall() {
+	local name="$2"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local guests
+	if [ ! -z $name ]; then
+		guests=$name
+		if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
+			echo "cannot get properties of '$name': guest does not exist"
+			return 1
+		fi
+	else
+		guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
+	fi
+	(
+	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
+	for guest in $guests; do
+		local props="$(zfs get -o property all $pool/iohyve/$guest | grep iohyve:)"
+		for prop in $props; do
+			local trimprop="$(echo $prop | sed -e 's/iohyve://g')"
+			local value="$(zfs get -H -o value $prop $pool/iohyve/$guest)"
+			printf "%s^%s^%s\n" "$guest" "$trimprop" "$value"
+		done
+	done
+	) | column -ts^
+}
+
+# List all the snapshots
+__snaplist() {
+	(
+	printf "%s^%s\n" "GUEST" "SNAPSHOT"
+	local snapshotguests="$(zfs list -H -t snap | grep /iohyve/ | grep -v disk | cut -f1 | cut -d '/' -f3 | cut -d '@' -f1 | uniq)"
+
+	for guest in $snapshotguests; do
+		local snapshots="$(zfs list -H -t snap | grep /iohyve/ | grep $guest@ | grep -v disk | cut -f1 | cut -d '/' -f3)"
+		local first="$(echo $snapshots | cut -d' ' -f1)"
+		local rest="$(echo $snapshots | cut -d' ' -s -f2-)"
+		printf "%s^%s\n" "$guest" "$first"
+		for snap in $rest; do
+			printf " ^%s\n" "$snap"
+		done
+	done
+	) | column -ts^
+}
+
+
