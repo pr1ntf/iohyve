@@ -76,3 +76,18 @@ __deleteiso() {
 	zfs destroy -rR $pool/iohyve/ISO/$name
 	printf "done\n"
 }
+
+# Copy ISO from local machine
+__cpiso() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <path>"
+		return
+	fi
+	local loc="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $loc)"
+	printf "copying '$name': "
+	zfs create $pool/iohyve/ISO/$name
+	cp $loc /iohyve/ISO/$name
+	printf "done\n"
+}

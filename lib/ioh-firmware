@@ -1,0 +1,81 @@
+#!/bin/sh
+
+# List Firmware
+__fwlist() {
+	echo "NAME"
+	zfs list -H | grep iohyve/Firmware/ | cut -f1 | cut -d '/' -f 4
+}
+
+# Fetch Firmware
+__fetchfw() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <url>"
+		return
+	fi
+	local url="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $2)"
+	if zfs list -H -o name $pool/iohyve/Firmware/$name > /dev/null 2>&1; then
+		echo "cannot fetch '$name': firmware already exists"
+		return
+	fi
+	printf "fetching $name: "
+	zfs create $pool/iohyve/Firmware/$name
+	fetch $url -o /iohyve/Firmware/$name
+	printf "done\n"
+}
+
+# Copy Firmware from local machine
+__cpfw() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <name>"
+		return
+	fi
+	local loc="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $loc)"
+	if [ ! -e $loc ]; then
+		echo "cannot copy '$loc': firmware does not exist"
+		return
+	fi
+	printf "copying $name: "
+	zfs create $pool/iohyve/Firmware/$name
+	cp $loc /iohyve/Firmware/$name
+	printf "done\n"
+}
+
+# Rename Firmware
+__renamefw() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage: $0 $1 <oldname> <newname>"
+		return
+	fi
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local fw="$2"
+	local name="$3"
+	if ! zfs list -H -o name $pool/iohyve/Firmware/$fw > /dev/null 2>&1; then
+		echo "cannot rename '$2': firmware does not exist"
+		return
+	fi
+	echo "renaming firmware: '$2' -> '$3'"
+	mv /iohyve/Firmware/$fw/$fw /iohyve/Firmware/$fw/$name
+	zfs rename $pool/iohyve/Firmware/$fw $pool/iohyve/Firmware/$name
+}
+
+# Delete Firmware
+__deletefw() {
+	if [ -z $2 ]; then
+		echo "Usage $0 $1 <name>"
+		return
+	fi
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	if ! zfs list -H -o name $pool/iohyve/Firmware/$name > /dev/null 2>&1; then
+		echo "cannot delete '$2': firmware does not exist"
+		return
+	fi
+	printf "deleting '$name': "
+	zfs destroy -rR $pool/iohyve/Firmware/$name
+	printf "done\n"
+}
+

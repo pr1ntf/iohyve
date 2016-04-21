@@ -20,6 +20,7 @@ fi
 . "${LIB}/ioh-zfs"
 . "${LIB}/ioh-console"
 . "${LIB}/ioh-iso"
+. "${LIB}/ioh-firmware"
 
 # Show version
 __version() {
@@ -95,100 +96,6 @@ __info() {
 	else
 		echo "Usage: $0 $1 [-d]"
 	fi
-}
-
-
-# List Firmware
-__fwlist() {
-	echo "Listing Firmware..."
-	zfs list -H | grep iohyve/Firmware/ | cut -f1 | cut -d '/' -f 4
-}
-
-
-# Copy ISO from local machine
-__cpiso() {
-	if [ -z $2 ]; then
-		echo "Usage: $0 $1 <path>"
-		return
-	fi
-	local loc="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local name="$(basename $loc)"
-	echo "Copying $name from $loc..."
-	zfs create $pool/iohyve/ISO/$name
-	cp $loc /iohyve/ISO/$name
-}
-
-
-
-# Fetch Firmware
-__fetchfw() {
-	if [ -z $2 ]; then
-		echo "Usage: $0 $1 <url>"
-		return
-	fi
-	local url="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local name="$(basename $2)"
-	if zfs list -H -o name $pool/iohyve/Firmware/$name > /dev/null 2>&1; then
-		echo "cannot fetch '$name': firmware already exists"
-		return
-	fi
-	echo "Fetching $url..."
-	zfs create $pool/iohyve/Firmware/$name
-	fetch $url -o /iohyve/Firmware/$name
-}
-
-# Copy Firmware from local machine
-__cpfw() {
-	if [ -z $2 ]; then
-		echo "Usage: $0 $1 <name>"
-		return
-	fi
-	local loc="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local name="$(basename $loc)"
-	if [ ! -e $loc ]; then
-		echo "cannot copy '$loc': firmware does not exist"
-		return
-	fi
-	echo "Copying $name from $loc..."
-	zfs create $pool/iohyve/Firmware/$name
-	cp $loc /iohyve/Firmware/$name
-}
-
-# Rename Firmware
-__renamefw() {
-	if [ -z $2 ] || [ -z $3 ]; then
-		echo "Usage: $0 $1 <oldname> <newname>"
-		return
-	fi
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	local fw="$2"
-	local name="$3"
-	if ! zfs list -H -o name $pool/iohyve/Firmware/$fw > /dev/null 2>&1; then
-		echo "cannot rename '$2': firmware does not exist"
-		return
-	fi
-	echo "Renaming Firmware $2 to $3..."
-	mv /iohyve/Firmware/$fw/$fw /iohyve/Firmware/$fw/$name
-	zfs rename $pool/iohyve/Firmware/$fw $pool/iohyve/Firmware/$name
-}
-
-# Delete Firmware
-__deletefw() {
-	if [ -z $2 ]; then
-		echo "Usage $0 $1 <name>"
-		return
-	fi
-	local name="$2"
-	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	if ! zfs list -H -o name $pool/iohyve/Firmware/$name > /dev/null 2>&1; then
-		echo "cannot delete '$2': firmware does not exist"
-		return
-	fi
-	echo "Deleting $name..."
-	zfs destroy -rR $pool/iohyve/Firmware/$name
 }
 
 # Create guest
@@ -742,7 +649,7 @@ __delete() {
 # Set ZFS properties
 __set() {
 	if [ -z $2 ]; then
-		echo "Usage $0 $1 <name>"
+		echo "Usage $0 $1 <name> <key=value> [key=value]"
 		return 1
 	fi
 	local name="$2"
@@ -774,11 +681,14 @@ __set() {
 # Get ZFS props
 __get() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		echo "Usage: $0 $1 <name> <prop>"
+		echo "Usage: $0 $1 <prop> <name>"
 		return 1
 	fi
-	local name="$2"
-	local prop="$3"
+	local prop="$2"
+	local name="$3"
+	if [ "$prop" = "all" ]; then
+		__getall "$1" "$name"
+	fi
 	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
 	if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
 		echo "cannot get '$name.$prop': guest does not exist"
