@@ -2,7 +2,7 @@
 
 # List taps in use
 __taplist() {
-	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
+	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3 | uniq)"
 	printf "GUEST\tTAPDEVICE\n"
 	for i in $guestlist ; do
 		conprop="$(zfs get -H -o value iohyve:tap $i)"
