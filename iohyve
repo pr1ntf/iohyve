@@ -696,7 +696,7 @@ __get() {
 	fi
 	(
 	printf "%s^%s^%s" "NAME" "PROPERTY" "VALUE"
-	local value = "$(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)"
+	local value="$(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)"
 	printf "%s^%s^%s" "$name" "$prop" "$value"
 	) | column -ts^
 }
