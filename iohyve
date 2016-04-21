@@ -694,8 +694,11 @@ __get() {
 		echo "cannot get '$name.$prop': guest does not exist"
 		return
 	fi
-	printf "$name.$prop: "
-	zfs get -H -o value iohyve:$prop $pool/iohyve/$name
+	(
+	printf "%s^%s^%s" "NAME" "PROPERTY" "VALUE"
+	local value = "$(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)"
+	printf "%s^%s^%s" "$name" "$prop" "$value"
+	) | column -ts^
 }
 
 # Remove a PCIDEV property
