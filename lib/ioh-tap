@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# List taps in use
+__taplist() {
+	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
+	printf "GUEST\tTAPDEVICE\n"
+	for i in $guestlist ; do
+		conprop="$(zfs get -H -o value iohyve:tap $i)"
+		printf "$i\t$conprop\n"
+	done
+}
+
+# List active taps in use
+__activetaps() {
+  echo "Listing active network taps..."
+	ls /dev | grep tap
+}
+
+

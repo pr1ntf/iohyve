@@ -676,3 +676,14 @@ __exportguest() {
 		return 1
 	fi
 }
+
+__get_bhyve_cmd() {
+	local devices="$1"
+	local pci_slot_count=0
+	for device in $devices ; do
+		echo "-s $pci_slot_count,$device"
+		pci_slot_count=$(( pci_slot_count + 1 ))
+	done
+}
+
+
