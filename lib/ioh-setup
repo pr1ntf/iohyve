@@ -2,7 +2,7 @@
 
 
 __setup_usage() {
-	printf "usage:\n\t$0 setup [pool=<name>] [kmod=<0|1>] [net=<iface>]\n"
+	printf "usage:\n\tiohyve setup [pool=<name>] [kmod=<0|1>] [net=<iface>]\n"
 }
 
 __setup() {
