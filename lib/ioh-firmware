@@ -9,7 +9,7 @@ __fwlist() {
 # Fetch Firmware
 __fetchfw() {
 	if [ -z $2 ]; then
-		echo "Usage: iohyve $1 <url>"
+		printf "usage:\n\tiohyve $1 <url>\n"
 		return
 	fi
 	local url="$2"
@@ -28,7 +28,7 @@ __fetchfw() {
 # Copy Firmware from local machine
 __cpfw() {
 	if [ -z $2 ]; then
-		echo "Usage: iohyve $1 <name>"
+		printf "usage:\n\tiohyve $1 <name>\n"
 		return
 	fi
 	local loc="$2"
@@ -47,7 +47,7 @@ __cpfw() {
 # Rename Firmware
 __renamefw() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		echo "Usage: iohyve $1 <oldname> <newname>"
+		printf "usage:\n\tiohyve $1 <oldname> <newname>\n"
 		return
 	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
@@ -65,7 +65,7 @@ __renamefw() {
 # Delete Firmware
 __deletefw() {
 	if [ -z $2 ]; then
-		echo "Usage iohyve $1 <name>"
+		printf "usage:\n\tiohyve $1 <name>\n"
 		return
 	fi
 	local name="$2"

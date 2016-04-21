@@ -16,7 +16,7 @@ __conlist() {
 # Run console
 __console() {
 	if [ -z $2 ]; then
-		echo "Usage: iohyve $1 <name>"
+		printf "usage:\n\tiohyve $1 <name>\n"
 		return 1
 	fi
 	local name="$2"

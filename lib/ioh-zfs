@@ -4,7 +4,7 @@
 # Snapshot a guest
 __snapguest() {
 	if [ -z $2 ]; then
-		echo "Usage: iohyve $1 <name>@<snap>"
+		printf "usage:\n\tiohyve $1 <name>@<snap>\n"
 		return 1
 	fi
 	local fullsnap="$2"
@@ -32,7 +32,7 @@ __rollguest() {
 	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local snap="$(echo $fullsnap | cut -d '@' -f2)"
 	if [ -z $name ] || [ -z $snap ] || [ -z "$(echo $fullsnap | grep @ )" ]; then
-		echo "Usage: iohyve $1 <name>@<snap>"
+		printf "usage:\n\tiohyve $1 <name>@<snap>\n"
 		return 1
 	fi
 	local disklist="$(zfs list -H | grep iohyve | grep $name/ | grep disk | \
@@ -69,7 +69,7 @@ __rollguest() {
 # Clone a guest
 __cloneguest() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		echo "Usage: iohyve $1 [-r] <name> <clonename>"
+		printf "usage:\n\tiohyve $1 [-r] <name> <clonename>\n"
 		return 1
 	fi
 	local flag="$2"

@@ -9,7 +9,7 @@ __isolist() {
 # Fetch ISO
 __fetchiso() {
 	if [ -z $2 ]; then
-		echo "Usage: $0 $1 <url>"
+		printf "usage:\n\tiohyve $1 <url>\n"
 		return
 	fi
 	local url="$2"
@@ -43,7 +43,7 @@ __fetchiso() {
 # Rename an ISO
 __renameiso() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		echo "Usage: $0 $1 <oldname> <newname>"
+		printf "usage:\n\tiohyve $1 <oldname> <newname>\n"
 		return
 	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
@@ -63,7 +63,7 @@ __renameiso() {
 # Delete ISO
 __deleteiso() {
 	if [ -z $2 ];then
-		echo "Usage: $0 $1 <iso>"
+		printf "usage:\n\tiohyve $1 <iso>\n"
 		return
 	fi
 	local name="$2"
@@ -80,7 +80,7 @@ __deleteiso() {
 # Copy ISO from local machine
 __cpiso() {
 	if [ -z $2 ]; then
-		echo "Usage: $0 $1 <path>"
+		printf "usage:\n\tiohyve $1 <path>\n"
 		return
 	fi
 	local loc="$2"
