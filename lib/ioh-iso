@@ -1,0 +1,78 @@
+#!/bin/sh
+
+# List iso's
+__isolist() {
+	echo "ISO"
+	zfs list -H | grep iohyve/ISO/ | cut -f 1 | cut -d '/' -f 4
+}
+
+# Fetch ISO
+__fetchiso() {
+	if [ -z $2 ]; then
+		echo "Usage: $0 $1 <url>"
+		return
+	fi
+	local url="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $2)"
+	local isoname="$name"
+	local extension="${name##*.}"
+	case $extension in
+		"iso")
+		;;
+		"xz")
+			isoname=${name%%.xz}
+		;;
+		*)
+			echo "cannot fetch ISO: file is not an ISO"
+			return
+		;;
+	esac
+	if zfs list -H -o name $pool/iohyve/ISO/$isoname > /dev/null 2>&1; then
+		echo "cannot fetch ISO: ISO with that name already exists"
+		return
+	fi
+	echo "Fetching $url..."
+	zfs create $pool/iohyve/ISO/$isoname
+	fetch $url -o /iohyve/ISO/$isoname
+	if [ "${name##*.}" = "xz" ]; then
+		xz -d /iohyve/ISO/$isoname/$name
+	fi
+}
+
+# Rename an ISO
+__renameiso() {
+	if [ -z $2 ] || [ -z $3 ]; then
+		echo "Usage: $0 $1 <oldname> <newname>"
+		return
+	fi
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local iso="$2"
+	local name="$3"
+
+	if ! zfs list -H -o name $pool/iohyve/ISO/$iso > /dev/null 2>&1; then
+	#if [ ! -d /iohyve/ISO/$iso ]; then
+		echo "cannot rename '$2': iso does not exist"
+		return
+	fi
+	echo "renaming ISO '$2' -> '$3'"
+	mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
+	zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
+}
+
+# Delete ISO
+__deleteiso() {
+	if [ -z $2 ];then
+		echo "Usage: $0 $1 <iso>"
+		return
+	fi
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	if ! zfs list -H -o name $pool/iohyve/ISO/$name > /dev/null 2>&1; then
+		echo "cannot remove '$2': iso does not exist"
+		return
+	fi
+	printf "deleting $name: "
+	zfs destroy -rR $pool/iohyve/ISO/$name
+	printf "done\n"
+}
