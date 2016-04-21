@@ -94,14 +94,14 @@ __info() {
 			zfs list -H -o name,volsize,iohyve:ram,iohyve:cpu,iohyve:os,iohyve:loader,iohyve:description | \
 			grep iohyve | grep -Ev "ISO|Firmware"  |  cut -d '/' -f3- | sed 1d) | column -t
 	else
-		printf "Usage:\n\tiohyve $1 [-d]\n"
+		printf "usage:\n\tiohyve $1 [-d]\n"
 	fi
 }
 
 # Create guest
 __create() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		printf "Usage:\n\tiohyve $1 <name> <size>\n"
+		printf "usage:\n\tiohyve $1 <name> <size>\n"
 		return
 	fi
 	local name="$2"
@@ -158,7 +158,7 @@ __create() {
 # Install guest
 __install() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		printf "Usage\n\tiohyve $1 <name> <iso>\n"
+		printf "usage\n\tiohyve $1 <name> <iso>\n"
 		return
 	fi
 	local name="$2"
@@ -196,7 +196,7 @@ __install() {
 # Load guest
 __load() {
 	if [ -z $1 ] || [ -z $2 ]; then
-		printf "Usage:\n\tiohyve load <name> <path-to-bootdisk>\n"
+		printf "usage:\n\tiohyve load <name> <path-to-bootdisk>\n"
 		return
 	fi
 	local name="$1"
@@ -317,7 +317,7 @@ __load() {
 # Boot guest
 __boot() {
 	if [ -z $1 ]; then
-		printf "Usage:\n\tiohyve boot <name> [runmode] [pcidevices]\n"
+		printf "usage:\n\tiohyve boot <name> [runmode] [pcidevices]\n"
 		return
 	fi
 	local name="$1"
@@ -408,7 +408,7 @@ __prepare_guest() {
 # Start guest (combine load and boot)
 __start() {
 	if [ -z $2 ]; then
-		printf "Usage:\n\tiohyve $1 <name> [-s | -a]\n"
+		printf "usage:\n\tiohyve $1 <name> [-s | -a]\n"
 		return 1
 	fi
 	local name="$2"
@@ -457,7 +457,7 @@ __start() {
 # This is experimental, use with caution.
 __uefi() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		printf "Usage:\n\tiohyve $1 <name> <iso>\n"
+		printf "usage:\n\tiohyve $1 <name> <iso>\n"
 		return 1
 	fi
 	local name="$2"
@@ -517,7 +517,7 @@ __uefi() {
 # Gracefully stop a guest
 __stop() {
 	if [ -z $2 ]; then
-		printf "Usage:\n\tiohyve $1 <name>\n"
+		printf "usage:\n\tiohyve $1 <name>\n"
 		return 1
 	fi
 	local name="$2"
@@ -539,7 +539,7 @@ __stop() {
 # THIS WILL KILL EVERYTHING MATCHING $NAME
 __forcekill() {
 	if [ -z $2 ]; then
-		printf "Usage:\n\tiohyve $1 <name>\n"
+		printf "usage:\n\tiohyve $1 <name>\n"
 		return 1
 	fi
 	local name="$2"
@@ -572,7 +572,7 @@ __scram() {
 # Destroy guest
 __destroy() {
 	if [ -z $2 ]; then
-		printf "Usage:\n\tiohyve $1 <name>\n"
+		printf "usage:\n\tiohyve $1 <name>\n"
 		return 1
 	fi
 	local name="$2"
@@ -587,7 +587,7 @@ __destroy() {
 # Rename the guest
 __rename() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		printf "Usage:\n\tiohyve $1 <name> <newname>\n"
+		printf "usage:\n\tiohyve $1 <name> <newname>\n"
 		return 1
 	fi
 	local name="$2"
@@ -609,7 +609,7 @@ __delete() {
 	local flagtwo="$3"
 	if [ $flagone = "-f" ]; then
 		if [ -z $flagtwo ]; then
-			printf "Usage:\n\tiohyve $1 [-d] <name>\n"
+			printf "usage:\n\tiohyve $1 [-d] <name>\n"
 			return 1
 		fi
 		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep -v "/ISO/" | grep -v "Firmware" | grep $flagtwo | head -n1)"
@@ -627,7 +627,7 @@ __delete() {
 		zfs destroy -rR $target_dataset
 	else
 		if [ -z $flagone ]; then
-			printf "Usage:\n\tiohyve $1 [-d] <name>\n"
+			printf "usage:\n\tiohyve $1 [-d] <name>\n"
 			return
 		fi
 		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep -v "/ISO/" | grep -v "Firmware" | grep $flagone | head -n1)"
@@ -649,7 +649,7 @@ __delete() {
 # Set ZFS properties
 __set() {
 	if [ -z $2 ]; then
-		printf "Usage:\n\tiohyve $1 <name> <key=value> [key=value]\n"
+		printf "usage:\n\tiohyve $1 <name> <key=value> [key=value]\n"
 		return 1
 	fi
 	local name="$2"
@@ -681,7 +681,7 @@ __set() {
 # Get ZFS props
 __get() {
 	if [ -z $2 ] || [ ! "$2" = "all" ] && [ -z $3 ]; then
-		printf "Usage:\n"
+		printf "usage:\n"
 		printf "\tiohyve $1 <prop> <name>\n"
 		printf "\tiohyve $1 all <name>\n"
 		printf "\tiohyve $1 all\n"
@@ -712,7 +712,7 @@ __rmpci() {
 	local flagthree="$4"
 	if [ "$flagone" = "-f" ]; then
 		if [ -z $flagtwo ] || [ -z $flagthree ]; then
-			printf "Usage:\n\tiohyve $1 [-f] <name> <pcidev:N>\n"
+			printf "usage:\n\tiohyve $1 [-f] <name> <pcidev:N>\n"
 			return 1
 		fi
 		echo "Removing $flagthree from $flagtwo"
@@ -726,7 +726,7 @@ __rmpci() {
 		fi
 	else
 		if [ -z $flagone ] || [ -z $flagtwo ]; then
-			printf "Usage:\n\tiohyve $1 [-f] <name> <pcidev:N>\n"
+			printf "usage:\n\tiohyve $1 [-f] <name> <pcidev:N>\n"
 			return 1
 		fi
 		local pciprop="$(echo "$flagtwo" | grep pcidev:)"
@@ -776,7 +776,7 @@ __getall() {
 # Add a new disk to guest
 __add() {
 	if [ -z $2 ] || [ -z $3 ]; then
-		printf "Usage:\n\tiohyve $1 <name> <size> [pool]\n"
+		printf "usage:\n\tiohyve $1 <name> <size> [pool]\n"
 		return 1
 	fi
 	local name="$2"
@@ -810,7 +810,7 @@ __remove() {
 	local flagthree="$4"
 	if [ $flagone = "-f" ]; then
 		if [ -z $flagtwo ] || [ -z $flagthree ]; then
-			printf "Usage:\n\tiohyve $1 [-f] <name> <diskN>\n"
+			printf "usage:\n\tiohyve $1 [-f] <name> <diskN>\n"
 			return
 		fi
 		local pool="$(zfs list -H -o name | grep $flagtwo | grep $flagthree | cut -d '/' -f 1)"
@@ -830,7 +830,7 @@ __remove() {
 		fi
 	else
 		if [ -z $flagone ] || [ -z $flagtwo ]; then
-			printf "Usage:\n\tiohyve $1 [-f] <name> <diskN>\n"
+			printf "usage:\n\tiohyve $1 [-f] <name> <diskN>\n"
 			return
 		fi
 		local pool="$(zfs list -H -o name | grep $flagone | grep $flagtwo | cut -d '/' -f 1)"
@@ -860,7 +860,7 @@ __remove() {
 # Resize a disk
 __resize(){
 	if [ -z $2 ] || [ -z $3 ] || [ -z $4 ]; then
-		printf "Usage:\n\tiohyve $1 <name> <diskN> <newsize>\n"
+		printf "usage:\n\tiohyve $1 <name> <diskN> <newsize>\n"
 		return 1
 	fi
 	local name="$2"
@@ -893,7 +893,7 @@ __disks() {
 	local name="$2"
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	if [ -z $name ]; then
-		printf "Usage:\n\tiohyve $1 <name>\n"
+		printf "usage:\n\tiohyve $1 <name>\n"
 	elif [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		(
 		printf "DISK\tSIZE\n"
@@ -910,7 +910,7 @@ __disks() {
 # Export Guest
 __exportguest() {
 	if [ -z $2 ]; then
-		printf "Usage:\n\tiohyve $1 <name>\n"
+		printf "usage:\n\tiohyve $1 <name>\n"
 		return 1
 	fi
 	local name="$2"
