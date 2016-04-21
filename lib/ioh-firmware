@@ -2,8 +2,10 @@
 
 # List Firmware
 __fwlist() {
-	echo "NAME"
-	zfs list -H | grep iohyve/Firmware/ | cut -f1 | cut -d '/' -f 4
+	(
+	printf "NAME\tSIZE\n"
+	zfs list -H -o name,used | grep iohyve/Firmware/ | cut -d '/' -f 4
+	) | column -t
 }
 
 # Fetch Firmware

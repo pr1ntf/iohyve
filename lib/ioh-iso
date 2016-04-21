@@ -3,7 +3,7 @@
 # List iso's
 __isolist() {
 	(
-	printf "ISO\tSIZE\n"
+	printf "NAME\tSIZE\n"
 	zfs list -H -o name,used | grep iohyve/ISO/ | cut -d '/' -f 4
 	) | column -t
 }
