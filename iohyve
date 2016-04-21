@@ -680,8 +680,11 @@ __set() {
 
 # Get ZFS props
 __get() {
-	if [ -z $2 ] || [ -z $3 ]; then
-		echo "Usage: $0 $1 <prop> <name>"
+	if [ -z $2 ] || [ ! "$2" = "all" ] && [ -z $3 ]; then
+		echo "Usage:"
+		printf "\t$0 $1 <prop> <name>\n"
+		printf "\t$0 $1 all <name>\n"
+		printf "\t$0 $1 all\n"
 		return 1
 	fi
 	local prop="$2"
