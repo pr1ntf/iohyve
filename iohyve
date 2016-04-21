@@ -688,6 +688,7 @@ __get() {
 	local name="$3"
 	if [ "$prop" = "all" ]; then
 		__getall "$1" "$name"
+		return
 	fi
 	local pool="$(zfs list -H -t volume | grep $name | cut -d '/' -f 1 | head -n1)"
 	if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
@@ -744,18 +745,29 @@ __rmpci() {
 
 # Get all ZFS props
 __getall() {
-	if [ -z $2 ]; then
-		echo "Usage: $0 $1 <name>"
-		return 1
-	fi
 	local name="$2"
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
-		echo "cannot get properties of '$name': guest does not exist"
-		return 1
+	local guests
+	if [ ! -z $name ]; then
+		guests=$name
+		if ! zfs list -H -o name $pool/iohyve/$name > /dev/null 2>&1; then
+			echo "cannot get properties of '$name': guest does not exist"
+			return 1
+		fi
+	else
+		guests="$(zfs list -H | grep -i ^$pool/iohyve | grep -Ev "disk|ISO|Firmware" | cut -f1 | cut -d'/' -f3 | sed 1d | uniq)"
 	fi
-	printf "PROPERTY\tVALUE\n"
-	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
+	(
+	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
+	for guest in $guests; do
+		local props="$(zfs get -o property all $pool/iohyve/$guest | grep iohyve:)"
+		for prop in $props; do
+			local trimprop="$(echo $prop | sed -e 's/iohyve://g')"
+			local value="$(zfs get -H -o value $prop $pool/iohyve/$guest)"
+			printf "%s^%s^%s\n" "$guest" "$trimprop" "$value"
+		done
+	done
+	) | column -ts^
 }
 
 # Add a new disk to guest
