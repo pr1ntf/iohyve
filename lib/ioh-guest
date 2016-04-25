@@ -576,7 +576,8 @@ __delete() {
 	local flagone="$2"
 	local flagtwo="$3"
 	if [ $flagone = "-f" ]; then
-		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagtwo | head -n1)"
+		local pool="$(zfs list -H -t volume | grep iohyve/$flagtwo | cut -d '/' -f 1 | head -n1)"
+		local target_dataset="$pool/iohyve/$flagtwo"
 		echo ""
 		echo "[WARNING] Forcing permanent deletion of $flagtwo"
 		echo "Location: $target_dataset including children and clones"
@@ -586,7 +587,8 @@ __delete() {
 		echo "Deleting $flagtwo at $target_dataset..."
 		zfs destroy -rR $target_dataset
 	else
-		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagone | head -n1)"
+		local pool="$(zfs list -H -t volume | grep iohyve/$flagone | cut -d '/' -f 1 | head -n1)"
+		local target_dataset="$pool/iohyve/$flagone"
 		echo ""
 		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
 		read -p "Location: $target_dataset [Y/N]? " an </dev/tty
