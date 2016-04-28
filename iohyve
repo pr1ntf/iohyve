@@ -1346,7 +1346,7 @@ iohyve  version
 	cpfw <path>
 	renamefw <firmware> <newname>
 	rmfw <firmware>
-	create <name> <size>
+	create <name> <size> [pool]
 	install <name> <ISO>
 	load <name> <path/to/bootdisk>
 	boot <name> [runmode] [pcidevices]
@@ -1361,7 +1361,7 @@ iohyve  version
 	get <name> <prop>
 	rmpci [-f] <name> <pcidev:N>
 	getall <name>
-	add <name> <size> <pool>
+	add <name> <size> [pool]
 	remove [-f] <name> <diskN>
 	resize <name> <diskN> <size>
 	disks <name>
