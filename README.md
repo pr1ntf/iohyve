@@ -47,6 +47,8 @@ If you are using [FreeNAS](http://doc.freenas.org/9.10/freenas_jails.html#using-
 ```
 ln -s /mnt/iohyve /iohyve
 ```
+You may also want to check out the FreeNAS [tunables](http://doc.freenas.org/9.10/freenas_system.html?highlight=persist#tunables) section of their handbook
+so you can add `iohyve_enable="YES"` and `iohyve_flags="kmod=1 net=[iface]"` thus setting up the kernel modules and iohyve networking at boot time on your FreeNAS install. 
 
 **Usage**
 
