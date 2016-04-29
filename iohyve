@@ -5,6 +5,8 @@
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 
+. /etc/rc.subr
+
 # Check whether a given command requires root
 __root_req_cmd () {
     case "$1" in
