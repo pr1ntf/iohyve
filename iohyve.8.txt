@@ -37,7 +37,7 @@ iohyve resize <name> <diskN> <size>
 iohyve disks <name>
 iohyve snap <name>@<snap>
 iohyve roll <name>@<snap>
-iohyve clone [-c | -r] <name> <clonename>
+iohyve clone [-r] <name> <clonename>
 iohyve export <name>
 iohyve snaplist
 iohyve taplist
@@ -282,7 +282,7 @@ clone		Clone a guest. Note that this will clone all of the properties.
 		If you want to use the clone and the original guest at the
 		same time you will need to change the tap and nmdm properties
 		or use the -r option to have iohyve do this for you
-		Usage: 'iohyve clone [-c | -r] <name> <clonename>' where <name>
+		Usage: 'iohyve clone [-r] <name> <clonename>' where <name>
 		is the name of the guest and <clonename> is what you would
 		like to name the new clone.
 
