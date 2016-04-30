@@ -60,10 +60,14 @@ __setup() {
 					echo "Loading kernel modules..."
 					kldload vmm
 					kldload nmdm
+					kldload if_bridge
+					kldload if_tap
 				elif [ $val = "0" ]; then
 					echo "Unloading kernel modules..."
 					kldunload vmm
 					kldunload nmdm
+					kldunload if_bridge
+					kldunload if_tap
 				else
 					echo "Improper syntax"
 					echo "kmod=1 to load modules"

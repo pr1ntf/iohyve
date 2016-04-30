@@ -47,6 +47,8 @@ If you are using [FreeNAS](http://doc.freenas.org/9.10/freenas_jails.html#using-
 ```
 ln -s /mnt/iohyve /iohyve
 ```
+You may also want to check out the FreeNAS [tunables](http://doc.freenas.org/9.10/freenas_system.html?highlight=persist#tunables) section of their handbook
+so you can add `iohyve_enable="YES"` and `iohyve_flags="kmod=1 net=[iface]"` thus setting up the kernel modules and iohyve networking at boot time on your FreeNAS install. 
 
 **Usage**
 
@@ -54,47 +56,47 @@ ln -s /mnt/iohyve /iohyve
 iohyve  
 
 version
-setup pool=[poolname] kmod=[0/1] net=[interface]
+setup <pool=poolname> [kmod=0|1] [net=iface]
 list [-l]
 info [-vsdl]
 isolist
 fwlist
-fetchiso [URL]
-cpiso [path]
-renameiso [ISO] [newname]
-rmiso [ISO]
-fetchfw [URL]
-cpfw [path]
-renamefw [firmware] [newname]
-rmfw [firmware]
-create [name] [size]
-install [name] [ISO]
-load [name] [path/to/bootdisk]
-boot [name] [runmode] [pcidevices]
-start [name] [-s | -a]
-stop [name]
-forcekill [name]
+fetchiso <URL>
+cpiso <path>
+renameiso <ISO> <newname>
+rmiso <ISO>
+fetchfw <URL>
+cpfw <path>
+renamefw <firmware> <newname>
+rmfw <firmware>
+create <name> <size> [pool]
+install <name> <ISO>
+load <name> <path/to/bootdisk>
+boot <name> [runmode] [pcidevices]
+start <name> [-s | -a]
+stop <name>
+forcekill <name>
 scram
-destroy [name]
-rename [name] [newname]
-delete [-f] [name]
-set [name] [prop1=value] [prop2=value]...
-get [name] [prop]
-rmpci [-f] [name] [pcidev:N]
-getall [name]
-add [name] [size]
-remove [-f] [name] [diskN]
-resize [name] [diskN] [size]
-disks [name]
-snap [name]@[snapshotname]
-roll [name]@[snapshotname]
-clone [name] [clonename]
-export [name]
+destroy <name>
+rename <name> <newname>
+delete [-f] <name>
+set <name> <property=value> ...
+get <name> <prop>
+rmpci [-f] <name> <pcidev:N>
+getall <name>
+add <name> <size> [pool]
+remove [-f] <name> <diskN>
+resize <name> <diskN> <size>
+disks <name>
+snap <name>@<snap>
+roll <name>@<snap>
+clone [-c | -r] <name> <clonename>
+export <name>
 snaplist
 taplist
 activetaps
 conlist
-console [name]
+console <name>
 conreset
 help
 ```
