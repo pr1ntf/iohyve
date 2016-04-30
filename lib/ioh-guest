@@ -150,6 +150,11 @@ __create() {
 	local name="$2"
 	local pool="${4-$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)}"
 	local size="$3"
+	if [ -z $size ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tcreate <name> <size> [pool]\n"
+		exit 1
+	fi
 	local description="$(date)"
 	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
 	listtaps(){
@@ -197,6 +202,11 @@ __create() {
 __install() {
 	local name="$2"
 	local iso="$3"
+	if [ -z $iso ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tinstall <name> <ISO>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H -t volume -o name | grep iohyve/$name | grep disk0 | cut -d '/' -f1)"
 	local dataset="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1-3 | head -n1)"
 	# Check if guest exists
@@ -230,6 +240,11 @@ __install() {
 __load() {
 	local name="$1"
 	local media="$2"
+	if [ -z $media ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tload <name> <path/to/bootdisk>\n"
+		exit 1
+	fi
 	local disk="${3-$(zfs list -H -t volume -o name | grep iohyve/$name | grep disk0 | head -n1)}"
 	local dataset="$(zfs list -H -t volume -o name | grep iohyve/$name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
@@ -348,6 +363,11 @@ __load() {
 # Boot guest
 __boot() {
 	local name="$1"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tboot <name> [runmode] [pcidevices]\n"
+		exit 1
+	fi
 	# runmode (runonce/persist)
 	#   0 = once
 	#   1 = persist regular (stop if guest is powering off)
@@ -431,6 +451,11 @@ __prepare_guest() {
 # Start guest (combine load and boot)
 __start() {
 	local name="$2"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tstart <name> [-s | -a]\n"
+		exit 1
+	fi
 	local flag="$3"
 	local pci=""
 	local runmode="1"
@@ -471,6 +496,11 @@ __start() {
 __uefi() {
 	local name="$2"
 	local media="$3"
+	if [ -z $media ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tuefi <name> <ISO>\n"
+		exit 1
+	fi
 	local dataset="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1-3 | head -n1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
@@ -490,10 +520,6 @@ __uefi() {
 	# Make sure everything is in order...
 	if [ $fw = '-' ]; then
 		echo "You must set a firmware file property to use UEFI..."
-	fi
-	if [ -z $media ]; then
-		echo "You must enter at least a zero byte ISO for some OSs..."
-		echo "EX: iohyve uefi winguest null.iso"
 	fi
 	# Check if guest exists
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -521,6 +547,11 @@ __uefi() {
 # Gracefully stop a guest
 __stop() {
 	local name="$2"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tstop <name>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local pid=$(pgrep -fx "bhyve: ioh-$name")
 	echo "Stopping $name..."
@@ -534,6 +565,11 @@ __stop() {
 # THIS WILL KILL EVERYTHING MATCHING $NAME
 __forcekill() {
 	local name="$2"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tforcekill <name>\n"
+		exit 1
+	fi
 	local pids="$(pgrep -f $name)"
 	for apid in "$pids"; do
 		kill -9 $apid
@@ -554,6 +590,11 @@ __scram() {
 # Destroy guest
 __destroy() {
 	local name="$2"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tdestroy <name>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	echo "Destroying $name..."
 #	zfs set iohyve:persist=0 $pool/iohyve/$name
@@ -565,6 +606,11 @@ __destroy() {
 __rename() {
 	local name="$2"
 	local newname="$3"
+	if [ -z $newname ]; then
+		printf "missing argument\nusage:\n"
+		printf "\trename <name> <newname>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	echo "Renaming $name to $newname..."
 	zfs rename -f $pool/iohyve/$name $pool/iohyve/$newname
@@ -576,6 +622,11 @@ __delete() {
 	local flagone="$2"
 	local flagtwo="$3"
 	if [ $flagone = "-f" ]; then
+		if [ -z $flagtwo ]; then
+			printf "missing argument\nusage:\n"
+			printf "\tdelete [-f] <name>\n"
+			exit 1
+		fi
 		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagtwo | head -n1)"
 		echo ""
 		echo "[WARNING] Forcing permanent deletion of $flagtwo"
@@ -586,6 +637,11 @@ __delete() {
 		echo "Deleting $flagtwo at $target_dataset..."
 		zfs destroy -rR $target_dataset
 	else
+		if [ -z $flagone ]; then
+			printf "missing argument\nusage:\n"
+			printf "\tdelete [-f] <name>\n"
+			exit 1
+		fi
 		local target_dataset="$(zfs list -H -t filesystem -o name | grep iohyve | grep $flagone | head -n1)"
 		echo ""
 		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"

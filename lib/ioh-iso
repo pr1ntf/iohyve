@@ -10,6 +10,11 @@ __isolist() {
 # Fetch ISO
 __fetchiso() {
 	local url="$2"
+	if [ -z $url ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tfetchiso <URL>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $2)"
 	echo "Fetching $url..."
@@ -20,6 +25,11 @@ __fetchiso() {
 # Copy ISO from local machine
 __cpiso() {
 	local loc="$2"
+	if [ -z $loc ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tcpiso <path>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local name="$(basename $loc)"
 	echo "Copying $name from $loc..."
@@ -32,6 +42,11 @@ __renameiso() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local iso="$2"
 	local name="$3"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\trenameiso <ISO> <newname>\n"
+		exit 1
+	fi
 	echo "Renaming ISO $2 to $3..."
 	mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
 	zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
@@ -40,6 +55,11 @@ __renameiso() {
 # Delete ISO
 __deleteiso() {
 	local name="$2"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\trmiso <name>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	echo "Deleting $name..."
 	zfs destroy -rR $pool/iohyve/ISO/$name
