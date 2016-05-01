@@ -1,0 +1,169 @@
+#!/bin/sh
+
+# Check whether a given command requires root
+__root_req_cmd () {
+    case "$1" in
+		setup|fetchiso|fetch|cpiso|renameiso|rmiso|fetchfw|cpfw|renamefw|rmfw|create|install|load\
+		|boot|start|uefi|stop|forcekill|scram|destroy|rename|delete|set|rmpci|fix-bargs|add|remove\
+		|resize|disks|snap|roll|clone|export|console|conreset) echo "1"
+            ;;
+        *) echo "0"
+            ;;
+    esac
+}
+
+# Process command line
+__parse_cmd () {
+  while [ $# -gt 0 ] ; do
+    case "$1" in
+      version)  __version
+                exit
+      ;;
+      setup)    __setup "$@"
+                exit
+      ;;
+      list)     __list "$2"
+                exit
+      ;;
+      info)	__info "$2"
+		exit
+      ;;
+      isolist)  __isolist
+                exit
+      ;;
+      fwlist)	__fwlist
+                exit
+      ;;
+      fetchiso|fetch)    __fetchiso "$@"
+                exit
+      ;;
+      cpiso)	__cpiso "$@"
+		exit
+      ;;
+      renameiso) __renameiso "$@"
+                exit
+      ;;
+      rmiso) 	__deleteiso "$@"
+                exit
+      ;;
+      fetchfw)	__fetchfw "$@"
+                exit
+      ;;
+      cpfw)	__cpfw "$@"
+                exit
+      ;;
+      renamefw) __renamefw "$@"
+                exit
+      ;;
+      rmfw)	__deletefw "$@"
+                exit
+      ;;
+      create)   __create "$@"
+                exit
+      ;;
+      install)  __install "$@"
+                exit
+      ;;
+      load)     __load "$2" "$3"
+                exit
+      ;;
+      boot)     __boot "$2" "$3" "$4"
+                exit
+      ;;
+      start)    __start "$@"
+                exit
+      ;;
+      uefi)	__uefi "$@"
+		exit
+      ;;
+      stop)     __stop "$@"
+                exit
+      ;;
+      forcekill) __forcekill "$@"
+                exit
+      ;;
+      scram)    __scram
+                exit
+      ;;
+      destroy)  __destroy "$@"
+                exit
+      ;;
+      rename)   __rename "$@"
+                exit
+      ;;
+      delete)   __delete "$@"
+                exit
+      ;;
+      set)      __set "$@"
+                exit
+      ;;
+      get)      __get "$@"
+                exit
+      ;;
+      rmpci)	__rmpci "$@"
+		exit
+      ;;
+      getall)   __getall "$@"
+                exit
+      ;;
+      fix-bargs) __fixbargs "$@"
+		exit
+      ;;
+      add)	__add "$@"
+		exit
+      ;;
+      remove)	__remove "$@"
+		exit
+      ;;
+      resize)   __resize "$@"
+                exit
+      ;;
+      disks)	__disks "$@"
+		exit
+      ;;
+      snap)	__snapguest "$@"
+		exit
+      ;;
+      roll)	__rollguest "$@"
+		exit
+      ;;
+      clone)	__cloneguest "$@"
+		exit
+      ;;
+      export)	__exportguest "$@"
+		exit
+      ;;
+      snaplist)	__snaplist
+		exit
+      ;;
+      taplist)  __taplist
+                exit
+      ;;
+      activetaps) __activetaps
+                exit
+      ;;
+      conlist)  __conlist
+                exit
+      ;;
+      console)  __console "$@"
+                exit
+      ;;
+      conreset) __conreset
+                exit
+      ;;
+      help|-h)  __help
+                exit
+      ;;
+      *)        __unrecognised "$@"
+                exit 1
+      ;;
+    esac
+    shift
+  done
+}
+
+# Informs user that command is unrecognised.
+__unrecognised() {
+    echo "'$1' is not a valid command!"
+    echo "Try 'iohyve help' for more info."
+}
