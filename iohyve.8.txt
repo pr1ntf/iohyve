@@ -61,19 +61,19 @@ OPTIONS
 version		Prints the current running version of iohyve
 
 setup		Installs required zfs datasets and kernel modules for iohyve.
-		Usage: 'iohyve setup <pool=poolname> [kmod=0|1] [net=iface]' 
+		Usage: 'iohyve setup <pool=poolname> [kmod=0|1] [net=iface]'
 		where <poolname> is the pool you want to install iohyve on,
 		kmod=<0|1> is if you want iohyve to load or unload the
 		kernel modules required by iohyve. 1 is load. net=<iface>
-		will set up the network bridge to the specified interface. 
+		will set up the network bridge to the specified interface.
 		Multiple pools are supported, additional pools get mounted
 		in /iohyve/poolname
 
 list		Lists the name, status for VMM, active bhyve (Running), boot
 		on start flag (rcboot), and description for each guest.
-		
+
 		-l flag pipes the final output to less
-		
+
 info		Lists properties about the guests and their disks using flags
 		to control level of output. Fields include CPU count, RAM, Disk
 		Size, Pool, OS, Loader, Tap, Console, VMM status, Running status,
@@ -88,7 +88,7 @@ info		Lists properties about the guests and their disks using flags
 		-d is for description. Shows the guest description.
 
 		-l is for less and pipes the final output to less.
-		
+
 		Order of flags is not important. The proper syntax is to use
 		the flags contiguiously. So "-ld" is the correct way to display
 		the base output plus description, and then have the output
@@ -180,7 +180,7 @@ stop		Gracefully stops guest operating system.
 
 forcekill	Forces the guest to stop. Runs kill -9 and destroys the guest
 		in VMM. USE WITH EXTREME CAUTION AND AS A LAST RESORT. Can be
-		used to kill guests stuck at the GRUB console that you 
+		used to kill guests stuck at the GRUB console that you
 		do not have access to.
 
 scram		Gracefully stop all bhyve guests. Does not destroy resources.
@@ -214,7 +214,7 @@ set		Sets ZFS properties for guests one at a time
 		size=size of block device
 		mac_tap[n]=[MAC Address]
 			[n] is a generic number to specify the tap interface to use
-			Forces a specific MAC address to be attached to the 
+			Forces a specific MAC address to be attached to the
 			network adapter in the guest OS. iohyve does not check
 			for a valid MAC address, so double check the property.
 		pcidev:[n]=<spec>
@@ -235,7 +235,7 @@ get		Gets ZFS properties for guests one at a time
 rmpci		Removes a pcidev from the guest
 		Usage: 'iohyve rmpci <name> <pcidev:N>' where <name> is the name
 		of the guest operating system. <pcidev:N> is the PCI
-		device you want removed. Ex: 'pcidev:3' If [-f] is supplied 
+		device you want removed. Ex: 'pcidev:3' If [-f] is supplied
 		before the <name>, there is no prompt to remove.
 
 getall		Gets all the ZFS properties for a guest
@@ -286,13 +286,13 @@ clone		Clone a guest. Note that this will clone all of the properties.
 		is the name of the guest and <clonename> is what you would
 		like to name the new clone.
 
-export		Export a guest with all of it's properties and disks to a 
-		GZip'd tarball. Property file is in a ucl-type format. 
+export		Export a guest with all of it's properties and disks to a
+		GZip'd tarball. Property file is in a ucl-type format.
 		Disks output to a raw file, allowing for other managers using
 		ahci-hd emulation to use them. Tarball is put in the guest
 		dataset ex: /iohyve/guestname/guestname.tar.gz
-		Usage: 'iohyve export <name>' where <name> is the name of the 
-		guest. 
+		Usage: 'iohyve export <name>' where <name> is the name of the
+		guest.
 
 snaplist	List all of the snapshots for all the guests. Does not show
 		snapshots of disks (they are there, though).
@@ -313,7 +313,7 @@ console		Consoles into a guest operating system. Utilizes nmdm(4) and
 		then period (.) to exit the console.
 		(Think typing ~~. real fast to exit console)
 		If that fails to work, try pressing tilde (~) then press
-		Control + D (^D). Note that on some machines, you cannot 
+		Control + D (^D). Note that on some machines, you cannot
 		escape the console. See conreset below to escape all consoles.
 		Usage: 'iohyve console <name>' where <name> is the name
 		of the guest operating system.
@@ -408,5 +408,5 @@ AUTHOR
 Trent -- @pr1ntf
 
 SEE ALSO
-bhyve(8), bhyveload(8), zfs(8), nmdm(4), 
+bhyve(8), bhyveload(8), zfs(8), nmdm(4),
 cu(1), if_bridge(4), grub2-bhyve(8)

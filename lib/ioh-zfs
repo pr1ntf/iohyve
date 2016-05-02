@@ -225,5 +225,3 @@ __get_zfs_pcidev_conf() {
 	done
 	IFS=$oldifs
 }
-
-

@@ -95,5 +95,3 @@ __setup() {
 		fi
 	done
 }
-
-

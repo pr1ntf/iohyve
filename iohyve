@@ -34,10 +34,10 @@ __version() {
 __help() {
 cat << 'EOT'
 iohyve  version
-        setup <pool=poolname> [kmod=0|1] [net=iface]
-        list [-l]
+	setup <pool=poolname> [kmod=0|1] [net=iface]
+	list [-l]
 	info [-vsdl]
-        isolist
+	isolist
 	fwlist
 	fetchiso <URL>
 	cpiso <path>
