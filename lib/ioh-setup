@@ -1,0 +1,99 @@
+#!/bin/sh
+
+# Setup iohyve
+__setup() {
+	local args="$@"
+	for arg in $args; do
+		if [ $arg != "setup" ]; then
+			local prop="$(echo $arg | cut -d '=' -f1)"
+			local val="$(echo $arg | cut -d '=' -f2)"
+			if [ $prop = "pool" ]; then
+				local pool="$val"
+				local poolexist="$(zfs list -H | grep ${pool}/iohyve | head -n1 | cut -c1)"
+				if [ -z $poolexist ]; then
+					echo "Setting up iohyve pool..."
+					zfs create $pool/iohyve
+					# iohyve is already setup on a pool
+					if [ -d /iohyve/ISO ]; then
+						echo "Secondary pool set up..."
+						zfs set mountpoint="/iohyve/$pool" $pool/iohyve
+						# iohyve is not set up yet
+					else
+						zfs set mountpoint="/iohyve" $pool/iohyve
+						zfs create $pool/iohyve/ISO
+						zfs create $pool/iohyve/Firmware
+					fi
+				else
+					echo "iohyve already exists on $pool"
+				fi
+				# Checks to see if on FreeNAS
+				# The web UI references this file to display the version
+				if [ -e /etc/version ]; then
+					local OS=$( cat /etc/version | cut -d - -f1 )
+					if [ "$OS" = "FreeNAS" ]; then
+						echo "On FreeNAS installation."
+						echo "Checking for symbolic link to /iohyve from /mnt/iohyve..."
+						if [ -d /mnt/iohyve ]; then
+							if [ ! -e /iohyve ]; then
+								ln -s /mnt/iohyve /iohyve
+								if [ -L /iohyve ]; then
+									echo "Symbolic link to /iohyve from /mnt/iohyve successfully created."
+								else
+									echo "Failed to create symbolic link."
+									echo "Please manually do so by running the following as root:"
+									echo "# ln -s /mnt/iohyve /iohyve"
+								fi
+							elif [ -L /iohyve ]; then
+								echo "Symbolic link to /iohyve already exists."
+							fi
+						elif [ "$val" = "freenas-boot" ] && [ -d /iohyve ]; then
+							echo "Symbolic link not needed. /iohyve exists."
+							echo "iohyve is installed on the freenas-boot pool."
+							echo "This is not recommended configuration."
+						else
+							echo "iohyve does not seem to be setup."
+						fi
+					fi
+				fi
+			elif [ $prop = "kmod" ]; then
+				if [ $val = "1" ]; then
+					echo "Loading kernel modules..."
+					kldload vmm
+					kldload nmdm
+					kldload if_bridge
+					kldload if_tap
+				elif [ $val = "0" ]; then
+					echo "Unloading kernel modules..."
+					kldunload vmm
+					kldunload nmdm
+					kldunload if_bridge
+					kldunload if_tap
+				else
+					echo "Improper syntax"
+					echo "kmod=1 to load modules"
+					echo "kmod=0 to unload modules"
+				fi
+			elif [ $prop = "net" ]; then
+				local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1)"
+				if [ -z $bridgeif ]; then
+					echo "Seting up bridge0 on $val..."
+					sysctl net.link.tap.up_on_open=1
+					ifconfig bridge0 create descr "iohyve-bridge"
+					ifconfig bridge0 addm $val
+					ifconfig bridge0 up
+				else
+					echo "bridge0 is already enabled on this machine..."
+					local sysctlexist="$(sysctl net.link.tap.up_on_open | grep 1 | cut -c1)"
+					if [ -z $sysctlexist ]; then
+						echo "Setting up correct sysctl value..."
+						sysctl net.link.tap.up_on_open=1
+					else
+						echo "sysctl already setup properly as well..."
+					fi
+				fi
+			fi
+		fi
+	done
+}
+
+

@@ -1,0 +1,103 @@
+#!/bin/sh
+
+# Add a new disk to guest
+__add() {
+	local name="$2"
+	local size="$3"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
+	# optionally allow the pool for the new disk to be specified. If not set, its set to $pool
+	local newpool="${4-$pool}"
+	# Find the last disk number and increment one
+	local lastdisk="$(zfs list -H | grep iohyve/$name | grep disk | cut -d '/' -f4 | cut -f1 | \
+		sort -V | cut -c5- | tail -n1)"
+	local newdisk="$(expr $lastdisk + 1)"
+	echo "Creating new zvol for $name..."
+	zfs create $newpool/iohyve/$name 2> /dev/null
+	zfs create -V $size -o volmode=dev $newpool/iohyve/$name/disk$newdisk
+	# Find the last pcidev and increment by one
+	local lastpci="$(zfs get -H all | grep iohyve/$name | grep pcidev | cut -f2 | \
+		cut -d ':' -f3 | sort -V | tail -n1)"
+	if [ -z $lastpci ]; then
+		local newpci='1'
+	else
+		local newpci="$(expr $lastpci + 1)"
+	fi
+	zfs set iohyve:pcidev:$newpci=ahci-hd,/dev/zvol/$newpool/iohyve/$name/disk$newdisk $pool/iohyve/$name
+}
+
+# Remove disk from guest
+__remove() {
+	local flagone="$2"
+	local flagtwo="$3"
+	local flagthree="$4"
+	if [ $flagone = "-f" ]; then
+		echo "Removing $flagthree from $flagtwo"
+		local pool="$(zfs list -H -o name | grep $flagtwo | grep $flagthree | cut -d '/' -f 1)"
+		local pciprop="$(zfs get -H all $pool/iohyve/$flagtwo | grep pcidev | grep $flagthree | cut -f2 )"
+		# Make sure it's a valid pcidev property as to not shoot foot
+		if [ -z $pciprop ]; then
+			echo "Not a valid PCIDEV property"
+		else
+			zfs inherit  -r $pciprop $pool/iohyve/$flagtwo
+			zfs destroy $pool/iohyve/$flagtwo/$flagthree
+		fi
+	else
+		local pool="$(zfs list -H -o name | grep $flagone | grep $flagtwo | cut -d '/' -f 1)"
+		local pciprop="$(zfs get -H all $pool/iohyve/$flagone | grep pcidev | grep $flagtwo | cut -f2 )"
+		# Make sure it's a valid pcidev property as to not shoot foot
+		if [ -z $pciprop ]; then
+			echo "Not a valid PCIDEV property"
+		else
+			read -p "Are you sure you want to remove $flagtwo from $flagone [Y/N]? " an </dev/tty
+			case "$an" in
+				y|Y)	zfs inherit  -r $pciprop $pool/iohyve/$flagone
+					zfs destroy $pool/iohyve/$flagone/$flagtwo
+				;;
+				*) echo "Not removed..."
+				;;
+			esac
+		fi
+	fi
+}
+
+# Resize a disk
+__resize(){
+	local name="$2"
+	local disk="$3"
+	local size="$4"
+	local pool="$(zfs list -H -o name | grep iohyve/$name | grep $disk | cut -d '/' -f 1)"
+	# Check if guest exists
+	echo "Resizing $disk to $size"
+	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+		# Check to make sure guest isn't running
+		local running=$(pgrep -fx "bhyve: ioh-$name")
+		if [ -z $running ]; then
+			zfs set volsize=$size $pool/iohyve/$name/$disk
+			zfs set iohyve:size=$size $pool/iohyve/$name
+		else
+			echo "Please stop the guest first"
+		fi
+	else
+		echo "Not a valid guest name"
+	fi
+}
+
+# List disks for a guest
+__disks() {
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	if [ -z $name ]; then
+		echo "You must enter a guest name."
+	elif [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
+		(
+		echo "Listing disks for $name..."
+		printf "diskN\tSize\n"
+		zfs list -H -o name,volsize | grep -E "iohyve.*$name.*disk" | \
+			cut -d '/' -f4
+		) | column -t
+	else
+		echo "Not a valid guest name"
+	fi
+}
+
+
