@@ -5,12 +5,6 @@
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 
-# Check to see if CPU is compatable with bhyve
-if ! $(cat /var/run/dmesg.boot | egrep -q 'VT-x|EPT') ; then
-	echo "Your CPU does not seem to support bhyve."
-	exit 1 
-fi
-
 # Check if libs are available (stolen from iocage)
 if [ -e "./lib/ioh-cmd" ] ; then
 	LIB="./lib"
