@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# List iso's
+__isolist() {
+	echo "Listing ISO's..."
+	zfs list -H | grep iohyve/ISO | cut -f 1 | cut -d '/' -f 4 | sed 1d
+}
+
+
+# Fetch ISO
+__fetchiso() {
+	local url="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $2)"
+	echo "Fetching $url..."
+	zfs create $pool/iohyve/ISO/$name
+	fetch $url -o /iohyve/ISO/$name
+}
+
+# Copy ISO from local machine
+__cpiso() {
+	local loc="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $loc)"
+	echo "Copying $name from $loc..."
+	zfs create $pool/iohyve/ISO/$name
+	cp $loc /iohyve/ISO/$name
+}
+
+# Rename an ISO
+__renameiso() {
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local iso="$2"
+	local name="$3"
+	echo "Renaming ISO $2 to $3..."
+	mv /iohyve/ISO/$iso/$iso /iohyve/ISO/$iso/$name
+	zfs rename $pool/iohyve/ISO/$iso $pool/iohyve/ISO/$name
+}
+
+# Delete ISO
+__deleteiso() {
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	echo "Deleting $name..."
+	zfs destroy -rR $pool/iohyve/ISO/$name
+}

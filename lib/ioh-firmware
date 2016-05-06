@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# List Firmware
+__fwlist() {
+	echo "Listing Firmware..."
+	zfs list -H | grep iohyve/Firmware | cut -f1 | cut -d '/' -f 4 | sed 1d
+}
+
+# Fetch Firmware
+__fetchfw() {
+	local url="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $2)"
+	echo "Fetching $url..."
+	zfs create $pool/iohyve/Firmware/$name
+	fetch $url -o /iohyve/Firmware/$name
+}
+
+# Copy Firmware from local machine
+__cpfw() {
+	local loc="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local name="$(basename $loc)"
+	echo "Copying $name from $loc..."
+	zfs create $pool/iohyve/Firmware/$name
+	cp $loc /iohyve/Firmware/$name
+}
+
+# Rename Firmware
+__renamefw() {
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	local fw="$2"
+	local name="$3"
+	echo "Renaming Firmware $2 to $3..."
+	mv /iohyve/Firmware/$fw/$fw /iohyve/Firmware/$fw/$name
+	zfs rename $pool/iohyve/Firmware/$fw $pool/iohyve/Firmware/$name
+}
+
+# Delete Firmware
+__deletefw() {
+	local name="$2"
+	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
+	echo "Deleting $name..."
+	zfs destroy -rR $pool/iohyve/Firmware/$name
+}
