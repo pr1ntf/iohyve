@@ -74,65 +74,65 @@ __info() {
 
 	# Spider through pools
 	for pool in $pools; do
-	    # Poll to see which guests are on $pool
-            local guests="$(zfs list -H -o name | grep $pool/iohyve | grep -Ev "ISO|Firmware" | cut -d '/' -f3- | sed 1d )"
-            # Spider through guests
-            for g in $guests; do
+		# Poll to see which guests are on $pool
+		local guests="$(zfs list -H -o name | grep $pool/iohyve | grep -Ev "ISO|Firmware" | cut -d '/' -f3- | sed 1d )"
+		# Spider through guests
+		for g in $guests; do
 
-		# Poll variables for common section
-		local size="$(zfs get -H -o value volsize $pool/iohyve/$g)"
-		local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$g)"
-		local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$g)"
+			# Poll variables for common section
+			local size="$(zfs get -H -o value volsize $pool/iohyve/$g)"
+			local cpu="$(zfs get -H -o value iohyve:cpu $pool/iohyve/$g)"
+			local ram="$(zfs get -H -o value iohyve:ram $pool/iohyve/$g)"
 
-		# Print common section (guest, size, cpu, raml)
-		printf "%s^%s^%s^%s^%s" "$g" "$size" "$cpu" "$ram" "$pool"
+			# Print common section (guest, size, cpu, raml)
+			printf "%s^%s^%s^%s^%s" "$g" "$size" "$cpu" "$ram" "$pool"
 
-		# Get variable and print for verbose section (os, loader, tap, con)
-		if [ -n "$(echo "$flags" | grep 'v')" ]; then
-			local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$g)"
-			local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$g)"
-			local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$g)"
-			local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$g)"
+			# Get variable and print for verbose section (os, loader, tap, con)
+			if [ -n "$(echo "$flags" | grep 'v')" ]; then
+				local os="$(zfs get -H -o value iohyve:os $pool/iohyve/$g)"
+				local loader="$(zfs get -H -o value iohyve:loader $pool/iohyve/$g)"
+				local tap="$(zfs get -H -o value iohyve:tap $pool/iohyve/$g)"
+				local con="$(zfs get -H -o value iohyve:con $pool/iohyve/$g)"
 
-			printf "^%s^%s^%s^%s" "$os" "$loader" "$tap" "$con"
-		fi
-
-		# Get info, set variables, and print for status section (VMM, Running, rcboot)
-		if [ -n "$(echo "$flags" | grep 's')" ] && [ -z "$(echo "$g" | grep 'disk')" ]; then
-			local vmm="/dev/vmm/ioh-$g"
-			if [ -e $vmm ]; then
-				vmm="YES"
-			else
-				vmm="NO"
-			fi
-			local running=$(pgrep -fx "bhyve: ioh-$g")
-			if [ -z $running ]; then
-				running="NO"
-			else
-				running="YES"
-			fi
-			local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$g)"
-			if [ $boot = '1' ]; then
-				boot="YES"
-			else
-				boot="NO"
+				printf "^%s^%s^%s^%s" "$os" "$loader" "$tap" "$con"
 			fi
 
-			printf "^%s^%s^%s" "$vmm" "$running" "$boot"
-		# Checks to see if disk portion of guest and uses "-"s if so for this section.
-		elif [ -n "$(echo "$flags" | grep 's')" ] && [ -n "$(echo "$g" | grep 'disk')" ]; then
-			printf "^-^-^-"
-		fi
+			# Get info, set variables, and print for status section (VMM, Running, rcboot)
+			if [ -n "$(echo "$flags" | grep 's')" ] && [ -z "$(echo "$g" | grep 'disk')" ]; then
+				local vmm="/dev/vmm/ioh-$g"
+				if [ -e $vmm ]; then
+					vmm="YES"
+				else
+					vmm="NO"
+				fi
+				local running=$(pgrep -fx "bhyve: ioh-$g")
+				if [ -z $running ]; then
+					running="NO"
+				else
+					running="YES"
+				fi
+				local boot="$(zfs get -H -o value iohyve:boot $pool/iohyve/$g)"
+				if [ $boot = '1' ]; then
+					boot="YES"
+				else
+					boot="NO"
+				fi
 
-		# Print description if flag set
-		if [ -n "$(echo "$flags" | grep 'd')" ]; then
-			local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
-			printf "^%s" "$description"
-		fi
+				printf "^%s^%s^%s" "$vmm" "$running" "$boot"
+			# Checks to see if disk portion of guest and uses "-"s if so for this section.
+			elif [ -n "$(echo "$flags" | grep 's')" ] && [ -n "$(echo "$g" | grep 'disk')" ]; then
+				printf "^-^-^-"
+			fi
 
-		# Print new line for next guest.
-		printf "\n"
-            done
+			# Print description if flag set
+			if [ -n "$(echo "$flags" | grep 'd')" ]; then
+				local description="$(zfs get -H -o value iohyve:description $pool/iohyve/$g)"
+				printf "^%s" "$description"
+			fi
+
+			# Print new line for next guest.
+			printf "\n"
+		done
 	done
 	) | column -ts^ | \
 	(
@@ -419,7 +419,7 @@ __prepare_guest() {
 				pci="$pci virtio-net,${tap},mac=${mac}"
 			fi
 		fi
-        done
+	done
 	#Add disk as second PCI device
 	pci="ahci-hd,/dev/zvol/$dataset/disk0 $pci"
 	#Add Hostbridge and lpc as the first PCI devices
@@ -502,14 +502,14 @@ __uefi() {
 		if [ -z $running ]; then
 			# The good stuff...
 			bhyve -c $cpu $bargs -m $ram \
-			        -s 0,hostbridge \
-			        -s 3,ahci-cd,/iohyve/ISO/$media/$media \
-			        -s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
-			        -s 10,virtio-net,$tap \
-			        -s 31,lpc \
-			        -l com1,/dev/${con}A \
-			        -l bootrom,/iohyve/Firmware/$fw/$fw \
-			        ioh-$name &
+				-s 0,hostbridge \
+				-s 3,ahci-cd,/iohyve/ISO/$media/$media \
+				-s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
+				-s 10,virtio-net,$tap \
+				-s 31,lpc \
+				-l com1,/dev/${con}A \
+				-l bootrom,/iohyve/Firmware/$fw/$fw \
+				ioh-$name &
 		else
 			echo "Guest is already running."
 		fi
@@ -608,6 +608,3 @@ __get_bhyve_cmd() {
 		pci_slot_count=$(( pci_slot_count + 1 ))
 	done
 }
-
-
-
