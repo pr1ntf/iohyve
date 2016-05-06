@@ -90,7 +90,7 @@ resize <name> <diskN> <size>
 disks <name>
 snap <name>@<snap>
 roll <name>@<snap>
-clone [-c | -r] <name> <clonename>
+clone [-r] <name> <clonename>
 export <name>
 snaplist
 taplist
