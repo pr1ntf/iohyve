@@ -117,6 +117,10 @@ __cloneguest() {
 	local flag="$2"
 	local name="$2"
 	local cname="$3"
+	if [ "$flag" == "-r" ]; then
+		name="$3"
+		cname="$4"
+	fi
 	local description="$(date | sed -e 's/ /_/g')"
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	# Check if guest exists
@@ -225,5 +229,3 @@ __get_zfs_pcidev_conf() {
 	done
 	IFS=$oldifs
 }
-
-

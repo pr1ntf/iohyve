@@ -99,5 +99,3 @@ __disks() {
 		echo "Not a valid guest name"
 	fi
 }
-
-
