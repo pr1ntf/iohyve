@@ -31,7 +31,7 @@ __parse_cmd () {
 				exit
 				;;
 			info)
-				__info "$2"
+				__info "$@"
 				exit
 				;;
 			isolist)
