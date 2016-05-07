@@ -161,6 +161,7 @@ __cloneguest() {
 		printf "\tclone <name> <clonename>\n"
 		exit 1
 	fi
+
 	local description="$(date | sed -e 's/ /_/g')"
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	# Check if guest exists
@@ -208,7 +209,7 @@ __cloneguest() {
 				zfs set iohyve:tap=tap$tap $pool/iohyve/$cname
 				zfs set iohyve:con=nmdm$con $pool/iohyve/$cname
 			fi
-
+		fi
 	else
 		echo "Not a valid guest name"
 	fi
