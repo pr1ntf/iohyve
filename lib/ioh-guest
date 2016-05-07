@@ -80,12 +80,11 @@ __info() {
 		local pool="$(echo $dataset | cut -f1 -d/)"
 
 		# Poll variables for common section
-		local size="-"
 		local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
 		local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 
 		# Print common section (guest, size, cpu, raml)
-		printf "%s^%s^%s^%s^%s" "$name" "$size" "$cpu" "$ram" "$pool"
+		printf "%s^-^%s^%s^%s" "$name" "$cpu" "$ram" "$pool"
 
 		# Get variable and print for verbose section (os, loader, tap, con)
 		if [ -n "$(echo "$flags" | grep 'v')" ]; then
@@ -133,12 +132,12 @@ __info() {
 		for disk in $disks; do
 			local diskname="$(echo $disk | rev | cut -f1 -d/ | rev)"
 			local size="$(zfs get -H -o value iohyve:size $disk)"
-			printf "^%s^%s^%s^%s^%s" "$name/$diskname" "$size" "-" "-" $pool
+			printf "^%s^%s^-^-^%s" "$name/$diskname" "$size" "$pool"
 			if [ -n "$(echo "$flags" | grep 'v')" ]; then
-				printf "^%s^%s^%s^%s" "-" "-" "-" "-"
+				printf "^-^-^-^-"
 			fi
 			if [ -n "$(echo "$flags" | grep 's')" ]; then
-				printf "^%s^%s^%s" "-" "-" "-"
+				printf "^-^-^-"
 			fi
 			if [ -n "$(echo "$flags" | grep 'd')" ]; then
 				local description="$(zfs get -H -o value iohyve:description $disk)"
