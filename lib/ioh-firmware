@@ -63,5 +63,3 @@ __deletefw() {
 	echo "Deleting $name..."
 	zfs destroy -rR $pool/iohyve/Firmware/$name
 }
-
-

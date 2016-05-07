@@ -15,6 +15,3 @@ __activetaps() {
   echo "Listing active network taps..."
 	ls /dev | grep tap
 }
-
-
-

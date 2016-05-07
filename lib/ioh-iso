@@ -64,5 +64,3 @@ __deleteiso() {
 	echo "Deleting $name..."
 	zfs destroy -rR $pool/iohyve/ISO/$name
 }
-
-

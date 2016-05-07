@@ -152,6 +152,10 @@ __cloneguest() {
 	local flag="$2"
 	local name="$2"
 	local cname="$3"
+	if [ "$flag" == "-r" ]; then
+		name="$3"
+		cname="$4"
+
 	if [ -z $cname ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tclone <name> <clonename>\n"
@@ -270,5 +274,3 @@ __get_zfs_pcidev_conf() {
 	done
 	IFS=$oldifs
 }
-
-
