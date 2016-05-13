@@ -148,6 +148,16 @@ iohyve roll bsdguest@beforeupdate  #rollback to snapshot
 # This is not a zfs clone, but a true copy of a dataset
 iohyve clone bsdguest dolly	   #make a clone of bsdguest to dolly
 ````
+
+To set a vm to start when the host starts up, first add the following to your `/etc/rc.conf` file to have iohyve start at boot. 
+```
+iohyve_enable="YES"
+```
+Then set `boot=1` on whatever vm you want to start at boot. 
+```
+iohyve set bsdguest boot=1
+```
+
 **FreeBSD Guests**
 
 Fetch FreeBSD install ISO for later:
