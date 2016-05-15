@@ -4,6 +4,13 @@
 __add() {
 	local name="$2"
 	local size="$3"
+
+	if [ -z $size ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tadd <name> <size>\n"
+		exit 1
+	fi
+
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	# optionally allow the pool for the new disk to be specified. If not set, its set to $pool
 	local newpool="${4-$pool}"
@@ -31,6 +38,11 @@ __remove() {
 	local flagtwo="$3"
 	local flagthree="$4"
 	if [ $flagone = "-f" ]; then
+		if [ -z $flagthree ]; then
+			printf "missing argument\nusage:\n"
+			printf "\tremove [-f] <name> <diskN>\n"
+			exit 1
+		fi
 		echo "Removing $flagthree from $flagtwo"
 		local pool="$(zfs list -H -o name | grep $flagtwo | grep $flagthree | cut -d '/' -f 1)"
 		local pciprop="$(zfs get -H all $pool/iohyve/$flagtwo | grep pcidev | grep $flagthree | cut -f2 )"
@@ -42,6 +54,11 @@ __remove() {
 			zfs destroy $pool/iohyve/$flagtwo/$flagthree
 		fi
 	else
+		if [ -z $flagtwo ]; then
+			printf "missing argument\nusage:\n"
+			printf "\tremove [-f] <name> <diskN>\n"
+			exit 1
+		fi
 		local pool="$(zfs list -H -o name | grep $flagone | grep $flagtwo | cut -d '/' -f 1)"
 		local pciprop="$(zfs get -H all $pool/iohyve/$flagone | grep pcidev | grep $flagtwo | cut -f2 )"
 		# Make sure it's a valid pcidev property as to not shoot foot
@@ -65,6 +82,11 @@ __resize(){
 	local name="$2"
 	local disk="$3"
 	local size="$4"
+	if [ -z $size ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tresize <name> <diskN> <size>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H -o name | grep iohyve/$name | grep $disk | cut -d '/' -f 1)"
 	# Check if guest exists
 	echo "Resizing $disk to $size"
@@ -85,6 +107,11 @@ __resize(){
 # List disks for a guest
 __disks() {
 	local name="$2"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tdisks <name>\n"
+		exit 1
+	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	if [ -z $name ]; then
 		echo "You must enter a guest name."
