@@ -16,6 +16,12 @@ __conlist() {
 # Run console
 __console() {
 	local name="$2"
+	if [ -z $name ]; then
+		printf "missing argument\nusage:\n"
+		printf "\tconsole <name>\n"
+		exit 1
+	fi
+
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
 	local con="$(zfs get -H -o value iohyve:con $pool)"
 	echo "Starting console on $name..."
