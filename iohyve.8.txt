@@ -404,6 +404,14 @@ Make an independent clone of a guest:
 
 iohyve clone bsdguest dolly
 
+Add iohyve to the rc.conf to start at boot:
+
+echo 'iohyve_enable="YES"' >> /etc/rc.conf
+
+Set a VM to start when the host boots: 
+
+iohyve set bsdguest boot=1
+
 AUTHOR
 Trent -- @pr1ntf
 
