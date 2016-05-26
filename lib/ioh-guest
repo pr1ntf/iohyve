@@ -536,6 +536,7 @@ __uefi() {
 				-l com1,/dev/${con}A \
 				-l bootrom,/iohyve/Firmware/$fw/$fw \
 				ioh-$name &
+			ifconfig $tap up
 		else
 			echo "Guest is already running."
 		fi
