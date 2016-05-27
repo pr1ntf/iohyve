@@ -4,12 +4,12 @@
 __setup() {
 	local args="$@"
 	for arg in $args; do
-		if [ $arg != "setup" ]; then
-			local prop="$(echo $arg | cut -d '=' -f1)"
-			local val="$(echo $arg | cut -d '=' -f2)"
-			if [ $prop = "pool" ]; then
+		if [ "$arg" != "setup" ]; then
+			local prop="$(echo $arg | cut -d '=' -f 1)"
+			local val="$(echo $arg | cut -d '=' -f 2)"
+			if [ "$prop" = "pool" ]; then
 				local pool="$val"
-				local poolexist="$(zfs list -H | grep ${pool}/iohyve | head -n1 | cut -c1)"
+				local poolexist="$(zfs list -H | grep ${pool}/iohyve | head -n 1 | cut -c 1)"
 				if [ -z $poolexist ]; then
 					echo "Setting up iohyve pool..."
 					zfs create $pool/iohyve
@@ -28,8 +28,8 @@ __setup() {
 				fi
 				# Checks to see if on FreeNAS
 				# The web UI references this file to display the version
-				if [ -e /etc/version ]; then
-					local OS=$( cat /etc/version | cut -d - -f1 )
+				if [ -f /etc/version ]; then
+					local OS=$(cat /etc/version | cut -d - -f 1)
 					if [ "$OS" = "FreeNAS" ]; then
 						echo "On FreeNAS installation."
 						echo "Checking for symbolic link to /iohyve from /mnt/iohyve..."
@@ -55,14 +55,14 @@ __setup() {
 						fi
 					fi
 				fi
-			elif [ $prop = "kmod" ]; then
-				if [ $val = "1" ]; then
+			elif [ "$prop" = "kmod" ]; then
+				if [ $val -eq 1 ]; then
 					echo "Loading kernel modules..."
 					kldload vmm
 					kldload nmdm
 					kldload if_bridge
 					kldload if_tap
-				elif [ $val = "0" ]; then
+				elif [ $val -eq 0 ]; then
 					echo "Unloading kernel modules..."
 					kldunload vmm
 					kldunload nmdm
@@ -73,9 +73,9 @@ __setup() {
 					echo "kmod=1 to load modules"
 					echo "kmod=0 to unload modules"
 				fi
-			elif [ $prop = "net" ]; then
-				local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1)"
-				if [ -z $bridgeif ]; then
+			elif [ "$prop" = "net" ]; then
+				local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c 1)"
+				if [ -z "$bridgeif" ]; then
 					echo "Seting up bridge0 on $val..."
 					sysctl net.link.tap.up_on_open=1
 					ifconfig bridge0 create descr "iohyve-bridge"
@@ -83,8 +83,8 @@ __setup() {
 					ifconfig bridge0 up
 				else
 					echo "bridge0 is already enabled on this machine..."
-					local sysctlexist="$(sysctl net.link.tap.up_on_open | grep 1 | cut -c1)"
-					if [ -z $sysctlexist ]; then
+					local sysctlexist="$(sysctl net.link.tap.up_on_open | grep 1 | cut -c 1)"
+					if [ -z "$sysctlexist" ]; then
 						echo "Setting up correct sysctl value..."
 						sysctl net.link.tap.up_on_open=1
 					else

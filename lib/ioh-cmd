@@ -1,21 +1,53 @@
 #!/bin/sh
 
 # Check whether a given command requires root
-__root_req_cmd () {
-		case "$1" in
-		setup|fetchiso|fetch|cpiso|renameiso|rmiso|fetchfw|cpfw|renamefw|rmfw|create|install|load\
-		|boot|start|uefi|stop|forcekill|scram|destroy|rename|delete|set|rmpci|fix-bargs|add|remove\
-		|resize|disks|snap|roll|clone|export|console|conreset)
-			echo "1"
-			;;
-		*)
-			echo "0"
-			;;
-		esac
+__root_req_cmd() {
+    case "$1" in
+    add|\
+    boot|\
+    clone|\
+    conreset|\
+    console|\
+    cpfw|\
+    cpiso|\
+    create|\
+    delete|\
+    destroy|\
+    disks|\
+    export|\
+    fetch|\
+    fetchfw|\
+    fetchiso|\
+    fix-bargs|\
+    forcekill|\
+    install|\
+    load|\
+    remove|\
+    rename|\
+    renamefw|\
+    renameiso|\
+    resize|\
+    rmfw|\
+    rmiso|\
+    rmpci|\
+    roll|\
+    scram|\
+    set|\
+    setup|\
+    snap|\
+    start|\
+    stop|\
+    uefi)
+        echo "1"
+    ;;
+    *)
+        echo "0"
+    ;;
+    esac
 }
 
 # Process command line
-__parse_cmd () {
+__parse_cmd() {
 	while [ $# -gt 0 ] ; do
 		case "$1" in
 			version)

@@ -2,23 +2,23 @@
 
 # Set ZFS properties
 __set() {
-	local name="$2"
-	if [ -z $3 ]; then
+	local name=$2
+	if [ -z "$3" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tset <name> <property=value> ...\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n 1)"
 	shift 2
 	for arg in "$@"; do
-		local prop="$(echo $arg | cut -d '=' -f1)"
-		local val="$(echo $arg | cut -d '=' -f2)"
-		if [ $prop = "bargs" ]; then
-			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
+		local prop="$(echo $arg | cut -d '=' -f 1)"
+		local val="$(echo $arg | cut -d '=' -f 2)"
+		if [ "$prop" = "bargs" ]; then
+			local sval="$(echo $val | cut -d '"' -f 2 | sed -e 's/ /_/g')"
 			echo "Setting $name $prop=$val..."
 			zfs set iohyve:$prop=$sval $pool/iohyve/$name
-		elif [ $prop = "description" ]; then
-			local sval="$(echo $val | cut -d '"' -f2)"
+		elif [ "$prop" = "description" ]; then
+			local sval="$(echo $val | cut -d '"' -f 2)"
 			echo "Setting $name $prop=$val..."
 			zfs set "iohyve:$prop=$sval" $pool/iohyve/$name
 		else
@@ -30,40 +30,40 @@ __set() {
 
 # Get ZFS props
 __get() {
-	local name="$2"
-	local prop="$3"
-	if [ -z $prop ]; then
+	local name=$2
+	local prop=$3
+	if [ -z "$prop" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tget <name> <prop>\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n 1)"
 	echo "Getting $name prop $prop..."
 	zfs get -H -o value iohyve:$prop $pool/iohyve/$name
 }
 
 # Remove a PCIDEV property
 __rmpci() {
-	local flagone="$2"
-	local flagtwo="$3"
-	local flagthree="$4"
-	if [ $flagone = "-f" ]; then
-		if [ -z $flagthree ]; then
+	local flagone=$2
+	local flagtwo=$3
+	local flagthree=$4
+	if [ "$flagone" = "-f" ]; then
+		if [ -z "$flagthree" ]; then
 			printf "missing argument\nusage:\n"
 			printf "\trmpci [-f] <name> <pcidev:N>\n"
 			exit 1
 		fi
 		echo "Removing $flagthree from $flagtwo"
 		local pciprop="$(echo "$flagthree" | grep pcidev:)"
-		local pool="$(zfs list -H -t volume | grep $flagtwo | cut -d '/' -f 1 | head -n1)"
+		local pool="$(zfs list -H -t volume | grep $flagtwo | cut -d '/' -f 1 | head -n 1)"
 		# Make sure it's a valid pcidev property as to not shoot foot
-		if [ -z $pciprop ]; then
+		if [ -z "$pciprop" ]; then
 			echo "Not a valid PCIDEV property"
 		else
-			zfs inherit  -r iohyve:$flagthree $pool/iohyve/$flagtwo
+			zfs inherit -r iohyve:$flagthree $pool/iohyve/$flagtwo
 		fi
 	else
-		if [ -z $flagtwo ]; then
+		if [ -z "$flagtwo" ]; then
 			printf "missing argument\nusage:\n"
 			printf "\trmpci [-f] <name> <pcidev:N>\n"
 			exit 1
@@ -71,7 +71,7 @@ __rmpci() {
 		local pciprop="$(echo "$flagtwo" | grep pcidev:)"
 		local pool="$(zfs list -H -t volume | grep $flagone | cut -d '/' -f 1 | head -n1)"
 		# Make sure it's a valid pcidev property as to not shoot foot
-		if [ -z $pciprop ]; then
+		if [ -z "$pciprop" ]; then
 			echo "Not a valid PCIDEV property"
 		else
 			read -p "Are you sure you want to remove $flagtwo [Y/N]? " an </dev/tty
@@ -87,27 +87,27 @@ __rmpci() {
 
 # Get all ZFS props
 __getall() {
-	local name="$2"
-	if [ -z $name ]; then
+	local name=$2
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tgetall <name>\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name.*disk0 | cut -d '/' -f 1 | head -n 1)"
 	echo "Getting $name iohyve properties..."
 	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
 }
 
 # Snapshot a guest
 __snapguest() {
-	local fullsnap="$2"
-	local name="$(echo $fullsnap | cut -d '@' -f1)"
-	if [ -z $name ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
+	local fullsnap=$2
+	local name="$(echo $fullsnap | cut -d '@' -f 1)"
+	if [ -z "$name" ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tsnap <name>@<snap>\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name.*disk0 | cut -d '/' -f 1 | head -n 1)"
 	echo "Taking snapshot $fullsnap"
 	# Check if guest exists
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -119,22 +119,22 @@ __snapguest() {
 
 # Rollback guest
 __rollguest() {
-	local fullsnap="$2"
-	local name="$(echo $fullsnap | cut -d '@' -f1)"
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	local snap="$(echo $fullsnap | cut -d '@' -f2)"
-	if [ -z $snap ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
+	local fullsnap=$2
+	local name="$(echo $fullsnap | cut -d '@' -f 1)"
+	local pool="$(zfs list -H -t volume | grep \"iohyve/$name. disk0\" | cut -d '/' -f 1 | head -n 1)"
+	local snap="$(echo $fullsnap | cut -d '@' -f 2)"
+	if [ -z "$snap" ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\troll <name>@<snap>\n"
 		exit 1
 	fi
-	local disklist="$(zfs list -H | grep iohyve/$name | grep disk | cut -f1 | cut -d '/' -f4-)"
+	local disklist="$(zfs list -H | grep iohyve/$name.*disk | cut -f 1 | cut -d '/' -f 4-)"
 	# Check if guest exists
 	echo "Rolling back to $fullsnap"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
-		if [ -z $running ]; then
+		if [ -z "$running" ]; then
 			zfs rollback -rR $pool/iohyve/$fullsnap
 			for disk in $disklist ; do
 				zfs rollback -rR $pool/iohyve/$name/$disk@$snap
@@ -149,28 +149,28 @@ __rollguest() {
 
 # Clone a guest
 __cloneguest() {
-	local flag="$2"
-	local name="$2"
-	local cname="$3"
-	if [ "$flag" == "-r" ]; then
-		name="$3"
-		cname="$4"
+	local flag=$2
+	local name=$2
+	local cname=$3
+	if [ "$flag" = "-r" ]; then
+		name=$3
+		cname=$4
 
-	if [ -z $cname ]; then
+	if [ -z "$cname" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tclone <name> <clonename>\n"
 		exit 1
 	fi
 
 	local description="$(date | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | grep iohyve/$name.*disk0 | cut -d '/' -f 1 | head -n 1)"
 	# Check if guest exists
 	echo "Cloning $name to $cname"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 			# Take snapshot
 			zfs snap -r $pool/iohyve/$name@$cname
 			# zfs send that snap and desendants then receive to cname
-			zfs send -R $pool/iohyve/$name@$cname | \
+			zfs send -R $pool/iohyve/$name@$cname |
 			zfs recv $pool/iohyve/$cname
 			# clean up
 			zfs destroy -rR $pool/iohyve/$name@$cname
@@ -179,19 +179,19 @@ __cloneguest() {
 			zfs set iohyve:name=$cname $pool/iohyve/$cname
 			zfs set iohyve:description=$description $pool/iohyve/$cname
 			# change con and tap properties to next available if -r is specified
-			if [ "$flag" == "-r" ]; then
-				local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
+			if [ "$flag" = "-r" ]; then
+				local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d '/' -f 1-3)"
 					listtaps(){
 						for i in $guestlist ; do
 							local tapprop="$(zfs get -H -o value iohyve:tap $i)"
 							printf $tapprop'\n'
 						done
 					}
-				local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
-				if [ -z $taplast ]; then
+				local taplast="$(listtaps | sort -V | cut -c 4- | tail -n 1)"
+				if [ -z "$taplast" ]; then
 					local tap='0'
 				else
-					local tap="$(expr $taplast + 1)"
+                    local tap="$((taplast + 1))"
 				fi
 				listcons(){
 					for i in $guestlist ; do
@@ -199,11 +199,11 @@ __cloneguest() {
 						printf $conprop'\n'
 					done
 				}
-				local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
-				if [ -z $conlast ]; then
-					local con='0'
+				local conlast="$(listcons | sort -V | cut -c 5- | tail -n 1)"
+				if [ -z "$conlast" ]; then
+					local con=0
 				else
-					local con="$(expr $conlast + 1)"
+                    local con="$((conlast + 1))"
 				fi
 
 				zfs set iohyve:tap=tap$tap $pool/iohyve/$cname
@@ -217,27 +217,27 @@ __cloneguest() {
 
 # Export Guest
 __exportguest() {
-	local name="$2"
-	if [ -z $name ]; then
+	local name=$2
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\texport <name>\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
-				cut -f1 | cut -d '/' -f4-)"
+	local pool="$(zfs list -H -t volume | grep $name.*disk0 | cut -d '/' -f 1 | head -n 1)"
+	local disklist="$(zfs list -H | grep iohyve.*$name.*disk |
+				cut -f 1 | cut -d '/' -f 4-)"
 	# Check if guest exists
 	echo "Exporting $name. Note this may take some time depending on the size."
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
-		if [ -z $running ]; then
+		if [ -z "$running" ]; then
 			# Create /tmp/iohyve/$name
 			echo "Creating temp directory..."
 			mkdir -p /tmp/iohyve/$name
 			# Export Properties to file
 			echo "Exporting properties..."
-			zfs get -H -o property,value all $pool/iohyve/$name | grep iohyve: | sort | \
+			zfs get -H -o property,value all $pool/iohyve/$name | grep iohyve: | sort |
 				sed -e 's/iohyve://g' | sed -e 's/	/=/g' > /tmp/iohyve/$name/properties.ucl
 			# Write disks to file
 			echo "Exporting disks..."
@@ -260,18 +260,17 @@ __exportguest() {
 
 # List all the snapshots
 __snaplist() {
-	zfs list -H -t snap | grep iohyve | grep -v disk | cut -f1 | cut -d '/' -f3
+	zfs list -H -t snap | grep iohyve | grep -v disk | cut -f 1 | cut -d '/' -f 3
 }
 
 # Get PCI device config from zfs
 __get_zfs_pcidev_conf() {
-	local pool="$1"
-	local oldifs=$IFS
+	local pool=$1
+	local oldifs="$IFS"
 	#local pci
 	IFS=$'\n'
-	for pcidev in $(zfs get -H -o property,value all $pool | grep iohyve:pcidev: | sort )
-	do
-		echo $pcidev | cut -f2-
+	for pcidev in $(zfs get -H -o property,value all $pool | grep iohyve:pcidev: | sort ); do
+		echo $pcidev | cut -f 2-
 	done
-	IFS=$oldifs
+	IFS="$oldifs"
 }

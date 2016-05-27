@@ -3,11 +3,12 @@
 # iohyve v0.7.5 2016/04/14 "Tennessee Cherry Moonshine Edition"
 
 # Set proper path thanks to iocage
-PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
+PATH="${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 
 # Check to see if CPU is compatible with bhyve
-if [ $( cat /var/run/dmesg.boot | grep 'POPCNT' ) ]; then
-	if [ -n "$( cat /var/run/dmesg.boot | grep 'CPU:' | grep 'Intel' )" ] && [ -z "$( cat /var/run/dmesg.boot | grep 'VT-x:' | grep 'UG' )" ]; then
+bootmsgs="/var/run/dmesg.boot"
+if [ $(grep POPCNT ${bootmsgs}) ]; then
+	if [ -n "$(grep 'CPU.*Intel' ${bootmsgs})" ] && [ -z "$(grep 'VT-x:.*UG' ${bootmsgs})" ]; then
 		echo "Your CPU does not seem to fully support bhyve. Missing UG feature on Intel CPU, please upgrade to 5600 series."
 		exit 1
 	fi
@@ -29,15 +30,9 @@ fi
 
 . /etc/rc.subr
 
-. "${LIB}/ioh-cmd"
-. "${LIB}/ioh-setup"
-. "${LIB}/ioh-zfs"
-. "${LIB}/ioh-console"
-. "${LIB}/ioh-iso"
-. "${LIB}/ioh-firmware"
-. "${LIB}/ioh-guest"
-. "${LIB}/ioh-disk"
-. "${LIB}/ioh-tap"
+for lib in ${LIB}/ioh-*; do
+    . "${lib}"
+done
 
 # Show version
 __version() {
