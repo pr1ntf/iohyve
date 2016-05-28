@@ -127,7 +127,7 @@ __load_kernel_modules() {
 
 __setup_network() {
 	iface=$1
-	local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1)"
+	local bridgeif="$('ifconfig' -l | grep -F "bridge0" | cut -c1)"
 	if [ -z $bridgeif ]; then
 		echo "Seting up bridge0 on $iface..."
 		if ! sysctl net.link.tap.up_on_open=1 > /dev/null 2>&1; then
