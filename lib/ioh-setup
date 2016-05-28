@@ -63,7 +63,7 @@ __setup_pool() {
 }
 
 __setup_freenas() {
-	val=$1
+	local val=$1
 	echo "On FreeNAS installation."
 	echo "Checking for symbolic link to /iohyve from /mnt/iohyve..."
 	if [ -d /mnt/iohyve ]; then
@@ -89,7 +89,7 @@ __setup_freenas() {
 }
 
 __load_kernel_modules() {
-	val=$1
+	local val=$1
 	if [ $val = "1" ]; then
 		echo "Loading kernel modules..."
 		if ! $(kldstat -q -m vmm); then
@@ -126,7 +126,7 @@ __load_kernel_modules() {
 }
 
 __setup_network() {
-	iface=$1
+	local iface=$1
 	local bridgeif="$('ifconfig' -l | grep -F "bridge0" | cut -c1)"
 	if [ -z $bridgeif ]; then
 		echo "Seting up bridge0 on $iface..."
