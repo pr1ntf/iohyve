@@ -228,7 +228,7 @@ __install() {
 		exit 1
 	fi
 
-	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 	# Check if guest exists
 	if [ -d $mountpoint ]; then
@@ -268,8 +268,8 @@ __load() {
 		exit 1
 	fi
 
-	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "	$name$" | cut -f1)}"
-	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "$(printf '\t')$name$" | cut -f1)}"
+	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
@@ -397,7 +397,7 @@ __boot() {
 	#   2 = always persist (start again even if guest is powering off)
 	local runmode="$2"
 	local pci="$3"
-	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -442,7 +442,7 @@ __boot() {
 
 __prepare_guest() {
 	local name="$1"
-	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local pci="$(__get_zfs_pcidev_conf $dataset)"
 	# Setup tap if needed
 	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
@@ -482,7 +482,7 @@ __start() {
 	local flag="$3"
 	local pci=""
 	local runmode="1"
-	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	# Check if loader is UEFI
 	if [ $loader = "uefi" ]; then
@@ -527,7 +527,7 @@ __uefi() {
 		exit 1
 	fi
 
-	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -640,7 +640,7 @@ __rename() {
 		printf "\trename <name> <newname>\n"
 		exit 1
 	fi
-	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local path="$(echo $dataset | rev | cut -f2- -d/ | rev)"
 	echo "Renaming $name to $newname..."
 	zfs rename -f $dataset $path/$newname
@@ -657,7 +657,7 @@ __delete() {
 			printf "\tdelete [-f] <name>\n"
 			exit 1
 		fi
-		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$flagtwo$" | cut -f1)"
+		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$flagtwo$" | cut -f1)"
 		echo ""
 		echo "[WARNING] Forcing permanent deletion of $flagtwo"
 		echo "Location: $target_dataset including children and clones"
@@ -672,7 +672,7 @@ __delete() {
 			printf "\tdelete [-f] <name>\n"
 			exit 1
 		fi
-		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$flagone$" | cut -f1)"
+		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$flagone$" | cut -f1)"
 		echo ""
 		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
 		read -p "Location: $target_dataset [Y/N]? " an </dev/tty
