@@ -4,24 +4,39 @@
 __setup() {
 	shift 1
 	local args="$@"
+	local poolval
+	local kmodval
+	local netval
+
 	for arg in $args; do
 		local prop="$(echo $arg | cut -d '=' -f1)"
 		local val="$(echo $arg | cut -d '=' -f2)"
 		if [ $prop = "pool" ]; then
-			__setup_pool $val
+			poolval=$val
 		elif [ $prop = "kmod" ]; then
-			__load_kernel_modules $val
+			kmodval=$val
 		elif [ $prop = "net" ]; then
-			__setup_network $val
+			netval=$val
 		fi
 		
 	done
+	
+	# Run commands in correct order, so that the kernel modules are loaded
+	# before the network is setup
+	if [ ! -z $poolval ]; then
+		__setup_pool $poolval
+	fi
+	if [ ! -z $kmodval ]; then
+		__load_kernel_modules $kmodval
+	fi
+	if [ ! -z $netval ]; then
+		__setup_network $netval
+	fi
 }
 
 __setup_pool() {
 	local pool="$1"
-	local poolexist="$(zfs list -H | grep ${pool}/iohyve | head -n1 | cut -c1)"
-	if [ -z $poolexist ]; then
+	if ! zfs list ${pool}/iohyve > /dev/null 2>&1; then
 		echo "Setting up iohyve pool..."
 		zfs create $pool/iohyve
 		# iohyve is already setup on a pool
@@ -115,14 +130,21 @@ __setup_network() {
 	local bridgeif="$('ifconfig' -l | grep -F "bridge0 " | cut -c1)"
 	if [ -z $bridgeif ]; then
 		echo "Seting up bridge0 on $iface..."
-		sysctl net.link.tap.up_on_open=1
+		if ! sysctl net.link.tap.up_on_open=1 > /dev/null 2>&1; then
+			echo "cannot set 'net.link.tap.up_on_open': is if_tap loaded?"
+		fi
 		ifconfig bridge0 create descr "iohyve-bridge"
 		ifconfig bridge0 addm $iface
 		ifconfig bridge0 up
 	else
 		echo "bridge0 is already enabled on this machine..."
-		local sysctlexist="$(sysctl net.link.tap.up_on_open | grep 1 | cut -c1)"
-		if [ -z $sysctlexist ]; then
+		local sysctlexist
+		if ! sysctlexist="$(sysctl -n net.link.tap.up_on_open 2> /dev/null)"; then
+			echo "cannot set 'net.link.tap.up_on_open': is if_tap loaded?"
+			return 1
+		fi
+
+		if [ $sysctlexist = "0" ]; then
 			echo "Setting up correct sysctl value..."
 			sysctl net.link.tap.up_on_open=1
 		else
