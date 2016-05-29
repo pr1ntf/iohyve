@@ -2,44 +2,62 @@
 
 # Set ZFS properties
 __set() {
-	local name="$2"
-	if [ -z $3 ]; then
+	shift 1
+	if [ $# -lt 2 ]; then
 		printf "missing argument\nusage:\n"
-		printf "\tset <name> <property=value> ...\n"
+		printf "\tset <property=value> ... <name>\n"
 		exit 1
 	fi
+
+	local name="$(echo $@ | rev | cut -d' ' -f1 | rev)"
+	local args="$(echo $@ | rev | cut -d' ' -f2- | rev)"
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
-	shift 2
-	for arg in "$@"; do
+
+	local zfsargs
+	for arg in $args; do
 		local prop="$(echo $arg | cut -d '=' -f1)"
 		local val="$(echo $arg | cut -d '=' -f2)"
 		if [ $prop = "bargs" ]; then
 			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
 			echo "Setting $name $prop=$val..."
-			zfs set iohyve:$prop=$sval $pool/iohyve/$name
+			zfsargs="$zfsargs $prop=$sval"
 		elif [ $prop = "description" ]; then
 			local sval="$(echo $val | cut -d '"' -f2)"
 			echo "Setting $name $prop=$val..."
-			zfs set "iohyve:$prop=$sval" $pool/iohyve/$name
+			zfsargs="$zfsargs $prop=$sval"
 		else
 			echo "Setting $name $prop=$val..."
-			zfs set iohyve:$prop=$val $pool/iohyve/$name
+			zfsargs="$zfsargs iohyve:$prop=$val"
 		fi
 	done
+
+	# Set all zfs command in one command, so if one fails, all fail
+	zfs set $zfsargs $pool/iohyve/$name
 }
 
 # Get ZFS props
 __get() {
-	local name="$2"
-	local prop="$3"
-	if [ -z $prop ]; then
+	local prop="$2"
+	local name="$3"
+
+	if [ $prop = "all" ]; then
+		__getall $name
+		 exit 0
+	fi
+
+	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
-		printf "\tget <name> <prop>\n"
+		printf "\tget <prop> <name>\n"
 		exit 1
 	fi
+	
+
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
-	echo "Getting $name prop $prop..."
-	zfs get -H -o value iohyve:$prop $pool/iohyve/$name
+
+	(
+	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
+	printf "%s^%s^%s\n" $name $prop $(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)
+	) | column -ts^
 }
 
 # Remove a PCIDEV property
@@ -87,15 +105,18 @@ __rmpci() {
 
 # Get all ZFS props
 __getall() {
-	local name="$2"
-	if [ -z $name ]; then
-		printf "missing argument\nusage:\n"
-		printf "\tgetall <name>\n"
-		exit 1
+	local guests="$1"
+	# If no guest specified, use all
+	if [ -z $guests ]; then
+		guests="$(zfs get -H -s local -o value iohyve:name)"
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	echo "Getting $name iohyve properties..."
-	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
+	(
+	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
+	for guest in $guests; do
+		local pool="$(zfs list -H -t volume | grep iohyve/$guest | grep disk0 | cut -d '/' -f 1 | head -n1)"
+		printf "%s\n" "$(zfs get -H -o property,value all $pool/iohyve/$guest | grep iohyve: | sort | tr '\t' '^' | sed -e "s/iohyve:/$guest^/g")"
+	done
+	) | column -ts^
 }
 
 # Snapshot a guest

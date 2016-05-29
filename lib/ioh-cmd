@@ -134,10 +134,6 @@ __parse_cmd () {
 				__rmpci "$@"
 				exit
 				;;
-			getall)
-				__getall "$@"
-				exit
-				;;
 			fix-bargs)
 				__fixbargs "$@"
 				exit

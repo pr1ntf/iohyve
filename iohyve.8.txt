@@ -27,10 +27,9 @@ iohyve scram
 iohyve destroy <name>
 iohyve rename <name> <newname>
 iohyve delete [-f] <name>
-iohyve set <name> <property=value> ...
-iohyve get <name> <prop>
+iohyve set <property=value> ... <name>
+iohyve get <"all" | property[,...]> [name]
 iohyve rmpci [-f] <name> <pcidev:N>
-iohyve getall <name>
 iohyve add <name> <size> [pool]
 iohyve remove [-f] <name> <diskN>
 iohyve resize <name> <diskN> <size>
@@ -200,7 +199,7 @@ delete		Deletes all data for the guest.
 		<name>, there is no prompt to delete.
 
 set		Sets ZFS properties for guests one at a time
-		Usage: 'iohyve set <name> <property=value> ...' where
+		Usage: 'iohyve set <property=value> ... <name>' where
 		<name> is the name of the guest operating system.
 		Properties:
 		ram=512M or ram=2G (M for megabytes, G for gigabtyes)
@@ -228,8 +227,8 @@ set		Sets ZFS properties for guests one at a time
 				"pcidev:2=ahci-hd,/some/place/disk.img"
 
 get		Gets ZFS properties for guests one at a time
-		Usage: 'iohyve get <name> <prop>' where <name> is the name
-		of the guest operating system. <prop> is the
+		Usage: 'iohyve get <"all" | property[,...]> <name>' where <name> 
+		is the name of the guest operating system. <property> is the
 		property you want to view. (See 'iohyve set' info)
 
 rmpci		Removes a pcidev from the guest
@@ -237,10 +236,6 @@ rmpci		Removes a pcidev from the guest
 		of the guest operating system. <pcidev:N> is the PCI
 		device you want removed. Ex: 'pcidev:3' If [-f] is supplied
 		before the <name>, there is no prompt to remove.
-
-getall		Gets all the ZFS properties for a guest
-		Usage: 'iohyve getall <name>' where <name> is the name
-		of the guest operating system.
 
 add		Adds a new disk to the guest.
 		Usage: 'iohyve add <name> <size> [pool]' where <name> is
