@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # List taps in use
-__taplist() {
+__tap_list() {
 	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
 	echo "Listing all network taps:"
 	for i in $guestlist ; do
@@ -11,7 +11,7 @@ __taplist() {
 }
 
 # List active taps in use
-__activetaps() {
+__tap_active_list() {
   echo "Listing active network taps..."
 	ls /dev | grep tap
 }

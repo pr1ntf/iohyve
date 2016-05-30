@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # List consoles in use
-__conlist() {
+__console_list() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local guestlist="$(zfs list -H | grep iohyve | grep -v ISO | grep -v disk | grep -v Firmware | sed 1d | cut -f1 | cut -d '/' -f3)"
 	(
@@ -14,7 +14,7 @@ __conlist() {
 }
 
 # Run console
-__console() {
+__console_console() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
@@ -30,6 +30,6 @@ __console() {
 }
 
 # Reset all consoles. This kills the cu(1)
-__conreset() {
+__console_reset() {
 	killall cu
 }
