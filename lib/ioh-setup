@@ -129,7 +129,7 @@ __setup_network() {
 	local iface=$1
 	local bridgeif="$('ifconfig' -l | grep -F "bridge0" | cut -c1)"
 	if [ -z $bridgeif ]; then
-		echo "Seting up bridge0 on $iface..."
+		echo "Setting up bridge0 on $iface..."
 		if ! sysctl net.link.tap.up_on_open=1 > /dev/null 2>&1; then
 			echo "cannot set 'net.link.tap.up_on_open': is if_tap loaded?"
 		fi
