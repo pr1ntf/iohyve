@@ -1,14 +1,14 @@
 #!/bin/sh
 
 # List iso's
-__isolist() {
+__iso_list() {
 	echo "Listing ISO's..."
 	zfs list -H | grep iohyve/ISO | cut -f 1 | cut -d '/' -f 4 | sed 1d
 }
 
 
 # Fetch ISO
-__fetchiso() {
+__iso_fetch() {
 	local url="$2"
 	if [ -z $url ]; then
 		printf "missing argument\nusage:\n"
@@ -23,7 +23,7 @@ __fetchiso() {
 }
 
 # Copy ISO from local machine
-__cpiso() {
+__iso_copy() {
 	local loc="$2"
 	if [ -z $loc ]; then
 		printf "missing argument\nusage:\n"
@@ -38,7 +38,7 @@ __cpiso() {
 }
 
 # Rename an ISO
-__renameiso() {
+__iso_rename() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local iso="$2"
 	local name="$3"
@@ -53,7 +53,7 @@ __renameiso() {
 }
 
 # Delete ISO
-__deleteiso() {
+__iso_delete() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
