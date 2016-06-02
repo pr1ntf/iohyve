@@ -9,32 +9,34 @@ __zfs_set() {
 		exit 1
 	fi
 
-	local name="$(echo $@ | rev | cut -d' ' -f1 | rev)"
-	local args="$(echo $@ | rev | cut -d' ' -f2- | rev)"
+	local name="$(echo "$@" | rev | cut -d' ' -f1 | rev)"
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 
-	local zfsargs
-	for arg in $args; do
-		if [ -z "$(echo $arg | grep =)" ]; then
-			printf "missing value\nusage:\n"
+	local var=0
+	for arg in "$@"; do
+		# Increment loop counter
+		var=$(($var+1))
+		# Exit if last loop iteration is reached
+		if [ $var -eq $# ]; then
+			exit 0
+		fi
+		if [ -z "$(echo "$arg" | grep =)" ]; then
+			printf "missing value for '$arg'\nusage:\n"
 			printf "\tset <property=value> ... <name>\n"
 			exit 1
 		fi
-		local prop="$(echo $arg | cut -d '=' -f1)"
-		local val="$(echo $arg | cut -d '=' -f2)"
+		local prop="$(echo "$arg" | cut -d '=' -f1)"
+		local val="$(echo "$arg" | cut -d '=' -f2)"
 		if [ $prop = "bargs" ]; then
 			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
-			zfsargs="$zfsargs iohyve:$prop=$sval"
+			zfs set iohyve:$prop=$sval $pool/iohyve/$name
 		elif [ $prop = "description" ]; then
 			local sval="$(echo $val | cut -d '"' -f2)"
-			zfsargs="$zfsargs iohyve:$prop=$sval"
+			zfs set "iohyve:$prop=$sval" $pool/iohyve/$name
 		else
-			zfsargs="$zfsargs iohyve:$prop=$val"
+			zfs set iohyve:$prop=$val $pool/iohyve/$name
 		fi
 	done
-
-	# Set all zfs command in one command, so if one fails, all fail
-	zfs set $zfsargs $pool/iohyve/$name
 }
 
 # Get ZFS props
