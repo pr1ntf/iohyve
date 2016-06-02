@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Add a new disk to guest
-__add() {
+__disk_add() {
 	local name="$2"
 	local size="$3"
 
@@ -33,7 +33,7 @@ __add() {
 }
 
 # Remove disk from guest
-__remove() {
+__disk_remove() {
 	local flagone="$2"
 	local flagtwo="$3"
 	local flagthree="$4"
@@ -78,7 +78,7 @@ __remove() {
 }
 
 # Resize a disk
-__resize(){
+__disk_resize(){
 	local name="$2"
 	local disk="$3"
 	local size="$4"
@@ -105,7 +105,7 @@ __resize(){
 }
 
 # List disks for a guest
-__disks() {
+__disk_disks() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"

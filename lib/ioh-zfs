@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Set ZFS properties
-__set() {
+__zfs_set() {
 	shift 1
 	if [ $# -lt 2 ]; then
 		printf "missing argument\nusage:\n"
@@ -15,18 +15,20 @@ __set() {
 
 	local zfsargs
 	for arg in $args; do
+		if [ -z "$(echo $arg | grep =)" ]; then
+			printf "missing value\nusage:\n"
+			printf "\tset <property=value> ... <name>\n"
+			exit 1
+		fi
 		local prop="$(echo $arg | cut -d '=' -f1)"
 		local val="$(echo $arg | cut -d '=' -f2)"
 		if [ $prop = "bargs" ]; then
 			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
-			echo "Setting $name $prop=$val..."
-			zfsargs="$zfsargs $prop=$sval"
+			zfsargs="$zfsargs iohyve:$prop=$sval"
 		elif [ $prop = "description" ]; then
 			local sval="$(echo $val | cut -d '"' -f2)"
-			echo "Setting $name $prop=$val..."
-			zfsargs="$zfsargs $prop=$sval"
+			zfsargs="$zfsargs iohyve:$prop=$sval"
 		else
-			echo "Setting $name $prop=$val..."
 			zfsargs="$zfsargs iohyve:$prop=$val"
 		fi
 	done
@@ -36,13 +38,13 @@ __set() {
 }
 
 # Get ZFS props
-__get() {
+__zfs_get() {
 	local prop="$2"
 	local name="$3"
 
 	if [ $prop = "all" ]; then
-		__getall $name
-		 exit 0
+		__zfs_getall $name
+		exit
 	fi
 
 	if [ -z $name ]; then
@@ -56,12 +58,12 @@ __get() {
 
 	(
 	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
-	printf "%s^%s^%s\n" $name $prop $(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)
+	printf "%s^%s^%s\n" $name $prop "$(zfs get -H -o value iohyve:$prop $pool/iohyve/$name)"
 	) | column -ts^
 }
 
 # Remove a PCIDEV property
-__rmpci() {
+__zfs_rmpci() {
 	local flagone="$2"
 	local flagtwo="$3"
 	local flagthree="$4"
@@ -104,7 +106,7 @@ __rmpci() {
 }
 
 # Get all ZFS props
-__getall() {
+__zfs_getall() {
 	local guests="$1"
 	# If no guest specified, use all
 	if [ -z $guests ]; then
@@ -120,7 +122,7 @@ __getall() {
 }
 
 # Snapshot a guest
-__snapguest() {
+__zfs_snapguest() {
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
 	if [ -z $name ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
@@ -139,7 +141,7 @@ __snapguest() {
 }
 
 # Rollback guest
-__rollguest() {
+__zfs_rollguest() {
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
@@ -169,7 +171,7 @@ __rollguest() {
 }
 
 # Clone a guest
-__cloneguest() {
+__zfs_cloneguest() {
 	local flag="$2"
 	local name="$2"
 	local cname="$3"
@@ -237,7 +239,7 @@ __cloneguest() {
 }
 
 # Export Guest
-__exportguest() {
+__zfs_exportguest() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
@@ -280,12 +282,12 @@ __exportguest() {
 }
 
 # List all the snapshots
-__snaplist() {
+__zfs_snaplist() {
 	zfs list -H -t snap | grep iohyve | grep -v disk | cut -f1 | cut -d '/' -f3
 }
 
 # Get PCI device config from zfs
-__get_zfs_pcidev_conf() {
+__zfs_get_pcidev_conf() {
 	local pool="$1"
 	local oldifs=$IFS
 	#local pci
