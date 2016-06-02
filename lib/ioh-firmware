@@ -1,13 +1,13 @@
 #!/bin/sh
 
 # List Firmware
-__fwlist() {
+__firmware_list() {
 	echo "Listing Firmware..."
 	zfs list -H | grep iohyve/Firmware | cut -f1 | cut -d '/' -f 4 | sed 1d
 }
 
 # Fetch Firmware
-__fetchfw() {
+__firmware_fetch() {
 	local url="$2"
 	if [ -z $url ]; then
 		printf "missing argument\nusage:\n"
@@ -22,7 +22,7 @@ __fetchfw() {
 }
 
 # Copy Firmware from local machine
-__cpfw() {
+__firmware_copy() {
 	local loc="$2"
 	if [ -z $loc ]; then
 		printf "missing argument\nusage:\n"
@@ -37,7 +37,7 @@ __cpfw() {
 }
 
 # Rename Firmware
-__renamefw() {
+__firmware_rename() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local fw="$2"
 	local name="$3"
@@ -52,7 +52,7 @@ __renamefw() {
 }
 
 # Delete Firmware
-__deletefw() {
+__firmware_delete() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"

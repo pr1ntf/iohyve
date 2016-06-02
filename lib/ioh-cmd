@@ -27,115 +27,115 @@ __parse_cmd () {
 				exit
 				;;
 			list)
-				__list "$2"
+				__guest_list "$2"
 				exit
 				;;
 			info)
-				__info "$@"
+				__guest_info "$@"
 				exit
 				;;
 			isolist)
-				__isolist
+				__iso_list
 				exit
 				;;
 			fwlist)
-				__fwlist
+				__firmware_list
 				exit
 				;;
 			fetchiso|fetch)
-				__fetchiso "$@"
+				__iso_fetch "$@"
 				exit
 				;;
 			cpiso)
-				__cpiso "$@"
+				__iso_copy "$@"
 				exit
 				;;
 			renameiso)
-				__renameiso "$@"
+				__iso_rename "$@"
 				exit
 				;;
 			rmiso)
-				__deleteiso "$@"
+				__iso_delete "$@"
 				exit
 				;;
 			fetchfw)
-				__fetchfw "$@"
+				__firmware_fetch "$@"
 				exit
 				;;
 			cpfw)
-				__cpfw "$@"
+				__firmware_copy "$@"
 				exit
 				;;
 			renamefw)
-				__renamefw "$@"
+				__firmware_rename "$@"
 				exit
 				;;
 			rmfw)
-				__deletefw "$@"
+				__firmware_delete "$@"
 				exit
 				;;
 			create)
-				__create "$@"
+				__guest_create "$@"
 				exit
 				;;
 			install)
-				__install "$@"
+				__guest_install "$@"
 				exit
 				;;
 			load)
-				__load "$2" "$3"
+				__guest_load "$2" "$3"
 				exit
 				;;
 			boot)
-				__boot "$2" "$3" "$4"
+				__guest_boot "$2" "$3" "$4"
 				exit
 				;;
 			start)
-				__start "$@"
+				__guest_start "$@"
 				exit
 				;;
 			uefi)
-				__uefi "$@"
+				__guest_uefi "$@"
 				exit
 				;;
 			stop)
-				__stop "$@"
+				__guest_stop "$@"
 				exit
 				;;
 			forcekill)
-				__forcekill "$@"
+				__guest_forcekill "$@"
 				exit
 				;;
 			scram)
-				__scram
+				__guest_scram
 				exit
 				;;
 			destroy)
-				__destroy "$@"
+				__guest_destroy "$@"
 				exit
 				;;
 			rename)
-				__rename "$@"
+				__guest_rename "$@"
 				exit
 				;;
 			delete)
-				__delete "$@"
+				__guest_delete "$@"
 				exit
 				;;
 			set)
-				__set "$@"
+				__zfs_set "$@"
 				exit
 				;;
 			get)
-				__get "$@"
+				__zfs_get "$@"
 				exit
 				;;
 			rmpci)
-				__rmpci "$@"
+				__zfs_rmpci "$@"
 				exit
 				;;
 			getall)
-				__getall "$@"
+				__zfs_getall "$@"
 				exit
 				;;
 			fix-bargs)
@@ -143,59 +143,59 @@ __parse_cmd () {
 				exit
 				;;
 			add)
-				__add "$@"
+				__disk_add "$@"
 				exit
 				;;
 			remove)
-				__remove "$@"
+				__disk_remove "$@"
 				exit
 				;;
 			resize)
-				__resize "$@"
+				__disk_resize "$@"
 				exit
 				;;
 			disks)
-				__disks "$@"
+				__disk_disks "$@"
 				exit
 				;;
 			snap)
-				__snapguest "$@"
+				__zfs_snapguest "$@"
 				exit
 				;;
 			roll)
-				__rollguest "$@"
+				__zfs_rollguest "$@"
 				exit
 				;;
 			clone)
-				__cloneguest "$@"
+				__zfs_cloneguest "$@"
 				exit
 				;;
 			export)
-				__exportguest "$@"
+				__zfs_exportguest "$@"
 				exit
 				;;
 			snaplist)
-				__snaplist
+				__zfs_snaplist
 				exit
 				;;
 			taplist)
-				__taplist
+				__tap_list
 				exit
 				;;
 			activetaps)
-				__activetaps
+				__tap_active_list
 				exit
 				;;
 			conlist)
-				__conlist
+				__console_list
 				exit
 				;;
 			console)
-				__console "$@"
+				__console_console "$@"
 				exit
 				;;
 			conreset)
-				__conreset
+				__console_reset
 				exit
 				;;
 			help|-h)

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # List Guests
-__list() {
+__guest_list() {
 	local flags="$1"
 	(
 	printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
@@ -43,7 +43,7 @@ __list() {
 }
 
 # Display info about all guests.
-__info() {
+__guest_info() {
 	local flags="$@"
 
 	# Poll to see what pools have active guests
@@ -158,7 +158,7 @@ __info() {
 }
 
 # Create guest
-__create() {
+__guest_create() {
 	local name="$2"
 	local pool="${4-$(zfs get -H -s local -o name -t filesystem iohyve:name | head -n1 | cut -f1 -d/)}"
 	local size="$3"
@@ -218,7 +218,7 @@ __create() {
 }
 
 # Install guest
-__install() {
+__guest_install() {
 	local name="$2"
 	local iso="$3"
 
@@ -226,6 +226,11 @@ __install() {
 		printf "missing argument\nusage:\n"
 		printf "\tinstall <name> <ISO>\n"
 		exit 1
+	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
 	fi
 
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
@@ -244,10 +249,10 @@ __install() {
 			# Set install prop
 			zfs set iohyve:install=yes $dataset
 			# Load from CD
-			__load "$name" "/iohyve/ISO/$iso/$iso"
+			__guest_load "$name" "/iohyve/ISO/$iso/$iso"
 			# Prepare and start guest
-			pci="$(__prepare_guest $name) ahci-cd,/iohyve/ISO/$iso/$iso"
-			local pci_args=$(__get_bhyve_cmd "$pci" )
+			pci="$(__guest_prepare $name) ahci-cd,/iohyve/ISO/$iso/$iso"
+			local pci_args=$(__guest_get_bhyve_cmd "$pci" )
 			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 		else
 			echo "Guest is already running."
@@ -258,7 +263,7 @@ __install() {
 }
 
 # Load guest
-__load() {
+__guest_load() {
 	local name="$1"
 	local media="$2"
 
@@ -266,6 +271,11 @@ __load() {
 		printf "missing argument\nusage:\n"
 		printf "\tload <name> <path/to/bootdisk>\n"
 		exit 1
+	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
 	fi
 
 	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "	$name$" | cut -f1)}"
@@ -384,13 +394,19 @@ __load() {
 }
 
 # Boot guest
-__boot() {
+__guest_boot() {
 	local name="$1"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tboot <name> [runmode] [pcidevices]\n"
 		exit 1
 	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
+	fi
+
 	# runmode (runonce/persist)
 	#   0 = once
 	#   1 = persist regular (stop if guest is powering off)
@@ -407,14 +423,14 @@ __boot() {
 	# Set install prop
 	zfs set iohyve:install=no $dataset
 	# Generate list of bhyve -s commands for all devices
-	local pci_args=$(__get_bhyve_cmd "$pci" )
+	local pci_args=$(__guest_get_bhyve_cmd "$pci" )
 	# Handle the starting of the guest inside a spawned subshell so the guest
 	# can be restarted automatically if the guest reboots or crashes
 	local runstate="1"
 	(
 		while [ $runstate = "1" ]
 		do
-			__load "$name" "/dev/zvol/$dataset/disk0"
+			__guest_load "$name" "/dev/zvol/$dataset/disk0"
 			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 			local vmpid=$!
 			wait $vmpid
@@ -440,10 +456,10 @@ __boot() {
 	) &
 }
 
-__prepare_guest() {
+__guest_prepare() {
 	local name="$1"
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
-	local pci="$(__get_zfs_pcidev_conf $dataset)"
+	local pci="$(__zfs_get_pcidev_conf $dataset)"
 	# Setup tap if needed
 	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
 	for tap in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
@@ -472,13 +488,19 @@ __prepare_guest() {
 }
 
 # Start guest (combine load and boot)
-__start() {
+__guest_start() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tstart <name> [-s | -a]\n"
 		exit 1
 	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
+	fi
+
 	local flag="$3"
 	local pci=""
 	local runmode="1"
@@ -486,7 +508,7 @@ __start() {
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	# Check if loader is UEFI
 	if [ $loader = "uefi" ]; then
-		__uefi "$name" "null.iso"
+		__guest_uefi "$name" "null.iso"
 	fi
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 
@@ -505,8 +527,8 @@ __start() {
 			esac
 			echo "Starting $name... (Takes 15 seconds for FreeBSD guests)"
 			# Prepare and boot guest
-			pci="$(__prepare_guest $name)"
-			__boot "$name" "$runmode" "$pci"
+			pci="$(__guest_prepare $name)"
+			__guest_boot "$name" "$runmode" "$pci"
 		else
 			echo "Guest is already running."
 		fi
@@ -517,7 +539,7 @@ __start() {
 
 # Start a UEFI enabled bhyve instance.
 # This is experimental, use with caution.
-__uefi() {
+__guest_uefi() {
 	local name="$2"
 	local media="$3"
 
@@ -525,6 +547,11 @@ __uefi() {
 		printf "missing argument\nusage:\n"
 		printf "\tuefi <name> <ISO>\n"
 		exit 1
+	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
 	fi
 
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
@@ -576,24 +603,29 @@ __uefi() {
 }
 
 # Gracefully stop a guest
-__stop() {
+__guest_stop() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tstop <name>\n"
 		exit 1
 	fi
+
 	local pid=$(pgrep -fx "bhyve: ioh-$name")
 	echo "Stopping $name..."
 #	zfs set iohyve:persist=0 $pool/iohyve/$name
-	kill $pid
+	if [ ! -z $pid ]; then
+		kill $pid
+	else
+		echo "$name not running"
+	fi
 #	sleep 20
 #	bhyvectl --destroy --vm=ioh-$name
 }
 
 # Force kill -9 everyting matching $name and destroy
 # THIS WILL KILL EVERYTHING MATCHING $NAME
-__forcekill() {
+__guest_forcekill() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
@@ -608,7 +640,7 @@ __forcekill() {
 }
 
 # Gracefully shut down all guests via ACPI (Does not destroy)
-__scram() {
+__guest_scram() {
 	echo "Shutting down all guests..."
 	local pids="$(pgrep -f ioh-)"
 	for apid in "$pids"; do
@@ -618,7 +650,7 @@ __scram() {
 }
 
 # Destroy guest
-__destroy() {
+__guest_destroy() {
 	local name="$2"
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
@@ -632,7 +664,7 @@ __destroy() {
 }
 
 # Rename the guest
-__rename() {
+__guest_rename() {
 	local name="$2"
 	local newname="$3"
 	if [ -z $newname ]; then
@@ -640,6 +672,12 @@ __rename() {
 		printf "\trename <name> <newname>\n"
 		exit 1
 	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
+	fi
+
 	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
 	local path="$(echo $dataset | rev | cut -f2- -d/ | rev)"
 	echo "Renaming $name to $newname..."
@@ -648,7 +686,7 @@ __rename() {
 }
 
 # Delete guest
-__delete() {
+__guest_delete() {
 	local flagone="$2"
 	local flagtwo="$3"
 	if [ $flagone = "-f" ]; then
@@ -657,6 +695,12 @@ __delete() {
 			printf "\tdelete [-f] <name>\n"
 			exit 1
 		fi
+
+		if ! __guest_exist $flagtwo; then
+			echo "guest $flagtwo doesn't exist"
+			return 1
+		fi
+
 		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$flagtwo$" | cut -f1)"
 		echo ""
 		echo "[WARNING] Forcing permanent deletion of $flagtwo"
@@ -672,6 +716,12 @@ __delete() {
 			printf "\tdelete [-f] <name>\n"
 			exit 1
 		fi
+
+		if ! __guest_exist $flagone; then
+			echo "guest $flagone doesn't exist"
+			return 1
+		fi
+
 		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$flagone$" | cut -f1)"
 		echo ""
 		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
@@ -684,11 +734,15 @@ __delete() {
 	fi
 }
 
-__get_bhyve_cmd() {
+__guest_get_bhyve_cmd() {
 	local devices="$1"
 	local pci_slot_count=0
 	for device in $devices ; do
 		echo "-s $pci_slot_count,$device"
 		pci_slot_count=$(( pci_slot_count + 1 ))
 	done
+}
+
+__guest_exist() {
+	zfs get -H -s local -o value iohyve:name | grep ^$1$ > /dev/null
 }
