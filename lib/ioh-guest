@@ -228,6 +228,11 @@ __install() {
 		exit 1
 	fi
 
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
+	fi
+
 	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "	$name$" | cut -f1)"
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 	# Check if guest exists
@@ -266,6 +271,11 @@ __load() {
 		printf "missing argument\nusage:\n"
 		printf "\tload <name> <path/to/bootdisk>\n"
 		exit 1
+	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
 	fi
 
 	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "	$name$" | cut -f1)}"
@@ -391,6 +401,12 @@ __boot() {
 		printf "\tboot <name> [runmode] [pcidevices]\n"
 		exit 1
 	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
+	fi
+
 	# runmode (runonce/persist)
 	#   0 = once
 	#   1 = persist regular (stop if guest is powering off)
@@ -479,6 +495,12 @@ __start() {
 		printf "\tstart <name> [-s | -a]\n"
 		exit 1
 	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
+	fi
+
 	local flag="$3"
 	local pci=""
 	local runmode="1"
@@ -525,6 +547,11 @@ __uefi() {
 		printf "missing argument\nusage:\n"
 		printf "\tuefi <name> <ISO>\n"
 		exit 1
+	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
 	fi
 
 	local dataset="$(zfs get -H -s local -o name,value iohyve:name | grep "	$name$" | cut -f1)"
@@ -583,10 +610,15 @@ __stop() {
 		printf "\tstop <name>\n"
 		exit 1
 	fi
+
 	local pid=$(pgrep -fx "bhyve: ioh-$name")
 	echo "Stopping $name..."
 #	zfs set iohyve:persist=0 $pool/iohyve/$name
-	kill $pid
+	if [ ! -z $pid ]; then
+		kill $pid
+	else
+		echo "$name not running"
+	fi
 #	sleep 20
 #	bhyvectl --destroy --vm=ioh-$name
 }
@@ -640,6 +672,12 @@ __rename() {
 		printf "\trename <name> <newname>\n"
 		exit 1
 	fi
+
+	if ! __guest_exist $name; then
+		echo "guest $name doesn't exist"
+		return 1
+	fi
+
 	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
 	local path="$(echo $dataset | rev | cut -f2- -d/ | rev)"
 	echo "Renaming $name to $newname..."
@@ -657,6 +695,12 @@ __delete() {
 			printf "\tdelete [-f] <name>\n"
 			exit 1
 		fi
+
+		if ! __guest_exist $flagtwo; then
+			echo "guest $flagtwo doesn't exist"
+			return 1
+		fi
+
 		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$flagtwo$" | cut -f1)"
 		echo ""
 		echo "[WARNING] Forcing permanent deletion of $flagtwo"
@@ -672,6 +716,12 @@ __delete() {
 			printf "\tdelete [-f] <name>\n"
 			exit 1
 		fi
+
+		if ! __guest_exist $flagone; then
+			echo "guest $flagone doesn't exist"
+			return 1
+		fi
+
 		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$flagone$" | cut -f1)"
 		echo ""
 		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
@@ -691,4 +741,8 @@ __get_bhyve_cmd() {
 		echo "-s $pci_slot_count,$device"
 		pci_slot_count=$(( pci_slot_count + 1 ))
 	done
+}
+
+__guest_exist() {
+	zfs get -H -s local -o value iohyve:name | grep ^$1$ > /dev/null
 }
