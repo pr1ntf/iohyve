@@ -130,6 +130,9 @@ __zfs_getall() {
 	# If no guest specified, use all
 	if [ -z $guests ]; then
 		guests="$(zfs get -H -s local -o value iohyve:name)"
+	elif ! __guest_exist $guests; then
+		printf "'$guests' doesn't exist\n"
+		exit 1
 	fi
 	(
 	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
