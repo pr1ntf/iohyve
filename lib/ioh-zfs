@@ -47,10 +47,12 @@ __zfs_set() {
 
 # Get ZFS props
 __zfs_get() {
-	local prop="$2"
-	local name="$3"
+	shift 1
 
-	if [ $prop = "all" ]; then
+	local props="$1"
+	local name="$2"
+
+	if [ $props = "all" ]; then
 		__zfs_getall $name
 		exit
 	fi
@@ -69,7 +71,10 @@ __zfs_get() {
 
 	(
 	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
-	printf "%s^%s^%s\n" $name $prop "$(zfs get -H -o value iohyve:$prop $dataset)"
+	
+	for prop in $(echo $props | tr ',' ' '); do
+		printf "%s^%s^%s\n" $name $prop "$(zfs get -H -o value iohyve:$prop $dataset)"
+	done
 	) | column -ts^
 }
 

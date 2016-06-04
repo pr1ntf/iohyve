@@ -28,7 +28,7 @@ iohyve destroy <name>
 iohyve rename <name> <newname>
 iohyve delete [-f] <name>
 iohyve set <property=value> ... <name>
-iohyve get <"all" | property[,...]> [name]
+iohyve get <"all" | property> [name]
 iohyve rmpci [-f] <name> <pcidev:N>
 iohyve add <name> <size> [pool]
 iohyve remove [-f] <name> <diskN>
@@ -227,7 +227,7 @@ set		Sets ZFS properties for guests one at a time
 				"pcidev:2=ahci-hd,/some/place/disk.img"
 
 get		Gets ZFS properties for guests one at a time
-		Usage: 'iohyve get <"all" | property[,...]> <name>' where <name> 
+		Usage: 'iohyve get <"all" | property> <name>' where <name> 
 		is the name of the guest operating system. <property> is the
 		property you want to view. (See 'iohyve set' info)
 
