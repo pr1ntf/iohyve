@@ -6,10 +6,10 @@ __root_req_cmd () {
 		setup|fetchiso|fetch|cpiso|renameiso|rmiso|fetchfw|cpfw|renamefw|rmfw|create|install|load\
 		|boot|start|uefi|stop|forcekill|scram|destroy|rename|delete|set|rmpci|fix-bargs|add|remove\
 		|resize|disks|snap|roll|clone|export|console|conreset)
-			echo "1"
+			return 0
 			;;
 		*)
-			echo "0"
+			return 1
 			;;
 		esac
 }
