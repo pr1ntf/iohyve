@@ -9,8 +9,14 @@ __zfs_set() {
 		exit 1
 	fi
 
+	# Get last element in the arguemnts
 	local name="$(echo "$@" | rev | cut -d' ' -f1 | rev)"
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+
+	if [ -z $dataset ]; then
+		printf "'$name' doesn't exist\n"
+		exit 1
+	fi
 
 	local var=0
 	for arg in "$@"; do
@@ -56,6 +62,10 @@ __zfs_get() {
 	fi
 	
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	if [ -z $dataset ]; then
+		printf "'$name' doesn't exist\n"
+		exit 1
+	fi
 
 	(
 	printf "%s^%s^%s\n" "NAME" "PROPERTY" "VALUE"
@@ -77,6 +87,10 @@ __zfs_rmpci() {
 		echo "Removing $flagthree from $flagtwo"
 		local pciprop="$(echo "$flagthree" | grep pcidev:)"
 		local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$flagtwo$" | cut -f1)"
+		if [ -z $dataset ]; then
+			printf "'$flagtwo' doesn't exist\n"
+			exit 1
+		fi
 		# Make sure it's a valid pcidev property as to not shoot foot
 		if [ -z $pciprop ]; then
 			echo "Not a valid PCIDEV property"
@@ -91,6 +105,10 @@ __zfs_rmpci() {
 		fi
 		local pciprop="$(echo "$flagtwo" | grep pcidev:)"
 		local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$flagone$" | cut -f1)"
+		if [ -z $dataset ]; then
+			printf "'$flagone' doesn't exist\n"
+			exit 1
+		fi
 		# Make sure it's a valid pcidev property as to not shoot foot
 		if [ -z $pciprop ]; then
 			echo "Not a valid PCIDEV property"
@@ -133,6 +151,10 @@ __zfs_snapguest() {
 		exit 1
 	fi
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	if [ -z $dataset ]; then
+		printf "'$name' doesn't exist\n"
+		exit 1
+	fi
 	echo "Taking snapshot $fullsnap"
 	# Check if guest exists
 	if [ ! -z $dataset ]; then
@@ -153,22 +175,23 @@ __zfs_rollguest() {
 		printf "\troll <name>@<snap>\n"
 		exit 1
 	fi
+	if [ -z $dataset ]; then
+		printf "'$name' doesn't exist\n"
+		exit 1
+	fi
 	local disks="$(zfs list -H -r -t volume -o name $dataset)"
 	# Check if guest exists
 	echo "Rolling back to $fullsnap"
-	if [ ! -z $dataset ]; then
-		# Check to make sure guest isn't running
-		local running=$(pgrep -fx "bhyve: ioh-$name")
-		if [ -z $running ]; then
-			zfs rollback -rR $dataset@$snap
-			for disk in $disks ; do
-				zfs rollback -rR $disk@$snap
-			done
-		else
-			echo "Please stop the guest first"
-		fi
+
+	# Check to make sure guest isn't running
+	local running=$(pgrep -fx "bhyve: ioh-$name")
+	if [ -z $running ]; then
+		zfs rollback -rR $dataset@$snap
+		for disk in $disks ; do
+			zfs rollback -rR $disk@$snap
+		done
 	else
-		echo "Not a valid guest name"
+		echo "Please stop the guest first"
 	fi
 }
 
@@ -191,6 +214,10 @@ __zfs_cloneguest() {
 	local description="$(date | sed -e 's/ /_/g')"
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local datasetpath="$(echo $dataset | rev | cut -d/ -f2- | rev)"
+	if [ -z $dataset ]; then
+		printf "'$name' doesn't exist\n"
+		exit 1
+	fi
 	# Check if guest exists
 	echo "Cloning $name to $cname"
 	if [ ! -z $dataset ]; then
@@ -237,6 +264,10 @@ __zfs_exportguest() {
 		exit 1
 	fi
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	if [ -z $dataset ]; then
+		printf "'$name' doesn't exist\n"
+		exit 1
+	fi
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 	local disks="$(zfs list -H -r -t volume -o name $dataset)"
 	# Check if guest exists
