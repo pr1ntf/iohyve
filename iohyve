@@ -6,7 +6,7 @@
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 
 # Check to see if CPU is compatible with bhyve
-if [ $( grep 'POPCNT' /var/run/dmesg.boot ) ]; then
+if [ -n "$( grep 'POPCNT' /var/run/dmesg.boot )" ]; then
 	if [ -n "$( grep 'CPU:' /var/run/dmesg.boot | grep 'Intel' )" ] && [ -z "$( grep 'VT-x:' /var/run/dmesg.boot | grep 'UG' )" ]; then
 		echo "Your CPU does not seem to fully support bhyve. Missing UG feature on Intel CPU, please upgrade to 5600 series."
 		exit 1
