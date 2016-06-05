@@ -170,7 +170,7 @@ __guest_create() {
 	local description="$(date)"
 
 	# Check if guest with this name already exists
-	if [ ! -z "$(zfs get -H -o value -s local iohyve:name | grep ^$name$)" ]; then
+	if [ -n "$(zfs get -H -o value -s local iohyve:name | grep ^$name$)" ]; then
 		echo "Error: Guest with this name already exists"
 		exit 1
 	fi
@@ -203,18 +203,19 @@ __guest_create() {
 	echo "Creating $name..."
 	zfs create $pool/iohyve/$name
 	zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk0
-	zfs set iohyve:name=$name $pool/iohyve/$name
-	zfs set iohyve:size=$size $pool/iohyve/$name
-	zfs set iohyve:ram=256M $pool/iohyve/$name
-	zfs set iohyve:cpu=1 $pool/iohyve/$name
-	zfs set iohyve:tap=tap$tap $pool/iohyve/$name
-	zfs set iohyve:con=nmdm$con $pool/iohyve/$name
-	zfs set iohyve:persist=1 $pool/iohyve/$name
-	zfs set iohyve:boot=0 $pool/iohyve/$name
-	zfs set iohyve:loader=bhyveload $pool/iohyve/$name
-	zfs set iohyve:os=default $pool/iohyve/$name
-	zfs set "iohyve:description=$description" $pool/iohyve/$name
-	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
+
+	zfs set iohyve:name=$name \
+		iohyve:size=$size \
+		iohyve:ram=256M \
+		iohyve:cpu=1 \
+		iohyve:tap=tap$tap \
+		iohyve:con=nmdm$con \
+		iohyve:persist=1 \
+		iohyve:boot=0 \
+		iohyve:loader=bhyveload \
+		iohyve:os=default \
+		"iohyve:description=$description" \
+		iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
 
 # Install guest
@@ -450,7 +451,7 @@ __guest_boot() {
 		bhyvectl --destroy --vm=ioh-$name
 		# Resetting the flag so that a vm which we stopped by abusing zfs set/get
 		# as as an IPC mechanism is persistent again next time we start it
-		if [ ! -z $persist ]; then
+		if [ -n "$persist" ]; then
 			zfs set iohyve:persist="$persist" $dataset
 		fi
 	) &
@@ -614,7 +615,7 @@ __guest_stop() {
 	local pid=$(pgrep -fx "bhyve: ioh-$name")
 	echo "Stopping $name..."
 #	zfs set iohyve:persist=0 $pool/iohyve/$name
-	if [ ! -z $pid ]; then
+	if [ -n "$pid" ]; then
 		kill $pid
 	else
 		echo "$name not running"
