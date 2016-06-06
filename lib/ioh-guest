@@ -170,7 +170,7 @@ __guest_create() {
 	local description="$(date)"
 
 	# Check if guest with this name already exists
-	if [ ! -z "$(zfs get -H -o value -s local -t filesystem iohyve:name | grep ^$name$)" ]; then
+	if [ -n "$(zfs get -H -o value -s local -t filesystem iohyve:name | grep ^$name$)" ]; then
 		echo "Error: Guest with this name already exists"
 		exit 1
 	fi
@@ -203,18 +203,19 @@ __guest_create() {
 	echo "Creating $name..."
 	zfs create $pool/iohyve/$name
 	zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk0
-	zfs set iohyve:name=$name $pool/iohyve/$name
-	zfs set iohyve:size=$size $pool/iohyve/$name
-	zfs set iohyve:ram=256M $pool/iohyve/$name
-	zfs set iohyve:cpu=1 $pool/iohyve/$name
-	zfs set iohyve:tap=tap$tap $pool/iohyve/$name
-	zfs set iohyve:con=nmdm$con $pool/iohyve/$name
-	zfs set iohyve:persist=1 $pool/iohyve/$name
-	zfs set iohyve:boot=0 $pool/iohyve/$name
-	zfs set iohyve:loader=bhyveload $pool/iohyve/$name
-	zfs set iohyve:os=default $pool/iohyve/$name
-	zfs set "iohyve:description=$description" $pool/iohyve/$name
-	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
+
+	zfs set iohyve:name=$name \
+		iohyve:size=$size \
+		iohyve:ram=256M \
+		iohyve:cpu=1 \
+		iohyve:tap=tap$tap \
+		iohyve:con=nmdm$con \
+		iohyve:persist=1 \
+		iohyve:boot=0 \
+		iohyve:loader=bhyveload \
+		iohyve:os=default \
+		"iohyve:description=$description" \
+		iohyve:bargs=-A_-H_-P $pool/iohyve/$name
 }
 
 # Install guest
@@ -233,7 +234,7 @@ __guest_install() {
 		return 1
 	fi
 
-	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 	# Check if guest exists
 	if [ -d $mountpoint ]; then
@@ -278,8 +279,8 @@ __guest_load() {
 		return 1
 	fi
 
-	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "	$name$" | cut -f1)}"
-	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "$(printf '\t')$name$" | cut -f1)}"
+	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
@@ -413,7 +414,7 @@ __guest_boot() {
 	#   2 = always persist (start again even if guest is powering off)
 	local runmode="$2"
 	local pci="$3"
-	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -450,7 +451,7 @@ __guest_boot() {
 		bhyvectl --destroy --vm=ioh-$name
 		# Resetting the flag so that a vm which we stopped by abusing zfs set/get
 		# as as an IPC mechanism is persistent again next time we start it
-		if [ ! -z $persist ]; then
+		if [ -n "$persist" ]; then
 			zfs set iohyve:persist="$persist" $dataset
 		fi
 	) &
@@ -458,7 +459,8 @@ __guest_boot() {
 
 __guest_prepare() {
 	local name="$1"
-	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local pci="$(__zfs_get_pcidev_conf $dataset)"
+	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local pci="$(__zfs_get_pcidev_conf $dataset)"
 	# Setup tap if needed
 	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
@@ -504,7 +506,7 @@ __guest_start() {
 	local flag="$3"
 	local pci=""
 	local runmode="1"
-	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	# Check if loader is UEFI
 	if [ $loader = "uefi" ]; then
@@ -554,7 +556,7 @@ __guest_uefi() {
 		return 1
 	fi
 
-	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -614,7 +616,7 @@ __guest_stop() {
 	local pid=$(pgrep -fx "bhyve: ioh-$name")
 	echo "Stopping $name..."
 #	zfs set iohyve:persist=0 $pool/iohyve/$name
-	if [ ! -z $pid ]; then
+	if [ -n "$pid" ]; then
 		kill $pid
 	else
 		echo "$name not running"
@@ -678,7 +680,7 @@ __guest_rename() {
 		return 1
 	fi
 
-	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$name$" | cut -f1)"
+	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local path="$(echo $dataset | rev | cut -f2- -d/ | rev)"
 	echo "Renaming $name to $newname..."
 	zfs rename -f $dataset $path/$newname
@@ -701,7 +703,7 @@ __guest_delete() {
 			return 1
 		fi
 
-		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$flagtwo$" | cut -f1)"
+		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$flagtwo$" | cut -f1)"
 		echo ""
 		echo "[WARNING] Forcing permanent deletion of $flagtwo"
 		echo "Location: $target_dataset including children and clones"
@@ -722,7 +724,7 @@ __guest_delete() {
 			return 1
 		fi
 
-		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "	$flagone$" | cut -f1)"
+		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$flagone$" | cut -f1)"
 		echo ""
 		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
 		read -p "Location: $target_dataset [Y/N]? " an </dev/tty

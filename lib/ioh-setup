@@ -23,13 +23,13 @@ __setup() {
 	
 	# Run commands in correct order, so that the kernel modules are loaded
 	# before the network is setup
-	if [ ! -z $poolval ]; then
+	if [ -n "$poolval" ]; then
 		__setup_pool $poolval
 	fi
-	if [ ! -z $kmodval ]; then
+	if [ -n "$kmodval" ]; then
 		__load_kernel_modules $kmodval
 	fi
-	if [ ! -z $netval ]; then
+	if [ -n "$netval" ]; then
 		__setup_network $netval
 	fi
 }
@@ -92,31 +92,41 @@ __load_kernel_modules() {
 	local val=$1
 	if [ $val = "1" ]; then
 		echo "Loading kernel modules..."
+		local modulelist
 		if ! $(kldstat -q -m vmm); then
-			kldload vmm
+			modulelist="$modulelist vmm"
 		fi
 		if ! $(kldstat -q -m nmdm); then
-			kldload nmdm
+			modulelist="$modulelist nmdm"
 		fi
 		if ! $(kldstat -q -m if_bridge); then
-			kldload if_bridge
+			modulelist="$modulelist if_bridge"
 		fi
 		if ! $(kldstat -q -m if_tap); then
-			kldload if_tap
+			modulelist="$modulelist if_tap"
+		fi
+		# Load all modules together
+		if [ "$modulelist" ]; then
+			kldload $modulelist
 		fi
 	elif [ $val = "0" ]; then
 		echo "Unloading kernel modules..."
+		local modulelist
 		if $(kldstat -q -m vmm); then
-			kldunload vmm
+			modulelist="$modulelist vmm"
 		fi
 		if $(kldstat -q -m nmdm); then
-			kldunload nmdm
+			modulelist="$modulelist nmdm"
 		fi
 		if $(kldstat -q -m if_bridge); then
-			kldunload if_bridge
+			modulelist="$modulelist if_bridge"
 		fi
 		if $(kldstat -q -m if_tap); then
-			kldunload if_tap
+			modulelist="$modulelist if_tap"
+		fi
+		# Unload all modules together
+		if [ "$modulelist" ]; then
+			kldunload $modulelist
 		fi
 	else
 		echo "Improper syntax"
@@ -133,9 +143,7 @@ __setup_network() {
 		if ! sysctl net.link.tap.up_on_open=1 > /dev/null 2>&1; then
 			echo "cannot set 'net.link.tap.up_on_open': is if_tap loaded?"
 		fi
-		ifconfig bridge0 create descr "iohyve-bridge"
-		ifconfig bridge0 addm $iface
-		ifconfig bridge0 up
+		ifconfig bridge0 create descr "iohyve-bridge" addm $iface up
 	else
 		echo "bridge0 is already enabled on this machine..."
 		local sysctlexist
