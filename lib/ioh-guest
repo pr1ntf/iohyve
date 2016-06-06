@@ -459,7 +459,6 @@ __guest_boot() {
 
 __guest_prepare() {
 	local name="$1"
-	local pci="$(__zfs_get_pcidev_conf $dataset)"
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local pci="$(__zfs_get_pcidev_conf $dataset)"
 	# Setup tap if needed
