@@ -569,6 +569,13 @@ __guest_uefi() {
 	local fw="$(zfs get -H -o value iohyve:fw $dataset)"
 	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
 	local bargs="$(zfs get -H -o value iohyve:bargs $dataset | sed -e 's/_/ /g')"
+	local vnc="$(zfs get -H -o value iohyve:vnc $dataset)"
+	local vnc_ip="$(zfs get -H -o value iohyve:vnc_ip $dataset)"
+	local vnc_port="$(zfs get -H -o value iohyve:vnc_port $dataset)"
+	local vnc_w="$(zfs get -H -o value iohyve:vnc_w $dataset)"
+	local vnc_h="$(zfs get -H -o value iohyve:vnc_h $dataset)"
+	local vnc_wait="$(zfs get -H -o value iohyve:vnc_wait $dataset)"
+	local vnc_tablet="$(zfs get -H -o value iohyve:vnc_tablet $dataset)"
 	local pool="$(zfs list -H -t volume -o name | grep iohyve/$name | cut -d '/' -f1)"
 	# Create tap if needed
 	# check to see if tap is already created before attempting to create new tap interface
