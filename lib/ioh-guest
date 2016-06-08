@@ -604,12 +604,19 @@ __guest_uefi() {
 				else
 					vncline="-s 11,fbuf,tcp=${vnc_ip}:${vnc_port},w=${vnc_w},h=${vnc_h}"
 				fi
+				# build tablet argument
+				if [ $vnc_tablet = "YES"]; then
+					tabletline="-s 12,xhci,tablet"
+				else
+					tabletline=""
+				fi
 				bhyve -c $cpu $bargs -m $ram \
 					-s 0,hostbridge \
 					-s 3,ahci-cd,/iohyve/ISO/$media/$media \
 					-s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
 					-s 10,virtio-net,$tap \
 					$vncline \
+					$tabletline \
 					-s 31,lpc \
 					-l com1,/dev/${con}A \
 					-l bootrom,/iohyve/Firmware/$fw/$fw \
