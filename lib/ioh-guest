@@ -215,7 +215,14 @@ __guest_create() {
 		iohyve:loader=bhyveload \
 		iohyve:os=default \
 		"iohyve:description=$description" \
-		iohyve:bargs=-A_-H_-P $pool/iohyve/$name
+		iohyve:bargs=-A_-H_-P $pool/iohyve/$name \
+		iohyve:vnc=no \
+		iohyve:vnc_ip=127.0.0.1 \
+		iohvye:vnc_port=5900 \
+		iohyve:vnc_w=800 \
+		iohyve:vnc_h=600 \
+		iohyve:vnc_wait=yes \
+		iohyve:vnc_tablet=yes
 }
 
 # Install guest
