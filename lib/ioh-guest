@@ -599,13 +599,13 @@ __guest_uefi() {
 			# Check for vnc
 			if [ $vnc = "YES" ]; then
 				# build vnc arguments
-				if [ $vnc_wait = "YES"]; then
+				if [ $vnc_wait = "YES" ]; then
 					vncline="-s 11,fbuf,tcp=${vnc_ip}:${vnc_port},w=${vnc_w},h=${vnc_h},wait"
 				else
 					vncline="-s 11,fbuf,tcp=${vnc_ip}:${vnc_port},w=${vnc_w},h=${vnc_h}"
 				fi
 				# build tablet argument
-				if [ $vnc_tablet = "YES"]; then
+				if [ $vnc_tablet = "YES" ]; then
 					tabletline="-s 12,xhci,tablet"
 				else
 					tabletline=""
