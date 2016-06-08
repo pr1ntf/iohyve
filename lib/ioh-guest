@@ -216,7 +216,7 @@ __guest_create() {
 	zfs set iohyve:os=default $pool/iohyve/$name
 	zfs set "iohyve:description=$description" $pool/iohyve/$name
 	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
-	zfs set iohyve:vnc=no $pool/iohyve/$name
+	zfs set iohyve:vnc=NO $pool/iohyve/$name
 	zfs set iohyve:vnc_ip=127.0.0.1 $pool/iohyve/$name
 	zfs set iohvye:vnc_port=5900 $pool/iohyve/$name
 	zfs set iohyve:vnc_w=800 $pool/iohyve/$name
