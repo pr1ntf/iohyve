@@ -574,6 +574,7 @@ __guest_uefi() {
 	# Make sure everything is in order...
 	if [ $fw = '-' ]; then
 		echo "You must set a firmware file property to use UEFI..."
+		exit 1
 	fi
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 	# Check if guest exists
