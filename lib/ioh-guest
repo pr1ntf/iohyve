@@ -575,10 +575,6 @@ __guest_uefi() {
 	if [ $fw = '-' ]; then
 		echo "You must set a firmware file property to use UEFI..."
 	fi
-	if [ -z $media ]; then
-		echo "You must enter at least a zero byte ISO for some OSs..."
-		echo "EX: iohyve uefi winguest null.iso"
-	fi
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 	# Check if guest exists
 	if [ -d $mountpoint ]; then
