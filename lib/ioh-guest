@@ -551,7 +551,7 @@ __guest_uefi() {
 	local name="$2"
 	local media="$3"
 
-	if [ -z $media ]; then
+	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tuefi <name> <ISO>\n"
 		exit 1
