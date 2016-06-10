@@ -80,10 +80,9 @@ scram
 destroy <name>
 rename <name> <newname>
 delete [-f] <name>
-set <name> <property=value> ...
-get <name> <prop>
+set <property=value> ... <name>
+get <"all" | property[,...]> <name>
 rmpci [-f] <name> <pcidev:N>
-getall <name>
 add <name> <size> [pool]
 remove [-f] <name> <diskN>
 resize <name> <diskN> <size>
@@ -131,11 +130,11 @@ iohyve destroy bsdguest
 
 Get a specific guest property:
 
-    iohyve get bsdguest ram
+    iohyve get ram bsdguest
 
 Get all guest properties:
 
-    iohyve getall bsdguest
+    iohyve get all bsdguest
 
 Do cool ZFS stuff to a guest:
 ````
@@ -195,13 +194,13 @@ iohyve forcekill grubguest
 
 Try out OpenBSD:
 ````
-iohyve set obsdguest loader=grub-bhyve os=openbsd58
+iohyve set loader=grub-bhyve os=openbsd58 obsdguest
 iohyve install obsdguest install58.iso
 iohyve console obsdguest
 ````
 Try out NetBSD:
 ````
-iohyve set nbsdguest loader=grub-bhyve
+iohyve set loader=grub-bhyve nbsdguest
 iohyve set nbsdguest os=netbsd
 iohyve install nbsdguest NetBSD-6.1.5-amd64.iso
 iohyve console nbsdguest
@@ -210,22 +209,22 @@ iohyve console nbsdguest
 
 Try out Debian or Ubuntu _(note LVM installs should work with os=d8lvm)_:
 ````
-iohyve set debguest loader=grub-bhyve
-iohyve set debguest os=debian
+iohyve set loader=grub-bhyve debguest
+iohyve set os=debian debguest
 iohyve install debguest debian-8.2.0-amd64-i386-netinst.iso
 iohyve console debguest
 ````
 Try out ArchLinux:
 ````
-iohyve set archguest loader=grub-bhyve
-iohyve set archguest os=arch
+iohyve set loader=grub-bhyve archguest
+iohyve set os=arch archguest
 iohyve install archguest archlinux-2015.10.01-dual.iso
 iohyve console archguest
 ````
 Try out CentOS or RHEL _(note version 6 would use os=centos6)_:
 ````
-iohyve set centosguest loader=grub-bhyve
-iohyve set centosguest os=centos7
+iohyve set loader=grub-bhyve centosguest
+iohyve set os=centos7 centosguest
 iohyve install centosguest CentOS-7-x86_64-Everything-1511.iso
 iohyve console centosguest
 ````

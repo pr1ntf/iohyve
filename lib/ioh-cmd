@@ -134,10 +134,6 @@ __parse_cmd () {
 				__zfs_rmpci "$@"
 				exit
 				;;
-			getall)
-				__zfs_getall "$@"
-				exit
-				;;
 			fix-bargs)
 				__fixbargs "$@"
 				exit
