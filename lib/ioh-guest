@@ -162,6 +162,9 @@ __guest_create() {
 	local name="$2"
 	local pool="${4-$(zfs get -H -s local -o name -t filesystem iohyve:name | head -n1 | cut -f1 -d/)}"
 	local size="$3"
+	if [ -z $pool ]; then
+		local pool="$(zfs list -H | grep /iohyve/ISO | cut -f1 -d/)"
+	fi
 	if [ -z $size ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tcreate <name> <size> [pool]\n"
