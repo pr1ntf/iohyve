@@ -243,6 +243,11 @@ __guest_install() {
 
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
+	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
+	if [ $loader = "uefi" ]; then
+		__guest_uefi "$name" "$iso"
+		exit 0
+	fi
 	# Check if guest exists
 	if [ -d $mountpoint ]; then
 		# Check to make sure guest isn't running
