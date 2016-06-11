@@ -516,7 +516,8 @@ __guest_start() {
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	# Check if loader is UEFI
 	if [ $loader = "uefi" ]; then
-		__guest_uefi "$name"
+		__guest_uefi "$name" "$flag"
+		exit 0
 	fi
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 
@@ -548,8 +549,8 @@ __guest_start() {
 # Start a UEFI enabled bhyve instance.
 # This is experimental, use with caution.
 __guest_uefi() {
-	local name="$2"
-	local media="$3"
+	local name="$1"
+	local media="$2"
 
 	if [ -z $name ]; then
 		printf "missing argument\nusage:\n"
