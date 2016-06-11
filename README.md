@@ -41,6 +41,10 @@ iohyve_flags="kmod=1 net=em0"
 ````
 If you want more control over your setup, feel free to read the [handbook](https://www.freebsd.org/doc/en/books/handbook/virtualization-host-bhyve.html).
 
+**GRUB Guests**
+
+In order to boot guests using GRUB, you must install the [sysutils/grub2-bhyve](https://www.freshports.org/sysutils/grub2-bhyve/) port. You can also just run `pkg install grub2-bhyve` if you'd like. 
+
 **NOTE**
 
 If you are using [FreeNAS](http://doc.freenas.org/9.10/freenas_jails.html#using-iohyve), you must also run this one-liner to link your datasets correctly.
