@@ -484,12 +484,11 @@ Get all guest properties:
 .PP
 \fBiohyve\fP \fIgetall\fP bsdguest
 .PP
-Install and run a Debian guest:
+Install an OpenBSD guest:
 .PP
-\fBiohyve\fP \fIcreate\fP debianvm 8G
-\fBiohyve\fP \fIset\fP debianvm loader=grub-bhyve
-\fBiohyve\fP \fIinstall\fP debianvm deb8.1-net.iso
-\fBiohyve\fP \fIstart\fP debianvm
+\fBiohyve\fP \fIset\fP obsdguest loader=grub-bhyve os=openbsd59
+\fBiohyve\fP \fIinstall\fP obsdguest install59.iso
+\fBiohyve\fP \fIconsole\fP obsdguest
 .PP
 Take a snapshot of a guest:
 .PP

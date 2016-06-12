@@ -383,12 +383,11 @@ Get all guest properties:
 
 iohyve getall bsdguest
 
-Install and run a Debian guest:
+Install an OpenBSD guest:
 
-iohyve create debianvm 8G
-iohyve set debianvm loader=grub-bhyve
-iohyve install debianvm deb8.1-net.iso
-iohyve start debianvm
+iohyve set obsdguest loader=grub-bhyve os=openbsd59
+iohyve install obsdguest install59.iso
+iohyve console obsdguest
 
 Take a snapshot of a guest:
 
