@@ -122,7 +122,7 @@ You can also set more than one property at once:
 iohyve set bsdguest tap=tap0 con=nmdm0		#set tap0 and nmdm0
 ```
 You can also set a description that can be a double quoted (") string with no equals sign (=).
-All spaces are turned into underscores (_). At guest creation, the description is the output of `date`
+At guest creation, the description is the output of `date`
 ````
 iohyve set bsdguest description="This is my string"
 ````
