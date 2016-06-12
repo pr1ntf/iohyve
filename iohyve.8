@@ -469,10 +469,6 @@ List all guests created with:
 .PP
 \fBiohyve\fP \fIlist\fP
 .PP
-List all runnng guests using:
-.PP
-iohvye running
-.PP
 You can change guest properties by using \fIset\fP:
 .PP
 \fBiohyve\fP \fIset\fP bsdguest description="FreeBSD is awesome"
@@ -480,7 +476,7 @@ You can change guest properties by using \fIset\fP:
 You can also \fIset\fP multiple properties at once:
 \fBiohyve\fP \fIset\fP bsdguest ram=512M cpu=1 \fIboot\fP=1
 .PP
-Get a spcific guest property:
+Get a specific guest property:
 .PP
 \fBiohyve\fP \fIget\fP bsdguest ram
 .PP

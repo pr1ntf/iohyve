@@ -368,10 +368,6 @@ List all guests created with:
 
 iohyve list
 
-List all runnng guests using:
-
-iohvye running
-
 You can change guest properties by using set:
 
 iohyve set bsdguest description="FreeBSD is awesome"
@@ -379,7 +375,7 @@ iohyve set bsdguest description="FreeBSD is awesome"
 You can also set multiple properties at once:
 iohyve set bsdguest ram=512M cpu=1 boot=1
 
-Get a spcific guest property:
+Get a specific guest property:
 
 iohyve get bsdguest ram
 
