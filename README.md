@@ -2,7 +2,7 @@
 "Rideau Street Sinkhole Edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
-*Over the hill to 1.0*
+*Everything is fine.*
 
 iohyve creates, stores, manages, and launches bhyve guests utilizing built in FreeBSD features.
 The idea is based on iocage, a jail manager utilizing some of the same principles.
@@ -143,7 +143,7 @@ iohyve getall bsdguest
 ```
 Do cool ZFS stuff to a guest:
 ````
-#Take a snapshot of a guest.
+# Take a snapshot of a guest.
 iohyve snap bsdguest@beforeupdate  #take snapshot
 iohyve snaplist                    #list snapshots
 iohyve roll bsdguest@beforeupdate  #rollback to snapshot
