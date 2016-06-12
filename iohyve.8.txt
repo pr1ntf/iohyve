@@ -368,20 +368,16 @@ List all guests created with:
 
 iohyve list
 
-List all guests that have resources allocated using:
-
-iohyve vmmlist
-
 List all runnng guests using:
 
 iohvye running
 
 You can change guest properties by using set:
 
-iohyve set bsdguest ram=512M
-iohyve set bsdguest cpu=1
-iohyve set bsdguest tap=tap0
-iohyve set bsdguest con=nmdm0
+iohyve set bsdguest description="FreeBSD is awesome"
+
+You can also set multiple properties at once:
+iohyve set bsdguest ram=512M cpu=1 boot=1
 
 Get a spcific guest property:
 
@@ -401,12 +397,22 @@ iohyve start debianvm
 Take a snapshot of a guest:
 
 iohyve snap bsdguest@beforeupdate
-iohyve snaplist
+
+Roll back to a previous snapshot:
+
 iohyve roll bsdguest@beforeupdate
+
+List all snapshots in iohyve:
+
+iohyve snaplist
 
 Make an independent clone of a guest:
 
 iohyve clone bsdguest dolly
+
+Make a guest a template so you cannot be started, renamed, or deleted:
+
+iohyve set bsdguest template=YES
 
 AUTHOR
 Trent -- @pr1ntf

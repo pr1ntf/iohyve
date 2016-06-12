@@ -469,20 +469,16 @@ List all guests created with:
 .PP
 \fBiohyve\fP \fIlist\fP
 .PP
-List all guests that have resources allocated using:
-.PP
-\fBiohyve\fP vmmlist
-.PP
 List all runnng guests using:
 .PP
 iohvye running
 .PP
 You can change guest properties by using \fIset\fP:
 .PP
-\fBiohyve\fP \fIset\fP bsdguest ram=512M
-\fBiohyve\fP \fIset\fP bsdguest cpu=1
-\fBiohyve\fP \fIset\fP bsdguest tap=tap0
-\fBiohyve\fP \fIset\fP bsdguest con=nmdm0
+\fBiohyve\fP \fIset\fP bsdguest description="FreeBSD is awesome"
+.PP
+You can also \fIset\fP multiple properties at once:
+\fBiohyve\fP \fIset\fP bsdguest ram=512M cpu=1 \fIboot\fP=1
 .PP
 Get a spcific guest property:
 .PP
@@ -502,12 +498,22 @@ Install and run a Debian guest:
 Take a snapshot of a guest:
 .PP
 \fBiohyve\fP \fIsnap\fP bsdguest@beforeupdate
-\fBiohyve\fP \fIsnaplist\fP
+.PP
+Roll back to a previous snapshot:
+.PP
 \fBiohyve\fP \fIroll\fP bsdguest@beforeupdate
+.PP
+List all snapshots in \fBiohyve\fP:
+.PP
+\fBiohyve\fP \fIsnaplist\fP
 .PP
 Make an independent \fIclone\fP of a guest:
 .PP
 \fBiohyve\fP \fIclone\fP bsdguest dolly
+.PP
+Make a guest a template so you cannot be started, renamed, or deleted:
+.PP
+\fBiohyve\fP \fIset\fP bsdguest template=YES
 .SH AUTHOR
 Trent -- @pr1ntf
 .SH SEE ALSO
