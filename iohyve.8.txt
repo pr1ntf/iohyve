@@ -146,28 +146,6 @@ install		Loads and boots into ISO for guest installation.
 		of the guest, and [ISO] is the name of the ISO you would
 		like to boot from in the form of: 'instal.iso'
 
-load		Loads the guest operating system bootloader and resources.
-		Usage: 'iohyve load <name> <ISO>'
-		where [name]is the name of the guest operating system.
-		[bootimg] is the path to the boot medium
-
-boot		Boots the guest into the operating system. 'iohyve run' needs
-		to be run before this is done.
-		Usage: 'iohyve boot <name> <runmode> <pci>'
-		where <name> is the name of the guest operating system.
-		<runmode> describes how to start the guest:
-		0 = start only once
-		1 = regular persist
-		Stop if the guest is powering off
-		2 = always persist
-		Always restart the guest
-		<pci> is a space separated list of pci devices
-		based on slot-less bhyve -s commands.
-		Example:
-		"ahci-hd,/path/disk.img virtio-net,tap0"
-		Note: hostbridge and lpc are automatically
-		added
-
 start		Starts the guest operating system. (Combines load & boot)
 		Usage: 'iohyve start <name> [-s | -a]'
 		where <name> is the name of the guest operating system.

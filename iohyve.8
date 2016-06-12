@@ -193,32 +193,6 @@ of the guest, and [ISO] is the name of the ISO you would
 like to \fIboot\fP from in the form of: 'instal.iso'
 .TP
 .B
-\fIload\fP
-Loads the guest operating system bootloader and resources.
-Usage: '\fBiohyve\fP \fIload\fP <name> <ISO>'
-where [name]is the name of the guest operating system.
-[bootimg] is the path to the \fIboot\fP medium
-.TP
-.B
-\fIboot\fP
-Boots the guest into the operating system. '\fBiohyve\fP run' needs
-to be run before this is done.
-Usage: '\fBiohyve\fP \fIboot\fP <name> <runmode> <pci>'
-where <name> is the name of the guest operating system.
-<runmode> describes how to \fIstart\fP the guest:
-0 = \fIstart\fP only once
-1 = regular persist
-Stop if the guest is powering off
-2 = always persist
-Always restart the guest
-<pci> is a space separated \fIlist\fP of pci devices
-based on slot-less bhyve \fB-s\fP commands.
-Example:
-"ahci-hd,/path/disk.img virtio-net,tap0"
-Note: hostbridge and lpc are automatically
-added
-.TP
-.B
 \fIstart\fP
 Starts the guest operating system. (Combines \fIload\fP & \fIboot\fP)
 Usage: '\fBiohyve\fP \fIstart\fP <name> [\fB-s\fP | \fB-a\fP]'
