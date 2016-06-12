@@ -216,6 +216,7 @@ __guest_create() {
 		-o iohyve:os=default \
 		-o "iohyve:description=$description" \
 		-o iohyve:bargs=-A_-H_-P \
+		-o iohyve:template=NO \
 		-o iohyve:vnc=NO \
 		-o iohyve:vnc_ip=127.0.0.1 \
 		-o iohvye:vnc_port=5900 \
@@ -248,6 +249,12 @@ __guest_install() {
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
+	# Check if guest is a template
+	local template="$(zfs get -H -o value iohyve:template $dataset)"
+	if [ $template = "YES" ]; then
+		echo "$name is a template. Cannot start"
+		exit 1
+	fi
 	if [ $loader = "uefi" ]; then
 		__guest_uefi "$name" "$iso"
 		exit 0
@@ -523,6 +530,12 @@ __guest_start() {
 	local runmode="1"
 	local dataset="$(zfs get -H -s local -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
+	# Check if guest is template
+	local template="$(zfs get -H -o value iohyve:template $dataset)"
+	if [ $template = "YES" ]; then
+		echo "$name is a template. Cannot start"
+		exit 1
+	fi
 	# Check if loader is UEFI
 	if [ $loader = "uefi" ]; then
 		__guest_uefi "$name" "$flag"
@@ -727,6 +740,12 @@ __guest_rename() {
 	fi
 
 	local dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	# Check if guest is template
+	local template="$(zfs get -H -o value iohyve:template $dataset)"
+	if [ $template = "YES" ]; then
+		echo "$name is a template. Cannot rename"
+		exit 1
+	fi
 	local path="$(echo $dataset | rev | cut -f2- -d/ | rev)"
 	echo "Renaming $name to $newname..."
 	zfs rename -f $dataset $path/$newname
@@ -750,6 +769,12 @@ __guest_delete() {
 		fi
 
 		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$flagtwo$" | cut -f1)"
+		# Check if guest is template
+		local template="$(zfs get -H -o value iohyve:template $target_dataset)"
+		if [ $template = "YES" ]; then
+			echo "$flagtwo is a template. Cannot delete"
+			exit 1
+		fi
 		echo ""
 		echo "[WARNING] Forcing permanent deletion of $flagtwo"
 		echo "Location: $target_dataset including children and clones"
@@ -771,6 +796,12 @@ __guest_delete() {
 		fi
 
 		local target_dataset="$(zfs get -H -o name,value -s local -t filesystem iohyve:name | grep "$(printf '\t')$flagone$" | cut -f1)"
+		# Check if guest is template
+		local template="$(zfs get -H -o value iohyve:template $target_dataset)"
+		if [ $template = "YES" ]; then
+			echo "$flagone is a template. Cannot delete"
+			exit 1
+		fi
 		echo ""
 		echo "[WARNING] Are you sure you want to permanently delete $flagone and all child datasets?"
 		read -p "Location: $target_dataset [Y/N]? " an </dev/tty
