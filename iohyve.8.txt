@@ -1,5 +1,5 @@
 NAME
-iohyve(8) - bhyve manager/launcher v0.7.5 "Tennessee Cherry Moonshine Edition"
+iohyve(8) - bhyve manager/launcher v0.7.6 "Rideau Street Sinkhole Edition"
 
 SYNOPSIS
 iohyve version

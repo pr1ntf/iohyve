@@ -1,5 +1,5 @@
-# iohyve v0.7.5
-"Tennessee Cherry Moonshine Edition"
+# iohyve v0.7.6
+"Rideau Street Sinkhole Edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
 *Over the hill to 1.0*
