@@ -204,28 +204,29 @@ __guest_create() {
 		local con="$(expr $conlast + 1)"
 	fi
 	echo "Creating $name..."
-	zfs create $pool/iohyve/$name
+	zfs create -o iohyve:name=$name \
+		-o iohyve:size=$size \
+		-o iohyve:ram=256M \
+		-o iohyve:cpu=1 \
+		-o iohyve:tap=tap$tap \
+		-o iohyve:con=nmdm$con \
+		-o iohyve:persist=1 \
+		-o iohyve:boot=0 \
+		-o iohyve:loader=bhyveload \
+		-o iohyve:os=default \
+		-o "iohyve:description=$description" \
+		-o iohyve:bargs=-A_-H_-P \
+		-o iohyve:vnc=NO \
+		-o iohyve:vnc_ip=127.0.0.1 \
+		-o iohvye:vnc_port=5900 \
+		-o iohyve:vnc_w=800 \
+		-o iohyve:vnc_h=600 \
+		-o iohyve:vnc_wait=NO \
+		-o iohyve:vnc_tablet=NO \
+		$pool/iohyve/$name
+
 	zfs create -V $size -o volmode=dev $pool/iohyve/$name/disk0
 
-	zfs set iohyve:name=$name $pool/iohyve/$name
-	zfs set iohyve:size=$size $pool/iohyve/$name
-	zfs set iohyve:ram=256M $pool/iohyve/$name
-	zfs set iohyve:cpu=1 $pool/iohyve/$name
-	zfs set iohyve:tap=tap$tap $pool/iohyve/$name
-	zfs set iohyve:con=nmdm$con $pool/iohyve/$name
-	zfs set iohyve:persist=1 $pool/iohyve/$name
-	zfs set iohyve:boot=0 $pool/iohyve/$name
-	zfs set iohyve:loader=bhyveload $pool/iohyve/$name
-	zfs set iohyve:os=default $pool/iohyve/$name
-	zfs set "iohyve:description=$description" $pool/iohyve/$name
-	zfs set iohyve:bargs=-A_-H_-P $pool/iohyve/$name
-	zfs set iohyve:vnc=NO $pool/iohyve/$name
-	zfs set iohyve:vnc_ip=127.0.0.1 $pool/iohyve/$name
-	zfs set iohvye:vnc_port=5900 $pool/iohyve/$name
-	zfs set iohyve:vnc_w=800 $pool/iohyve/$name
-	zfs set iohyve:vnc_h=600 $pool/iohyve/$name
-	zfs set iohyve:vnc_wait=NO $pool/iohyve/$name
-	zfs set iohyve:vnc_tablet=NO $pool/iohyve/$name
 }
 
 # Install guest
