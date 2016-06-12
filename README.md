@@ -108,15 +108,15 @@ help
 **General Usage**
 
 List all guests created with:
-
-    iohyve list
-
+```
+iohyve list
+```
 You can change guest properties by using set:
-
-    iohyve set bsdguest ram=512M                 #set ram to 512 Megabytes
-    iohyve set bsdguest cpu=1                    #set cpus to 1 core
-    iohyve set bsdguest pcidev:1=passthru,2/0/0  #pass through a pci device
-
+```
+iohyve set bsdguest ram=512M                 #set ram to 512 Megabytes
+iohyve set bsdguest cpu=1                    #set cpus to 1 core
+iohyve set bsdguest pcidev:1=passthru,2/0/0  #pass through a pci device
+```
 You can also set more than one property at once:
 ```
 iohyve set bsdguest tap=tap0 con=nmdm0		#set tap0 and nmdm0
@@ -134,13 +134,13 @@ iohyve destroy bsdguest
 ```
 
 Get a specific guest property:
-
-    iohyve get bsdguest ram
-
+```
+iohyve get bsdguest ram
+```
 Get all guest properties:
-
-    iohyve getall bsdguest
-
+```
+iohyve getall bsdguest
+```
 Do cool ZFS stuff to a guest:
 ````
 #Take a snapshot of a guest.
@@ -162,41 +162,41 @@ iohyve set bsdguest template=YES
 **FreeBSD Guests**
 
 Fetch FreeBSD install ISO for later:
-
-    iohyve fetchiso ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
-
+```
+iohyve fetchiso ftp://ftp.freebsd.org/.../10.1/FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+```
 Rename the ISO if you would like:
-
-    iohyve renameiso FreeBSD-10.1-RELEASE-amd64-bootonly.iso fbsd10.iso
-
+```
+iohyve renameiso FreeBSD-10.1-RELEASE-amd64-bootonly.iso fbsd10.iso
+```
 Create a new FreeBSD guest named bsdguest with an 8Gigabyte virtual HDD:
-
-    iohyve create bsdguest 8G
-
+```
+iohyve create bsdguest 8G
+```
 List ISO's:
-
-    iohyve isolist
-
+```
+iohyve isolist
+```
 Install the FreeBSD guest bsdguest:
-
-    iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
-
+```
+iohyve install bsdguest FreeBSD-10.1-RELEASE-amd64-bootonly.iso
+```
 Console into the installation:
-
-    iohyve console bsdguest
-
+```
+iohyve console bsdguest
+```
 Once installation is done, exit console (~~.) and stop guest:
-
-    iohyve stop bsdguest
-
+```
+iohyve stop bsdguest
+```
 Now that the guest is installed, it can be started like usual:
-
-    iohyve start bsdguest
-
+```
+iohyve start bsdguest
+```
 Some guest os's can be gracefully stopped:
-
-    iohyve stop bsdguest
-
+```
+iohyve stop bsdguest
+```
 If you are having problems with a guest that is unresponsive you can forcekill it as a last resort.
 USE THIS WITH CAUTION, IT WILL KILL ALL PROCESSES THAT MATCH THE NAME OF THE GUEST. 
 ```
