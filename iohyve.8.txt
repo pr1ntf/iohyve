@@ -100,8 +100,8 @@ fwlist		Lists the firmwares in the /iohyve/Firmware directory.
 
 fetchiso	Fetches installation ISO or install image and creates a
 		dataset for it.
-		Usage: 'iohyve fetchiso <URL>' where <URL> is the HTTP or FTP URL to
-		fetchiso from the internet.
+		Usage: 'iohyve fetchiso <URL>' where <URL> is the HTTP or FTP
+		URL to fetchiso from the internet.
 
 cpiso		Copies installation ISO or install image from your host and
 		creates a dataset for it.
@@ -118,8 +118,8 @@ rmiso		Removes installed ISO from /iohyve/ISO
 		you would like to delete.
 
 fetchfw		Fetches firmware and creates a dataset for it.
-		Usage: 'iohyve fetchfw <URL>' where <URL> is the HTTP or FTP URL to
-		fetch from the internet.
+		Usage: 'iohyve fetchfw <URL>' where <URL> is the HTTP or FTP
+		URL to fetch from the internet.
 
 cpfw		Copies firmware from your host and creates a dataset for it.
 		Usage: 'iohyve cpfw <path>' where <path> is the full path to
@@ -188,7 +188,8 @@ scram		Gracefully stop all bhyve guests. Does not destroy resources.
 destroy		Destroys guest resources.
 		Usage: 'iohyve destroy <name>' where <name> is the name
 		of the guest operating system. Destroying a guest does
-		not [delete] a guest from the host, it destroys the guest in VMM.
+		not [delete] a guest from the host, it destroys the guest
+		in VMM.
 
 rename		Renames the guest
 		Usage: 'iohyve rename <name> <newname>' where <name> is the
@@ -207,13 +208,16 @@ set		Sets ZFS properties for guests one at a time
 		cpu=1 (number of cpu cores)
 		con=nmdm0 (where to attach null modem console)
 		tap=tap[n](,tap[n]) (tap device for virtio-net)
-			[n] is a generic number to specify the tap interface to use
-			Specify a list o tap separated by comma for multiple tap
+			[n] is a generic number to specify the tap 
+			interface to use.
+			Specify a list of taps separated by comma for
+			multiple tap interfaces.
 			Single tap: iohyve set [name] tap=tap0
 			Multiple tap : iohyve set [name] tap=tap0,tap1,tap2,tap3
 		size=size of block device
 		mac_tap[n]=[MAC Address]
-			[n] is a generic number to specify the tap interface to use
+			[n] is a generic number to specify the tap interface
+			to use.
 			Forces a specific MAC address to be attached to the
 			network adapter in the guest OS. iohyve does not check
 			for a valid MAC address, so double check the property.

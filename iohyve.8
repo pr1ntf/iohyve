@@ -128,8 +128,8 @@ Lists the firmwares in the /\fBiohyve\fP/Firmware directory.
 \fIfetchiso\fP
 Fetches installation ISO or \fIinstall\fP image and creates a
 dataset for it.
-Usage: '\fBiohyve\fP \fIfetchiso\fP <URL>' where <URL> is the HTTP or FTP URL to
-\fIfetchiso\fP from the internet.
+Usage: '\fBiohyve\fP \fIfetchiso\fP <URL>' where <URL> is the HTTP or FTP
+URL to \fIfetchiso\fP from the internet.
 .TP
 .B
 \fIcpiso\fP
@@ -154,8 +154,8 @@ you would like to \fIdelete\fP.
 .B
 \fIfetchfw\fP
 Fetches firmware and creates a dataset for it.
-Usage: '\fBiohyve\fP \fIfetchfw\fP <URL>' where <URL> is the HTTP or FTP URL to
-fetch from the internet.
+Usage: '\fBiohyve\fP \fIfetchfw\fP <URL>' where <URL> is the HTTP or FTP
+URL to fetch from the internet.
 .TP
 .B
 \fIcpfw\fP
@@ -248,7 +248,8 @@ Gracefully \fIstop\fP all bhyve guests. Does not \fIdestroy\fP resources.
 Destroys guest resources.
 Usage: '\fBiohyve\fP \fIdestroy\fP <name>' where <name> is the name
 of the guest operating system. Destroying a guest does
-not [\fIdelete\fP] a guest from the host, it destroys the guest in VMM.
+not [\fIdelete\fP] a guest from the host, it destroys the guest
+in VMM.
 .TP
 .B
 \fIrename\fP
@@ -273,13 +274,16 @@ ram=512M or ram=2G (M for megabytes, G for gigabtyes)
 cpu=1 (number of cpu cores)
 con=nmdm0 (where to attach null modem \fIconsole\fP)
 tap=tap[n](,tap[n]) (tap device for virtio-net)
-[n] is a generic number to specify the tap interface to use
-Specify a \fIlist\fP o tap separated by comma for multiple tap
+[n] is a generic number to specify the tap 
+interface to use.
+Specify a \fIlist\fP of taps separated by comma for
+multiple tap interfaces.
 Single tap: \fBiohyve\fP \fIset\fP [name] tap=tap0
 Multiple tap : \fBiohyve\fP \fIset\fP [name] tap=tap0,tap1,tap2,tap3
 size=size of block device
 mac_tap[n]=[MAC Address]
-[n] is a generic number to specify the tap interface to use
+[n] is a generic number to specify the tap interface
+to use.
 Forces a specific MAC address to be attached to the
 network adapter in the guest OS. \fBiohyve\fP does not check
 for a valid MAC address, so double check the property.
