@@ -153,6 +153,7 @@ iohyve roll bsdguest@beforeupdate  #rollback to snapshot
 iohyve clone bsdguest dolly	   #make a clone of bsdguest to dolly
 ````
 **Creating guest templates**
+
 You can lock a guest from being reinstalled, started, renamed, or deleted by making it a template. 
 To set a guest as a template, you must set the `template` property to `YES`. The `YES` must be in all caps. 
 EX:
