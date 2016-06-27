@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ $IOH_DEBUG ]; then
+	set -x
+fi
+
 # Check whether a given command requires root
 __root_req_cmd () {
 		case "$1" in
