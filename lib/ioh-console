@@ -22,8 +22,8 @@ __console_console() {
 		exit 1
 	fi
 
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
-	local con="$(zfs get -H -o value iohyve:con $pool)"
+	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	echo "Starting console on $name..."
 	echo "~~. to escape console [uses cu(1) for console]"
 	cu -l /dev/${con}B -s 9600
