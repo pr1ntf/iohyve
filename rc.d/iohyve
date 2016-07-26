@@ -27,7 +27,7 @@ iohyve_start()
 	/usr/local/sbin/iohyve setup ${iohyve_flags}
 	local guests="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | tr '\t' ',')"
 	for guest in $guests ; do
-	local dataset="$(echo $guest | cut -f1 -d,)"
+		local dataset="$(echo $guest | cut -f1 -d,)"
 		local name="$(echo $guest | cut -f2 -d,)"
 
 		local bootprop="$(zfs get -H -o value iohyve:boot $dataset)"
