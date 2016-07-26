@@ -23,22 +23,24 @@ stop_cmd="iohyve_stop"
 
 iohyve_start()
 {
-	echo "Starting iohyve guests..."
-	/usr/local/sbin/iohyve setup ${iohyve_flags}
-	guestlist="$(zfs list -H -t volume -o name | grep iohyve | grep disk0 | cut -d'/' -f3)"
-	for i in $guestlist ; do
-		pool="$(zfs list -H -t volume -o name | grep iohyve | grep $i | grep disk0 | cut -d'/' -f1-3)"
-		bootprop="$(zfs get -H -o value iohyve:boot $pool)"
-		if [ $bootprop = "1" ]; then
-			/usr/local/sbin/iohyve start $i
-		fi
-	done
+        echo "Starting iohyve guests..."
+        /usr/local/sbin/iohyve setup ${iohyve_flags}
+        local guests="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | tr '\t' ',')"
+        for guest in $guests ; do
+                local dataset="$(echo $guest | cut -f1 -d,)"
+                local name="$(echo $guest | cut -f2 -d,)"
+
+                local bootprop="$(zfs get -H -o value iohyve:boot $dataset)"
+                if [ $bootprop = "1" ]; then
+                        /usr/local/sbin/iohyve start $name
+                fi
+        done
 }
 
 iohyve_stop()
 {
-	echo "Stopping all iohyve guests..."
-	/usr/local/sbin/iohyve scram
+        echo "Stopping all iohyve guests..."
+        /usr/local/sbin/iohyve scram
 }
 
 run_rc_command "$1"
