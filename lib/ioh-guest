@@ -302,7 +302,7 @@ __guest_load() {
 		return 1
 	fi
 
-	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "$(printf '\t')$name$" | cut -f1)}"
+	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "$(printf 'disk0\t')$name$" | cut -f1)}"
 	local dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
