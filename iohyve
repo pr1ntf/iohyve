@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.7.6 2016/06/12 "Rideau Street Sinkhole Edition"
+# iohyve v0.7.7 2016/11/10 "I Think I'll Go for a Walk Edition"
 
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
@@ -41,7 +41,7 @@ fi
 
 # Show version
 __version() {
-	echo "iohyve v0.7.6 2016/06/12 Rideau Street Sinkhole Edition"
+	echo "iohyve v0.7.7 2016/11/10 I Think I'll Go for a Walk Edition"
 }
 
 # Print help page
