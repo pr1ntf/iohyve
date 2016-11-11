@@ -1,5 +1,5 @@
-# iohyve v0.7.6
-"Rideau Street Sinkhole Edition"
+# iohyve v0.7.7
+"I Think I'll Go for a Walk Edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
 *Everything is fine.*
