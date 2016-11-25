@@ -217,6 +217,7 @@ __guest_create() {
 		-o "iohyve:description=$description" \
 		-o iohyve:bargs=-A_-H_-P \
 		-o iohyve:template=NO \
+		-o iohyve:utc=YES \
 		-o iohyve:vnc=NO \
 		-o iohyve:vnc_ip=127.0.0.1 \
 		-o iohvye:vnc_port=5900 \
@@ -602,6 +603,7 @@ __guest_uefi() {
 	local fw="$(zfs get -H -o value iohyve:fw $dataset)"
 	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
 	local bargs="$(zfs get -H -o value iohyve:bargs $dataset | sed -e 's/_/ /g')"
+	local utc="$(zfs get -H -o value iohyve:utc $dataset)"
 	local vnc="$(zfs get -H -o value iohyve:vnc $dataset)"
 	local vnc_ip="$(zfs get -H -o value iohyve:vnc_ip $dataset)"
 	local vnc_port="$(zfs get -H -o value iohyve:vnc_port $dataset)"
@@ -629,6 +631,12 @@ __guest_uefi() {
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
 		if [ -z $running ]; then
+			# build -u argument
+			if [ $utc = "YES" ]; then
+				utcline="-u"
+			else
+				utcline=""
+			fi
 			# Check for vnc
 			if [ $vnc = "YES" ]; then
 				# build vnc arguments
@@ -650,6 +658,7 @@ __guest_uefi() {
 					-s 10,virtio-net,$tap \
 					$vncline \
 					$tabletline \
+					$utcline \
 					-s 31,lpc \
 					-l com1,/dev/${con}A \
 					-l bootrom,/iohyve/Firmware/$fw/$fw \
@@ -660,6 +669,7 @@ __guest_uefi() {
 					-s 3,ahci-cd,/iohyve/ISO/$media/$media \
 					-s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
 					-s 10,virtio-net,$tap \
+					$utcline \
 					-s 31,lpc \
 					-l com1,/dev/${con}A \
 					-l bootrom,/iohyve/Firmware/$fw/$fw \
