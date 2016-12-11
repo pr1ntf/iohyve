@@ -1,3 +1,10 @@
+####Major changes for iohyve v0.7.7:
+
+- The `utc` property has been added to indicate that the `-u` flag should be passed
+	to bhyve so that bhyve's system clock is in UTC. The `create` command now sets
+	this property to `YES`, so the default behavior for a guest is for its system
+	clock to be in UTC, which is typically what is most appropriate for *nix OSes.
+
 ####There are two major changes in iohyve v0.7.5
 
 - The `fetch` command has been renamed to `fetchiso` to comply
