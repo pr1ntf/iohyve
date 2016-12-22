@@ -57,7 +57,7 @@ __setup_pool() {
 	if [ -e /etc/version ]; then
 		local OS=$( cat /etc/version | cut -d - -f1 )
 		if [ "$OS" = "FreeNAS" ]; then
-			setup_freenas $val
+			__setup_freenas $val
 		fi
 	fi
 }
