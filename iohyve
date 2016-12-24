@@ -9,12 +9,14 @@ PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 if [ -n "$( grep 'POPCNT' /var/run/dmesg.boot )" ]; then
 	if [ -n "$( grep 'CPU:' /var/run/dmesg.boot | grep 'Intel' )" ] && [ -z "$( grep 'VT-x:' /var/run/dmesg.boot | grep 'UG' )" ]; then
 		echo "Your CPU does not seem to fully support bhyve. Missing UG feature on Intel CPU, please upgrade to 5600 series."
-		exit 1
+		echo "You may only be able to boot one bhyve guest on your machine at a time."
+		echo "Other restrictions may apply."
 	fi
 else
 	echo "Your CPU does not seem to support bhyve."
 	echo "For AMD CPUs this means RVI. For Intel CPUs this means EPT."
-	exit 1 
+	echo "This may not end well for you."
+	echo "Other restrictions may apply."
 fi
 
 # Check if libs are available (stolen from iocage)
