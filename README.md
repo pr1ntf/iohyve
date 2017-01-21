@@ -235,6 +235,8 @@ iohyve install archguest archlinux-2015.10.01-dual.iso
 iohyve console archguest
 ````
 Try out CentOS or RHEL _(note version 6 would use os=centos6)_:
+
+_Note: CentOS7 will no longer work without custom partitioning on the guest. `grub2-bhyve` cannot boot from the new CentOS7 default XFS._
 ````
 iohyve set centosguest loader=grub-bhyve
 iohyve set centosguest os=centos7
