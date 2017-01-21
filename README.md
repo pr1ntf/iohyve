@@ -47,7 +47,7 @@ In order to boot guests using GRUB, you must install the [sysutils/grub2-bhyve](
 
 **NOTE**
 
-If you are using [FreeNAS](http://doc.freenas.org/9.10/freenas_jails.html#using-iohyve), you must also run this one-liner to link your datasets correctly.
+If you are using [FreeNAS](http://doc.freenas.org/9.10/freenas_jails.html#using-iohyve), you must also have this link so your datasets are called correctly. This should be done by `iohyve setup pool=poolname` but here is the command just in case:
 ```
 ln -s /mnt/iohyve /iohyve
 ```
