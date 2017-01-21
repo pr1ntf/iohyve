@@ -134,8 +134,8 @@ __parse_cmd () {
 				__zfs_get "$@"
 				exit
 				;;
-			rmpci)
-				__zfs_rmpci "$@"
+			rmprop)
+				__zfs_rmprop "$@"
 				exit
 				;;
 			getall)

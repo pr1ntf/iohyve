@@ -42,8 +42,8 @@ __zfs_get() {
 	zfs get -H -o value iohyve:$prop $pool/iohyve/$name
 }
 
-# Remove a PCIDEV property
-__zfs_rmpci() {
+# Remove a property
+__zfs_rmprop() {
 	local flagone="$2"
 	local flagtwo="$3"
 	local flagthree="$4"
@@ -54,34 +54,24 @@ __zfs_rmpci() {
 			exit 1
 		fi
 		echo "Removing $flagthree from $flagtwo"
-		local pciprop="$(echo "$flagthree" | grep pcidev:)"
+		echo "I hope you picked the right property. Removing the wrong one can lead to bad things."
 		local pool="$(zfs list -H -t volume | grep $flagtwo | cut -d '/' -f 1 | head -n1)"
-		# Make sure it's a valid pcidev property as to not shoot foot
-		if [ -z $pciprop ]; then
-			echo "Not a valid PCIDEV property"
-		else
-			zfs inherit  -r iohyve:$flagthree $pool/iohyve/$flagtwo
-		fi
+		zfs inherit  -r iohyve:$flagthree $pool/iohyve/$flagtwo
 	else
 		if [ -z $flagtwo ]; then
 			printf "missing argument\nusage:\n"
 			printf "\trmpci [-f] <name> <pcidev:N>\n"
 			exit 1
 		fi
-		local pciprop="$(echo "$flagtwo" | grep pcidev:)"
 		local pool="$(zfs list -H -t volume | grep $flagone | cut -d '/' -f 1 | head -n1)"
-		# Make sure it's a valid pcidev property as to not shoot foot
-		if [ -z $pciprop ]; then
-			echo "Not a valid PCIDEV property"
-		else
-			read -p "Are you sure you want to remove $flagtwo [Y/N]? " an </dev/tty
-			case "$an" in
-				y|Y) zfs inherit  -r iohyve:$flagtwo $pool/iohyve/$flagone
-				;;
-				*) echo "Not removed..."
-				;;
-			esac
-		fi
+		echo "Warning: Deleting the wrong property can lead to bad things."
+		read -p "Are you sure you want to remove $flagtwo [Y/N]? " an </dev/tty
+		case "$an" in
+			y|Y) zfs inherit  -r iohyve:$flagtwo $pool/iohyve/$flagone
+			;;
+			*) echo "Not removed..."
+			;;
+		esac
 	fi
 }
 
