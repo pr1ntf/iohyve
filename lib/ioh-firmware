@@ -9,7 +9,7 @@ __firmware_list() {
 # Fetch Firmware
 __firmware_fetch() {
 	local url="$2"
-	if [ -z $url ]; then
+	if [ -z "$url" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tfetchfw <URL>\n"
 		exit 1
@@ -24,7 +24,7 @@ __firmware_fetch() {
 # Copy Firmware from local machine
 __firmware_copy() {
 	local loc="$2"
-	if [ -z $loc ]; then
+	if [ -z "$loc" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tcpfw <path>\n"
 		exit 1
@@ -41,7 +41,7 @@ __firmware_rename() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local fw="$2"
 	local name="$3"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\trenamefw <firmware> <newname>\n"
 		exit 1
@@ -54,7 +54,7 @@ __firmware_rename() {
 # Delete Firmware
 __firmware_delete() {
 	local name="$2"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\trmfw <firmware> <newname>\n"
 		exit 1

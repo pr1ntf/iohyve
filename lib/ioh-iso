@@ -10,7 +10,7 @@ __iso_list() {
 # Fetch ISO
 __iso_fetch() {
 	local url="$2"
-	if [ -z $url ]; then
+	if [ -z "$url" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tfetchiso <URL>\n"
 		exit 1
@@ -25,7 +25,7 @@ __iso_fetch() {
 # Copy ISO from local machine
 __iso_copy() {
 	local loc="$2"
-	if [ -z $loc ]; then
+	if [ -z "$loc" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tcpiso <path>\n"
 		exit 1
@@ -42,7 +42,7 @@ __iso_rename() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
 	local iso="$2"
 	local name="$3"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\trenameiso <ISO> <newname>\n"
 		exit 1
@@ -55,7 +55,7 @@ __iso_rename() {
 # Delete ISO
 __iso_delete() {
 	local name="$2"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\trmiso <name>\n"
 		exit 1

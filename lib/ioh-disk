@@ -5,7 +5,7 @@ __disk_add() {
 	local name="$2"
 	local size="$3"
 
-	if [ -z $size ]; then
+	if [ -z "$size" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tadd <name> <size>\n"
 		exit 1
@@ -24,7 +24,7 @@ __disk_add() {
 	# Find the last pcidev and increment by one
 	local lastpci="$(zfs get -H all | grep iohyve/$name | grep pcidev | cut -f2 | \
 		cut -d ':' -f3 | sort -V | tail -n1)"
-	if [ -z $lastpci ]; then
+	if [ -z "$lastpci" ]; then
 		local newpci='1'
 	else
 		local newpci="$(expr $lastpci + 1)"
@@ -38,7 +38,7 @@ __disk_remove() {
 	local flagtwo="$3"
 	local flagthree="$4"
 	if [ $flagone = "-f" ]; then
-		if [ -z $flagthree ]; then
+		if [ -z "$flagthree" ]; then
 			printf "missing argument\nusage:\n"
 			printf "\tremove [-f] <name> <diskN>\n"
 			exit 1
@@ -47,14 +47,14 @@ __disk_remove() {
 		local pool="$(zfs list -H -o name | grep $flagtwo | grep $flagthree | cut -d '/' -f 1)"
 		local pciprop="$(zfs get -H all $pool/iohyve/$flagtwo | grep pcidev | grep $flagthree | cut -f2 )"
 		# Make sure it's a valid pcidev property as to not shoot foot
-		if [ -z $pciprop ]; then
+		if [ -z "$pciprop" ]; then
 			echo "Not a valid PCIDEV property"
 		else
 			zfs inherit  -r $pciprop $pool/iohyve/$flagtwo
 			zfs destroy $pool/iohyve/$flagtwo/$flagthree
 		fi
 	else
-		if [ -z $flagtwo ]; then
+		if [ -z "$flagtwo" ]; then
 			printf "missing argument\nusage:\n"
 			printf "\tremove [-f] <name> <diskN>\n"
 			exit 1
@@ -62,7 +62,7 @@ __disk_remove() {
 		local pool="$(zfs list -H -o name | grep $flagone | grep $flagtwo | cut -d '/' -f 1)"
 		local pciprop="$(zfs get -H all $pool/iohyve/$flagone | grep pcidev | grep $flagtwo | cut -f2 )"
 		# Make sure it's a valid pcidev property as to not shoot foot
-		if [ -z $pciprop ]; then
+		if [ -z "$pciprop" ]; then
 			echo "Not a valid PCIDEV property"
 		else
 			read -p "Are you sure you want to remove $flagtwo from $flagone [Y/N]? " an </dev/tty
@@ -82,7 +82,7 @@ __disk_resize(){
 	local name="$2"
 	local disk="$3"
 	local size="$4"
-	if [ -z $size ]; then
+	if [ -z "$size" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tresize <name> <diskN> <size>\n"
 		exit 1
@@ -93,7 +93,7 @@ __disk_resize(){
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
-		if [ -z $running ]; then
+		if [ -z "$running" ]; then
 			zfs set volsize=$size $pool/iohyve/$name/$disk
 			zfs set iohyve:size=$size $pool/iohyve/$name
 		else
@@ -107,13 +107,13 @@ __disk_resize(){
 # List disks for a guest
 __disk_disks() {
 	local name="$2"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tdisks <name>\n"
 		exit 1
 	fi
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		echo "You must enter a guest name."
 	elif [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		(

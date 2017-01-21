@@ -3,7 +3,7 @@
 # Set ZFS properties
 __zfs_set() {
 	local name="$2"
-	if [ -z $3 ]; then
+	if [ -z "$3" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tset <name> <property=value> ...\n"
 		exit 1
@@ -32,7 +32,7 @@ __zfs_set() {
 __zfs_get() {
 	local name="$2"
 	local prop="$3"
-	if [ -z $prop ]; then
+	if [ -z "$prop" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tget <name> <prop>\n"
 		exit 1
@@ -48,7 +48,7 @@ __zfs_rmprop() {
 	local flagtwo="$3"
 	local flagthree="$4"
 	if [ $flagone = "-f" ]; then
-		if [ -z $flagthree ]; then
+		if [ -z "$flagthree" ]; then
 			printf "missing argument\nusage:\n"
 			printf "\trmpci [-f] <name> <pcidev:N>\n"
 			exit 1
@@ -58,7 +58,7 @@ __zfs_rmprop() {
 		local pool="$(zfs list -H -t volume | grep $flagtwo | cut -d '/' -f 1 | head -n1)"
 		zfs inherit  -r iohyve:$flagthree $pool/iohyve/$flagtwo
 	else
-		if [ -z $flagtwo ]; then
+		if [ -z "$flagtwo" ]; then
 			printf "missing argument\nusage:\n"
 			printf "\trmpci [-f] <name> <pcidev:N>\n"
 			exit 1
@@ -78,7 +78,7 @@ __zfs_rmprop() {
 # Get all ZFS props
 __zfs_getall() {
 	local name="$2"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tgetall <name>\n"
 		exit 1
@@ -92,7 +92,7 @@ __zfs_getall() {
 __zfs_snapguest() {
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
-	if [ -z $name ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
+	if [ -z "$name" ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tsnap <name>@<snap>\n"
 		exit 1
@@ -113,7 +113,7 @@ __zfs_rollguest() {
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
 	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local snap="$(echo $fullsnap | cut -d '@' -f2)"
-	if [ -z $snap ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
+	if [ -z "$snap" ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\troll <name>@<snap>\n"
 		exit 1
@@ -124,7 +124,7 @@ __zfs_rollguest() {
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
-		if [ -z $running ]; then
+		if [ -z "$running" ]; then
 			zfs rollback -rR $pool/iohyve/$fullsnap
 			for disk in $disklist ; do
 				zfs rollback -rR $pool/iohyve/$name/$disk@$snap
@@ -148,7 +148,7 @@ __zfs_cloneguest() {
 		cname="$4"
 	fi
 
-	if [ -z $cname ]; then
+	if [ -z "$cname" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tclone <name> <clonename>\n"
 		exit 1
@@ -180,7 +180,7 @@ __zfs_cloneguest() {
 					done
 				}
 			local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
-			if [ -z $taplast ]; then
+			if [ -z "$taplast" ]; then
 				local tap='0'
 			else
 				local tap="$(expr $taplast + 1)"
@@ -192,7 +192,7 @@ __zfs_cloneguest() {
 				done
 			}
 			local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
-			if [ -z $conlast ]; then
+			if [ -z "$conlast" ]; then
 				local con='0'
 			else
 				local con="$(expr $conlast + 1)"
@@ -209,7 +209,7 @@ __zfs_cloneguest() {
 # Export Guest
 __zfs_exportguest() {
 	local name="$2"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\texport <name>\n"
 		exit 1
@@ -222,7 +222,7 @@ __zfs_exportguest() {
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
 		# Check to make sure guest isn't running
 		local running=$(pgrep -fx "bhyve: ioh-$name")
-		if [ -z $running ]; then
+		if [ -z "$running" ]; then
 			# Create /tmp/iohyve/$name
 			echo "Creating temp directory..."
 			mkdir -p /tmp/iohyve/$name

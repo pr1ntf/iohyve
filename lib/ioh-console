@@ -16,7 +16,7 @@ __console_list() {
 # Run console
 __console_console() {
 	local name="$2"
-	if [ -z $name ]; then
+	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tconsole <name>\n"
 		exit 1
