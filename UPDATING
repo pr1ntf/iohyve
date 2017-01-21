@@ -1,16 +1,11 @@
-####Major changes for iohyve v0.7.7:
+####Major changes for iohyve v0.7.7+:
 
 - The `utc` property has been added to indicate that the `-u` flag should be passed
 	to bhyve so that bhyve's system clock is in UTC. The `create` command now sets
 	this property to `YES`, so the default behavior for a guest is for its system
 	clock to be in UTC, which is typically what is most appropriate for *nix OSes.
 
-####There are two major changes in iohyve v0.7.5
-
-- The `fetch` command has been renamed to `fetchiso` to comply
-	with the naming scheme of `fetchfw`, `cpiso`, `cpfw`, etc...
-
-- The `autogrub` property is no longer supported. You can now run what
-	is in your `autogrub` property in a `grub.cfg` if you set
-	the `os` property to `os=custom`. More information can be found on the README
-	https://github.com/pr1ntf/iohyve#use-your-own-custom-grubcfg-and-devicemap-files
+- The `rmpci` command is no longer used. It can now replace any iohyve property with
+	`iohyve rmprop`. Use with caution. Removing the wrong property can cause bad
+	things to happen and may cause dragons. We don't want dragons. Even if they 
+	are really cool. 

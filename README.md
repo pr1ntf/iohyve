@@ -86,7 +86,7 @@ rename <name> <newname>
 delete [-f] <name>
 set <name> <property=value> ...
 get <name> <prop>
-rmpci [-f] <name> <pcidev:N>
+rmprop [-f] <name> <property>
 getall <name>
 add <name> <size> [pool]
 remove [-f] <name> <diskN>

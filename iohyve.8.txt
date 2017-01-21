@@ -29,7 +29,7 @@ iohyve rename <name> <newname>
 iohyve delete [-f] <name>
 iohyve set <name> <property=value> ...
 iohyve get <name> <prop>
-iohyve rmpci [-f] <name> <pcidev:N>
+iohyve rmprop [-f] <name> <property>
 iohyve getall <name>
 iohyve add <name> <size> [pool]
 iohyve remove [-f] <name> <diskN>
@@ -214,10 +214,10 @@ get		Gets ZFS properties for guests one at a time
 		of the guest operating system. <prop> is the
 		property you want to view. (See 'iohyve set' info)
 
-rmpci		Removes a pcidev from the guest
-		Usage: 'iohyve rmpci <name> <pcidev:N>' where <name> is the name
-		of the guest operating system. <pcidev:N> is the PCI
-		device you want removed. Ex: 'pcidev:3' If [-f] is supplied
+rmprop		Removes a property from the guest
+		Usage: 'iohyve rmprop <name> <property>' where <name> is the name
+		of the guest operating system. <property> is the property
+		you want removed. Use with caution. If [-f] is supplied
 		before the <name>, there is no prompt to remove.
 
 getall		Gets all the ZFS properties for a guest
