@@ -41,6 +41,8 @@ iohyve clone [-r] <name> <clonename>
 iohyve export <name>
 iohyve snaplist
 iohyve taplist
+iohyve tapadd <name> [iface]
+iohyve tapdel <name> <tap>
 iohyve activetaps
 iohyve conlist
 iohyve console <name>
@@ -282,7 +284,15 @@ snaplist	List all of the snapshots for all the guests. Does not show
 taplist		Lists all of the network taps taken by iohyve guests
 		This will list taps that are not active as well.
 
-activetaps	Lists all active taps in use
+tapadd		Adds new network tap interface to the guest <name>.
+		If [iface] is set, then new created network tap is assigned
+		to the bridge, which contains network interface [iface].
+		Otherwise the default network interface is used (network
+		interface used during the setup)
+
+tapdel		Remove network tap interface <tap> from the quest <name>.
+
+activetaps	Lists all active taps in use.
 
 conlist		Lists all of the nullmodem consoles taken by iohyve guests.
 		This will list taps that are not active as well.

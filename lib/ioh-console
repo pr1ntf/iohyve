@@ -1,5 +1,15 @@
 #!/bin/sh
 
+# Returns last con id
+__console_last() {
+	local conlast="$(zfs get -H -o value iohyve:con | tr ',' '\n' | cut -c5- | sort -V | tail -n1)"
+	local con='0'
+	if [ -n "$conlast" ]; then
+		con="$(expr $conlast + 1)"
+	fi
+	echo $con
+}
+
 # List consoles in use
 __console_list() {
 	local pool="$(zfs list -H | grep iohyve | cut -d '/' -f 1 | head -n1)"

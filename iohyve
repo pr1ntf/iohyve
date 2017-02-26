@@ -5,7 +5,6 @@
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 
-
 # Check if libs are available (stolen from iocage)
 if [ -e "./lib/ioh-cmd" ] ; then
 	LIB="./lib"
@@ -75,6 +74,8 @@ iohyve  version
 	export <name>
 	snaplist
 	taplist
+        tapadd <name> [iface]
+        tapdel <name> <tap>
 	activetaps
 	conlist
 	console <name>

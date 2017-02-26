@@ -178,38 +178,15 @@ __guest_create() {
 		exit 1
 	fi
 
-	local guestlist="$(zfs get -H -o name -t filesystem -s local,received iohyve:name)"
-	listtaps(){
-		for i in $guestlist ; do
-			local tapprop="$(zfs get -H -o value iohyve:tap $i)"
-			printf $tapprop'\n'
-		done
-	}
-	local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
-	if [ -z "$taplast" ]; then
-		local tap='0'
-	else
-		local tap="$(expr $taplast + 1)"
-	fi
-	listcons(){
-		for i in $guestlist ; do
-			local conprop="$(zfs get -H -o value iohyve:con $i)"
-			printf $conprop'\n'
-		done
-	}
-	local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
-	if [ -z "$conlast" ]; then
-		local con='0'
-	else
-		local con="$(expr $conlast + 1)"
-	fi
+	local taplast="$(__tap_last)"
+	local conlast="$(__console_last)"
 	echo "Creating $name..."
 	zfs create -o iohyve:name=$name \
 		-o iohyve:size=$size \
 		-o iohyve:ram=256M \
 		-o iohyve:cpu=1 \
-		-o iohyve:tap=tap$tap \
-		-o iohyve:con=nmdm$con \
+		-o iohyve:tap=tap$taplast \
+		-o iohyve:con=nmdm$conlast \
 		-o iohyve:persist=1 \
 		-o iohyve:boot=0 \
 		-o iohyve:loader=bhyveload \
@@ -496,29 +473,14 @@ __guest_prepare() {
 	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
 	local pci="$(__zfs_get_pcidev_conf $dataset)"
 	# Setup tap if needed
-	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
-	for tap in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
-		if [ $tap ] && [ $tap != "-" ]; then
-			local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
-			if [ -z "$tapif" ]; then
-				# create tap interface
-				ifconfig $tap create descr "iohyve-$name"
-				ifconfig bridge0 addm $tap
-			fi
-			# Add a virtio-net pci device for the tap
-			local mac="$(zfs get -H -o value iohyve:mac_$tap $dataset)"
-			if [ $mac = "-" ]; then
-				pci="$pci virtio-net,$tap"
-			else
-				pci="$pci virtio-net,${tap},mac=${mac}"
-			fi
-		fi
-	done
-	#Add disk as second PCI device
+	__tap_setup $dataset
+	# Add tap interface
+	pci="$pci $(__tap_pci $dataset)"
+	# Add disk as second PCI device
 	pci="ahci-hd,/dev/zvol/$dataset/disk0 $pci"
-	#Add Hostbridge and lpc as the first PCI devices
+	# Add Hostbridge and lpc as the first PCI devices
 	pci="hostbridge lpc $pci"
-	# return the list of pci devices
+	# Return the list of pci devices
 	echo $pci
 }
 
@@ -601,7 +563,6 @@ __guest_uefi() {
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
 	local fw="$(zfs get -H -o value iohyve:fw $dataset)"
-	local tap="$(zfs get -H -o value iohyve:tap $dataset)"
 	local bargs="$(zfs get -H -o value iohyve:bargs $dataset | sed -e 's/_/ /g')"
 	local utc="$(zfs get -H -o value iohyve:utc $dataset)"
 	local vnc="$(zfs get -H -o value iohyve:vnc $dataset)"
@@ -613,13 +574,9 @@ __guest_uefi() {
 	local vnc_tablet="$(zfs get -H -o value iohyve:vnc_tablet $dataset)"
 	local pool="$(zfs list -H -t volume -o name | grep iohyve/$name | cut -d '/' -f1)"
 	# Create tap if needed
-	# check to see if tap is already created before attempting to create new tap interface
-	local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
-	if [ -z "$tapif" ]; then
-		# create tap interface
-		ifconfig $tap create descr "iohyve-$name"
-		ifconfig bridge0 addm $tap
-	fi
+	__tap_setup $dataset
+	# Add tap interface
+	local tappci="$pci $(__tap_pci $dataset)"
 	# Make sure everything is in order...
 	if [ $fw = '-' ]; then
 		echo "You must set a firmware file property to use UEFI..."
@@ -655,7 +612,7 @@ __guest_uefi() {
 					-s 0,hostbridge \
 					-s 3,ahci-cd,/iohyve/ISO/$media/$media \
 					-s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
-					-s 10,virtio-net,$tap \
+					-s 10,$tappci \
 					$vncline \
 					$tabletline \
 					$utcline \
@@ -668,7 +625,7 @@ __guest_uefi() {
 					-s 0,hostbridge \
 					-s 3,ahci-cd,/iohyve/ISO/$media/$media \
 					-s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
-					-s 10,virtio-net,$tap \
+					-s 10,$tappci \
 					$utcline \
 					-s 31,lpc \
 					-l com1,/dev/${con}A \

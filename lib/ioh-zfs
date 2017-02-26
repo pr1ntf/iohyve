@@ -172,34 +172,12 @@ __zfs_cloneguest() {
 		zfs set iohyve:description=$description $pool/iohyve/$cname
 		# change con and tap properties to next available if -r is specified
 		if [ "$flag" == "-r" ]; then
-			local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
-				listtaps(){
-					for i in $guestlist ; do
-						local tapprop="$(zfs get -H -o value iohyve:tap $i)"
-						printf $tapprop'\n'
-					done
-				}
-			local taplast="$(listtaps | sort -V | cut -c4- | tail -n1)"
-			if [ -z "$taplast" ]; then
-				local tap='0'
-			else
-				local tap="$(expr $taplast + 1)"
-			fi
-			listcons(){
-				for i in $guestlist ; do
-					local conprop="$(zfs get -H -o value iohyve:con $i)"
-					printf $conprop'\n'
-				done
-			}
-			local conlast="$(listcons | sort -V | cut -c5- | tail -n1)"
-			if [ -z "$conlast" ]; then
-				local con='0'
-			else
-				local con="$(expr $conlast + 1)"
-			fi
+			local taporig="$(zfs get -H -o value iohyve:tap $pool/iohyve/$name)"
+			local tapcloned="$(__tap_cloned $taporig)"
+			local conlast="$(__console_last)"
 
-			zfs set iohyve:tap=tap$tap $pool/iohyve/$cname
-			zfs set iohyve:con=nmdm$con $pool/iohyve/$cname
+			zfs set iohyve:tap=$tapcloned $pool/iohyve/$cname
+			zfs set iohyve:con=nmdm$conlast $pool/iohyve/$cname
 		fi
 	else
 		echo "Not a valid guest name"

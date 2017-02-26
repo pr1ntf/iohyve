@@ -1,12 +1,156 @@
 #!/bin/sh
 
+# Returns last tap id
+__tap_last() {
+	local taplast="$(zfs get -H -o value iohyve:tap | tr ',' '\n' | cut -d '=' -f 1 | cut -c4- | sort -V | tail -n1)"
+	local tap='0'
+	if [ -n "$taplast" ]; then
+		tap="$(expr $taplast + 1)"
+	fi
+	echo $tap
+}
+
+# Returns cloned tap interface
+__tap_clone() {
+	local taps="$1"
+	local taplast="$(__tap_last)"
+	local tapsnew=""
+	for i in `echo $taps | tr ',' ' '`; do
+		local iface="$(echo $i | cut -d '=' -f 2 -s)"
+		if [ -z "$tapsnew" ]; then
+			tapsnew="tap$taplast"
+		else
+			tapsnew="$tapsnew,tap$taplast"
+		fi
+		if [ -n "$iface" ]; then
+			tapsnew="$tapsnew=$iface"
+		fi
+                taplast="$(expr $taplast + 1)"
+	done
+	echo $tapsnew
+}
+
+# Setup tap if needed
+__tap_setup() {
+	local dataset="$1"
+	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
+	for tapent in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
+		local tap=$(echo $tapent | cut -d "=" -f 1)
+		local iface=$(echo $tapent | cut -d "=" -f 2 -s)
+		if [ -z "$iface" ]; then
+			iface="$(zfs get -H -o value iohyve:net $dataset)"
+		fi
+		local bridgeif=$(__setup_bridge $iface)
+		if [ -n "$tap" ] && [ "$tap" != "-" ] && [ -n "$bridgeif" ]; then
+			local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
+			if [ -z $tapif ]; then
+				# create tap interface
+				ifconfig $tap create descr "iohyve-$name-$iface"
+				ifconfig $bridgeif addm $tap
+			fi
+		fi
+	done
+}
+
+# Returns virtio-net pci
+__tap_pci() {
+	local dataset="$1"
+	local pci=""
+	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
+	for tapent in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
+		local tap=$(echo $tapent | cut -d "=" -f 1)
+		if [ -n "$tap" ] && [ "$tap" != "-" ]; then
+			# Add a virtio-net pci device for the tap
+			local mac="$(zfs get -H -o value iohyve:mac_$tap $dataset)"
+			if [ -z "$pci" ]; then
+				if [ $mac = "-" ]; then
+					pci="virtio-net,$tap"
+				else
+					pci="virtio-net,${tap},mac=${mac}"
+				fi
+			else
+				if [ $mac = "-" ]; then
+					pci="$pci virtio-net,$tap"
+				else
+					pci="$pci virtio-net,${tap},mac=${mac}"
+				fi
+			fi
+		fi
+	done
+	echo "$pci"
+}
+
+# Add tap to the dataset
+__tap_add() {
+	if [ $# -lt 2 ]; then
+		echo "Wrong number of parameters!"
+		__help
+		exit 1
+	fi
+
+	local name="$2"
+	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	if [ -z "$dataset" ]; then
+		echo "ERROR: dataset \"$name\" doesn't exist!"
+		exit 1
+	fi
+	local iface="$3"
+	if [ -z "$iface" ]; then
+		iface="$(zfs get -H -o value iohyve:net $dataset)"
+	fi
+	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
+	local tap="$(__tap_last)"
+
+	if [ -z "$listtap" ]; then
+		listtap="tap$tap=$iface"
+	else
+		listtap="$listtap,tap$tap=$iface"
+	fi
+	echo "Setting TAP parameters iohyve:tap=\"$listtap\" for the $dataset"
+	zfs set iohyve:tap="$listtap" $dataset
+}
+
+# Delete tap from the dataset
+__tap_del() {
+	if [ $# -lt 3 ]; then
+		echo "Wrong number of parameters!"
+		__help
+		exit 1
+	fi
+
+	local name="$2"
+	local tapname="$3"
+	local dataset="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1-3 | head -n1)"
+	if [ -z "$dataset" ]; then
+		echo "ERROR: dataset \"$name\" doesn't exist!"
+		exit 1
+	fi
+	local listtap="$(zfs get -H -o value iohyve:tap $dataset)"
+	local listtapnew=""
+	for tapent in $(echo $listtap | sed -n 1'p' | tr ',' '\n'); do
+		local tap=$(echo $tapent | cut -d "=" -f 1)
+		if [ "$tap" != "$tapname" ]; then
+			if [ -z "$listtapnew" ]; then
+				listtapnew="$tapent"
+			else
+				listtapnew="$listtapnew,$tapent"
+			fi
+		fi
+	done
+	if [ -z "$listtapnew" ]; then
+		listtapnew="-"
+	fi
+	echo "Setting TAP parameters iohyve:tap=\"$listtapnew\" for the $dataset"
+	zfs set iohyve:tap="$listtapnew" $dataset
+}
+
 # List taps in use
 __tap_list() {
 	local guestlist="$(zfs list -H -o name -t volume | grep iohyve | cut -d'/' -f1-3)"
 	echo "Listing all network taps:"
 	for i in $guestlist ; do
-		conprop="$(zfs get -H -o value iohyve:tap $i)"
-		printf $i'......'$conprop'\n'
+		tapprop="$(zfs get -H -o value iohyve:tap $i)"
+		printf $i'......'$tapprop'\n'
 	done
 }
 
@@ -15,3 +159,4 @@ __tap_active_list() {
   echo "Listing active network taps..."
 	ls /dev | grep tap
 }
+

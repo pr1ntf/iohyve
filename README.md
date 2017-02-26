@@ -98,6 +98,8 @@ clone [-r] <name> <clonename>
 export <name>
 snaplist
 taplist
+tapadd <name> [iface]
+tapdel <name> <tap>
 activetaps
 conlist
 console <name>

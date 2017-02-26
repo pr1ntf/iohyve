@@ -18,7 +18,7 @@ __setup() {
 		elif [ $prop = "net" ]; then
 			netval=$val
 		fi
-		
+
 	done
 
 	if [ -n "$( grep 'POPCNT' /var/run/dmesg.boot )" -o -n "$( grep 'POPCNT' /var/log/dmesg )" ]; then
@@ -34,7 +34,7 @@ __setup() {
 		echo "This may not end well for you."
 		echo "Other restrictions may apply."
 	fi
-	
+
 	# Run commands in correct order, so that the kernel modules are loaded
 	# before the network is setup
 	if [ -n "$poolval" ]; then
@@ -149,17 +149,45 @@ __load_kernel_modules() {
 	fi
 }
 
+__setup_bridge() {
+	local iface=$1
+	local bridgeif=""
+	local ifaceexist=$('ifconfig' -l | tr ' ' '\n' | grep "$iface")
+	if [ -n "$ifaceexist" ]; then
+		local allbridges=$('ifconfig' -l | tr ' ' '\n' | grep "bridge" | sort -V)
+		local lastbridge=$(echo $allbridges | tr ' ' '\n' | tail -n1 | cut -c7- )
+
+		for bridge in $allbridges; do
+			local bridgetest=$('ifconfig' $bridge | grep "member: $iface")
+			if [ -n "$bridgetest" ]; then
+				bridgeif=$bridge
+			fi
+		done
+
+		if [ -z "$bridgeif" ]; then
+			local nextbridge='0'
+			if [ -n "$lastbridge" ]; then
+				nextbridge="$(expr $lastbridge + 1)"
+			fi
+			bridgeif="bridge$nextbridge"
+
+			ifconfig $bridgeif create descr "iohyve-bridge-$iface"
+			ifconfig $bridgeif addm $iface
+			ifconfig $bridgeif up
+		fi
+	fi
+
+	echo $bridgeif
+}
+
 __setup_network() {
 	local iface=$1
-	local bridgeif="$('ifconfig' -l | grep -F "bridge0" | cut -c1)"
+	local bridgeif="$(__setup_bridge $iface)"
 	if [ -z "$bridgeif" ]; then
-		echo "Setting up bridge0 on $iface..."
-		if ! sysctl net.link.tap.up_on_open=1 > /dev/null 2>&1; then
-			echo "cannot set 'net.link.tap.up_on_open': is if_tap loaded?"
-		fi
-		ifconfig bridge0 create descr "iohyve-bridge" addm $iface up
+		echo "Setting up bridge with \"$iface\" failed!"
+		return 1
 	else
-		echo "bridge0 is already enabled on this machine..."
+		echo "bridge \"$bridgeif\" is already enabled on this machine..."
 		local sysctlexist
 		if ! sysctlexist="$(sysctl -n net.link.tap.up_on_open 2> /dev/null)"; then
 			echo "cannot set 'net.link.tap.up_on_open': is if_tap loaded?"
@@ -174,3 +202,4 @@ __setup_network() {
 		fi
 	fi
 }
+

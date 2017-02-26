@@ -186,6 +186,14 @@ __parse_cmd () {
 				__tap_list
 				exit
 				;;
+			tapadd)
+				__tap_add "$@"
+				exit
+				;;
+			tapdel)
+				__tap_del "$@"
+				exit
+				;;
 			activetaps)
 				__tap_active_list
 				exit
