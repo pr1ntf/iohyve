@@ -45,6 +45,8 @@
 \fBiohyve\fP \fIexport\fP <name>
 \fBiohyve\fP \fIsnaplist\fP
 \fBiohyve\fP \fItaplist\fP
+\fBiohyve\fP \fItapladd\fP <name> [iface]
+\fBiohyve\fP \fItapldel\fP <name> <tap>
 \fBiohyve\fP \fIactivetaps\fP
 \fBiohyve\fP \fIconlist\fP
 \fBiohyve\fP \fIconsole\fP <name>
@@ -369,6 +371,18 @@ snapshots of \fIdisks\fP (they are there, though).
 \fItaplist\fP
 Lists all of the network taps taken by \fBiohyve\fP guests
 This will \fIlist\fP taps that are not active as well.
+.TP
+.B
+\fItapadd\fP
+Adds new network tap interface to the guest <name>.
+If [iface] is set, then new created network tap is assigned
+to the bridge, which contains network interface [iface].
+Otherwise the default network interface is used (network
+interface used during the setup)
+.TP
+.B
+\fItapdel\fP
+Remove network tap interface <tap> from the quest <name>.
 .TP
 .B
 \fIactivetaps\fP
