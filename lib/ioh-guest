@@ -572,11 +572,21 @@ __guest_uefi() {
 	local vnc_h="$(zfs get -H -o value iohyve:vnc_h $dataset)"
 	local vnc_wait="$(zfs get -H -o value iohyve:vnc_wait $dataset)"
 	local vnc_tablet="$(zfs get -H -o value iohyve:vnc_tablet $dataset)"
+	local sectorsize="$(zfs get -H -o value iohyve:sectorsize $dataset)"
 	local pool="$(zfs list -H -t volume -o name | grep iohyve/$name | cut -d '/' -f1)"
-	# Create tap if needed
-	__tap_setup $dataset
-	# Add tap interface
-	local tappci="$pci $(__tap_pci $dataset)"
+
+	pci="$(__guest_prepare $name)"
+	#Set sectorsize if set
+	if [ ! -z $sectorsize ]; then
+		pci=`echo $pci | sed -e "s/disk0/disk0,sectorsize=${sectorsize}/g"`
+	else
+		echo "Warning! Sectorsize has not been set. This was previously a hardcoded value, to set the value to the previously hardcoded value use command \"iohyve set $name sectorsize=512\" "
+	fi
+	#set ISO media if install has been used.
+	if [ ! -z $media ]; then
+		pci="$pci ahci-cd,/iohyve/ISO/$media/$media"
+	fi
+	#echo $pci
 	# Make sure everything is in order...
 	if [ $fw = '-' ]; then
 		echo "You must set a firmware file property to use UEFI..."
@@ -598,40 +608,25 @@ __guest_uefi() {
 			if [ $vnc = "YES" ]; then
 				# build vnc arguments
 				if [ $vnc_wait = "YES" ]; then
-					vncline="-s 11,fbuf,tcp=${vnc_ip}:${vnc_port},w=${vnc_w},h=${vnc_h},wait"
+					vncline="fbuf,tcp=${vnc_ip}:${vnc_port},w=${vnc_w},h=${vnc_h},wait"
 				else
-					vncline="-s 11,fbuf,tcp=${vnc_ip}:${vnc_port},w=${vnc_w},h=${vnc_h}"
+					vncline="fbuf,tcp=${vnc_ip}:${vnc_port},w=${vnc_w},h=${vnc_h}"
 				fi
 				# build tablet argument
 				if [ $vnc_tablet = "YES" ]; then
-					tabletline="-s 12,xhci,tablet"
+					tabletline="xhci,tablet"
 				else
 					tabletline=""
 				fi
-				bhyve -c $cpu $bargs -m $ram \
-					-s 0,hostbridge \
-					-s 3,ahci-cd,/iohyve/ISO/$media/$media \
-					-s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
-					-s 10,$tappci \
-					$vncline \
-					$tabletline \
-					$utcline \
-					-s 31,lpc \
-					-l com1,/dev/${con}A \
-					-l bootrom,/iohyve/Firmware/$fw/$fw \
-					ioh-$name &
 			else
-				bhyve -c $cpu $bargs -m $ram \
-					-s 0,hostbridge \
-					-s 3,ahci-cd,/iohyve/ISO/$media/$media \
-					-s 4,ahci-hd,/dev/zvol/$dataset/disk0,sectorsize=512 \
-					-s 10,$tappci \
-					$utcline \
-					-s 31,lpc \
-					-l com1,/dev/${con}A \
-					-l bootrom,/iohyve/Firmware/$fw/$fw \
-					ioh-$name &
+				vncline=""
 			fi
+			pci="$pci $vncline $tabletline "
+			#remove LPC needs to be hardcoded to -s 31,lpc
+			pci=`echo $pci | sed -e "s/lpc//g"`
+			local pci_args=$(__guest_get_bhyve_cmd "$pci" )
+			pci_args="$pci_args -s 31,lpc"
+			bhyve -c $cpu $bargs -m $ram $pci_args $utcline -l com1,/dev/${con}A -l bootrom,/iohyve/Firmware/$fw/$fw ioh-$name &
 		else
 			echo "Guest is already running."
 		fi
