@@ -576,7 +576,7 @@ __guest_uefi() {
 	# Create tap if needed
 	__tap_setup $dataset
 	# Add tap interface
-	local tappci="$pci $(__tap_pci $dataset)"
+	local tappci="$(__tap_pci $dataset)"
 	# Make sure everything is in order...
 	if [ $fw = '-' ]; then
 		echo "You must set a firmware file property to use UEFI..."
