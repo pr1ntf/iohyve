@@ -576,7 +576,6 @@ __guest_uefi() {
 	# Create tap if needed
 	__tap_setup $dataset
 	# Add tap interface
-	echo "|${pci}|"
 	local tappci="$(__tap_pci $dataset)"
 	# Make sure everything is in order...
 	if [ $fw = '-' ]; then
