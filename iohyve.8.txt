@@ -201,6 +201,10 @@ set		Sets ZFS properties for guests one at a time
 			Forces a specific MAC address to be attached to the
 			network adapter in the guest OS. iohyve does not check
 			for a valid MAC address, so double check the property.
+		sectorsize=[Size]
+			[Size] is the sectorsize in kilobyte for the disk attached to the guest.
+			Only used for uefi guests. See "sectorsize" in bhyve(8)
+				Examples: "sectorsize=512"
 		pcidev:[n]=<spec>
 			Generic way to add devices to the guest.
 			[n] is a generic random number or string
