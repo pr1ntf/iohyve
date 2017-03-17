@@ -577,9 +577,10 @@ __guest_uefi() {
 
 	pci="$(__guest_prepare $name)"
 	#Set sectorsize if set
-	if [ ! -z $sectorsize ]; then
+	if [ ! $sectorsize = '-' ]; then
 		pci=`echo $pci | sed -e "s/disk0/disk0,sectorsize=${sectorsize}/g"`
 	else
+		#Display Warning because the addition of sectorsize breaks backwards compability. Then continue with boot.
 		echo "Warning! Sectorsize has not been set. This was previously a hardcoded value, to set the value to the previously hardcoded value use command \"iohyve set $name sectorsize=512\" "
 	fi
 	#set ISO media if install has been used.
