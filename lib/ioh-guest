@@ -792,6 +792,9 @@ __guest_get_bhyve_cmd() {
 	for device in $devices ; do
 		echo "-s $pci_slot_count,$device"
 		pci_slot_count=$(( pci_slot_count + 1 ))
+                if [ $pci_slot_count -eq 31 ]; then
+                    break;
+                fi
 	done
 }
 
