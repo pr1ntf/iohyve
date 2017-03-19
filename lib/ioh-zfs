@@ -12,7 +12,7 @@ __zfs_set() {
 	shift 2
 	for arg in "$@"; do
 		local prop="$(echo $arg | cut -d '=' -f1)"
-		local val="$(echo $arg | cut -d '=' -f2)"
+		local val="$(echo $arg | cut -d '=' -f2-)"
 		if [ $prop = "bargs" ]; then
 			local sval="$(echo $val | cut -d '"' -f2 | sed -e 's/ /_/g')"
 			echo "Setting $name $prop=$val..."
