@@ -89,7 +89,7 @@ if [ -z "$1" ] ; then
 	exit 0
 fi
 
-if __root_req_cmd "$1" && [ "$(whoami)" != "root" ]; then
+if __root_req_cmd "$1" && [ "$(id -u)" != "0" ]; then
     echo "The $1 command needs root credentials!"
     exit 1
 fi
