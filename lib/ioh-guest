@@ -328,7 +328,7 @@ __guest_load() {
 			elif [ $os = "debian" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
-				grub-bhyve $wire_memory-m /iohyve/$name/device.map -r cd0  -c /dev/${con}A -M $ram ioh-$name
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0  -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "d8lvm" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
