@@ -41,9 +41,12 @@ __tap_setup() {
 			iface="$(zfs get -H -o value iohyve:net $dataset)"
 		fi
 		local bridgeif=$(__setup_bridge $iface)
+		if [ -z "$bridgeif" ]; then
+			bridgeif="bridge0"
+		fi
 		if [ -n "$tap" ] && [ "$tap" != "-" ] && [ -n "$bridgeif" ]; then
 			local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
-			if [ -z $tapif ]; then
+			if [ -z "$tapif" ]; then
 				# create tap interface
 				ifconfig $tap create descr "iohyve-$name-$iface"
 				ifconfig $bridgeif addm $tap
