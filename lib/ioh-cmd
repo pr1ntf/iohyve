@@ -8,7 +8,7 @@ fi
 __root_req_cmd () {
 		case "$1" in
 		setup|fetchiso|fetch|cpiso|renameiso|rmiso|fetchfw|cpfw|renamefw|rmfw|create|install|load\
-		|boot|start|uefi|stop|forcekill|scram|destroy|rename|delete|set|rmpci|fix-bargs|add|remove\
+		|boot|start|uefi|stop|forcekill|scram|destroy|rename|delete|set|fix-bargs|add|remove\
 		|resize|disks|snap|roll|clone|export|console|conreset)
 			return 0
 			;;
