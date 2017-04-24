@@ -43,7 +43,7 @@ If you want more control over your setup, feel free to read the [handbook](https
 
 **GRUB Guests**
 
-In order to boot guests using GRUB, you must install the [sysutils/grub2-bhyve](https://www.freshports.org/sysutils/grub2-bhyve/) port. You can also just run `pkg install grub2-bhyve` if you'd like. 
+In order to boot guests using GRUB, you must install the [sysutils/grub2-bhyve](https://www.freshports.org/sysutils/grub2-bhyve/) port. You can also just run `pkg install grub2-bhyve` if you'd like.
 
 **NOTE**
 
@@ -52,7 +52,7 @@ If you are using [FreeNAS](http://doc.freenas.org/9.10/freenas_jails.html#using-
 ln -s /mnt/iohyve /iohyve
 ```
 You may also want to check out the FreeNAS [tunables](http://doc.freenas.org/9.10/freenas_system.html?highlight=persist#tunables) section of their handbook
-so you can add `iohyve_enable="YES"` and `iohyve_flags="kmod=1 net=[iface]"` thus setting up the kernel modules and iohyve networking at boot time on your FreeNAS install. 
+so you can add `iohyve_enable="YES"` and `iohyve_flags="kmod=1 net=[iface]"` thus setting up the kernel modules and iohyve networking at boot time on your FreeNAS install.
 
 **Usage**
 
@@ -129,7 +129,7 @@ At guest creation, the description is the output of `date`
 iohyve set bsdguest description="This is my string"
 ````
 It's always prudent to `destroy` a guest before changing settings that may affect a running guest.
-It's also a good idea to `destroy` a guest after your installation phase has completed. 
+It's also a good idea to `destroy` a guest after your installation phase has completed.
 Destroying a guest does not `delete` a guest from the host, it `destroys` the guest in `VMM`.
 ```
 iohyve destroy bsdguest
@@ -156,8 +156,8 @@ iohyve clone bsdguest dolly	   #make a clone of bsdguest to dolly
 ````
 **Creating guest templates**
 
-You can lock a guest from being reinstalled, started, renamed, or deleted by making it a template. 
-To set a guest as a template, you must set the `template` property to `YES`. The `YES` must be in all caps. 
+You can lock a guest from being reinstalled, started, renamed, or deleted by making it a template.
+To set a guest as a template, you must set the `template` property to `YES`. The `YES` must be in all caps.
 EX:
 ```
 iohyve set bsdguest template=YES
@@ -201,7 +201,7 @@ Some guest os's can be gracefully stopped:
 iohyve stop bsdguest
 ```
 If you are having problems with a guest that is unresponsive you can forcekill it as a last resort.
-USE THIS WITH CAUTION, IT WILL KILL ALL PROCESSES THAT MATCH THE NAME OF THE GUEST. 
+USE THIS WITH CAUTION, IT WILL KILL ALL PROCESSES THAT MATCH THE NAME OF THE GUEST.
 ```
 iohyve forcekill grubguest
 ```
@@ -247,7 +247,7 @@ iohyve console centosguest
 ````
 ##### Use your own custom `grub.cfg` and `device.map` files
 
-If you don't want iohyve to take care of the `grub.cfg` and `device.map` files, you can now "roll your own" and place them in the guests dataset (`/iohyve/guestname/`). 
+If you don't want iohyve to take care of the `grub.cfg` and `device.map` files, you can now "roll your own" and place them in the guests dataset (`/iohyve/guestname/`).
 Of course, you must set the guest properties `loader=grub-bhyve` and `os=custom`.
 For instance, if you have an OpenBSD guest located in `/iohyve/obsd59/` and an install ISO in `/iohyve/ISO/install59.iso/` and your pool is `zroot`, your files will look like this:
 

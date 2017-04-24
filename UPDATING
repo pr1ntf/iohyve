@@ -7,5 +7,5 @@
 
 - The `rmpci` command is no longer used. It can now replace any iohyve property with
 	`iohyve rmprop`. Use with caution. Removing the wrong property can cause bad
-	things to happen and may cause dragons. We don't want dragons. Even if they 
-	are really cool. 
+	things to happen and may cause dragons. We don't want dragons. Even if they
+	are really cool.

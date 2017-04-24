@@ -202,4 +202,3 @@ __setup_network() {
 		fi
 	fi
 }
-
