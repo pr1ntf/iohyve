@@ -333,6 +333,10 @@ __guest_load() {
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
+			elif [ $os = "ubuntu" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 			elif [ $os = "centos6" ] || [ $os = "centos7" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
@@ -380,7 +384,7 @@ __guest_load() {
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -c /dev/${con}A -M $ram ioh-$name
-			elif [ $os = "d8lvm" ]; then
+			elif [ $os = "ubuntu" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r hd0,msdos1 -d /grub -c /dev/${con}A -M $ram ioh-$name
