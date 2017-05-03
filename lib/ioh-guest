@@ -190,7 +190,7 @@ __guest_create() {
 	echo "Creating $name..."
 	zfs create -o iohyve:name=$name \
 		-o iohyve:size=$size \
-		-o iohyve:ram=256M \
+		-o iohyve:ram=512M \
 		-o iohyve:cpu=1 \
 		-o iohyve:tap=tap$taplast \
 		-o iohyve:con=nmdm$conlast \
