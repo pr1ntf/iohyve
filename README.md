@@ -162,6 +162,12 @@ EX:
 ```
 iohyve set bsdguest template=YES
 ```
+**Use a custom bhyve path**
+
+If you are testing a bhyve binary that is not in base, you can specify it's full path as a property, and iohyve will use it to launch the guest. This comes in handy when testing new features branches of bhyve. 
+```
+iohyve set bsdguest bhyve_path=/path/to/custom/bhyve
+```
 **FreeBSD Guests**
 
 Fetch FreeBSD install ISO for later:
