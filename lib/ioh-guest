@@ -300,7 +300,12 @@ __guest_load() {
 		echo "GRUB Process does not run in background...."
 		echo "If your terminal appears to be hanging, check iohyve console $name in second terminal to complete GRUB process..."
 		if [ $install = "yes" ]; then
-			if [ $os = "openbsd60" ]; then
+			if [ $os = "openbsd61" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 (cd0)/6.1/amd64/bsd.rd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
+			elif [ $os = "openbsd60" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 (cd0)/6.0/amd64/bsd.rd\nboot\n' > /iohyve/$name/grub.cfg
@@ -351,7 +356,12 @@ __guest_load() {
 				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r cd0 -c /dev/${con}A -M $ram ioh-$name
 			fi
 		elif [ $install = "no" ]; then
-			if [ $os = "openbsd60" ]; then
+			if [ $os = "openbsd61" ]; then
+				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
+				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
+				printf 'kopenbsd -h com0 -r sd0a (hd0,openbsd1)/bsd\nboot\n' > /iohyve/$name/grub.cfg
+				grub-bhyve $wire_memory -m /iohyve/$name/device.map -r host -d /iohyve/$name -c /dev/${con}A -M $ram ioh-$name
+			elif [ $os = "openbsd60" ]; then
 				printf '\(hd0\)\ /dev/zvol/'$disk'\n' > /iohyve/$name/device.map
 				printf '\(cd0\)\ '$media'\n' >> /iohyve/$name/device.map
 				printf 'kopenbsd -h com0 -r sd0a (hd0,openbsd1)/bsd\nboot\n' > /iohyve/$name/grub.cfg
