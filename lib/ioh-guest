@@ -202,6 +202,7 @@ __guest_create() {
 		-o iohyve:bargs=-A_-H_-P \
 		-o iohyve:template=NO \
 		-o iohyve:utc=YES \
+		-o iohyve:bhyve_path=/usr/sbin/bhyve \
 		-o iohyve:vnc=NO \
 		-o iohyve:vnc_ip=127.0.0.1 \
 		-o iohvye:vnc_port=5900 \
@@ -244,6 +245,11 @@ __guest_install() {
 		__guest_uefi "$name" "$iso"
 		exit 0
 	fi
+	# Check if bhyve path is set, set default if not
+	local bhyve_path="$(zfs get -H -o value iohyve:bhyve_path $dataset)"
+	if [ "$bhyve_path" = "-" ]; then
+		bhyve_path=/usr/sbin/bhyve
+	fi
 	# Check if guest exists
 	if [ -d $mountpoint ]; then
 		# Check to make sure guest isn't running
@@ -262,7 +268,7 @@ __guest_install() {
 			# Prepare and start guest
 			pci="$(__guest_prepare $name) ahci-cd,/iohyve/ISO/$iso/$iso"
 			local pci_args=$(__guest_get_bhyve_cmd "$pci" )
-			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+			$bhyve_path -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 		else
 			echo "Guest is already running."
 		fi
@@ -453,6 +459,11 @@ __guest_boot() {
 	local persist="$(zfs get -H -o value iohyve:persist $dataset)"
 	local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
 	local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
+	# Check if bhyve path is set, set default if not
+	local bhyve_path="$(zfs get -H -o value iohyve:bhyve_path $dataset)"
+	if [ "$bhyve_path" = "-" ]; then
+		bhyve_path=/usr/sbin/bhyve
+	fi
 	# Set install prop
 	zfs set iohyve:install=no $dataset
 	# Generate list of bhyve -s commands for all devices
@@ -464,7 +475,7 @@ __guest_boot() {
 		while [ $runstate = "1" ]
 		do
 			__guest_load "$name" "/dev/zvol/$dataset/disk0"
-			bhyve -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+			$bhyve_path -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
 			local vmpid=$!
 			wait $vmpid
 			vmrc=$?
@@ -615,6 +626,11 @@ __guest_uefi() {
 		exit 1
 	fi
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
+	# Check if bhyve path is set, set default if not
+	local bhyve_path="$(zfs get -H -o value iohyve:bhyve_path $dataset)"
+	if [ "$bhyve_path" = "-" ]; then
+		bhyve_path=/usr/sbin/bhyve
+	fi
 	# Check if guest exists
 	if [ -d $mountpoint ]; then
 		# Check to make sure guest isn't running
@@ -648,7 +664,7 @@ __guest_uefi() {
 			pci=`echo $pci | sed -e "s/lpc//g"`
 			local pci_args=$(__guest_get_bhyve_cmd "$pci" )
 			pci_args="$pci_args -s 31,lpc"
-			bhyve -c $cpu $bargs -m $ram $pci_args $utcline -l com1,/dev/${con}A -l bootrom,/iohyve/Firmware/$fw/$fw ioh-$name &
+			$bhyve_path -c $cpu $bargs -m $ram $pci_args $utcline -l com1,/dev/${con}A -l bootrom,/iohyve/Firmware/$fw/$fw ioh-$name &
 		else
 			echo "Guest is already running."
 		fi
