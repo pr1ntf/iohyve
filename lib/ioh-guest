@@ -3,6 +3,10 @@
 # List Guests
 __guest_list() {
 	local flags="$1"
+	# Pager Check (more is default on FreeBSD)
+	if [ -z $PAGER ]; then
+		pager="more"
+	fi
 	(
 	printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
 	local guests="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | tr '\t' ',')"
@@ -35,7 +39,7 @@ __guest_list() {
 	(
 		if [ "$flags" = '-l' ]
 		then
-			less
+			$PAGER
 		else
 			cat
 		fi
@@ -45,7 +49,10 @@ __guest_list() {
 # Display info about all guests.
 __guest_info() {
 	local flags="$@"
-
+	# Pager Check (more is default on FreeBSD)
+	if [ -z $PAGER ]; then
+		pager="more"
+	fi
 	# Poll to see what pools have active guests
 	local guests="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | tr '\t' ',')"
 
@@ -150,7 +157,7 @@ __guest_info() {
 	(
 		if [ -n "$(echo "$flags" | grep 'l')" ]
 		then
-			less
+			$PAGER
 		else
 			cat
 		fi
