@@ -32,7 +32,16 @@ iohyve_start()
 
 		local bootprop="$(zfs get -H -o value iohyve:boot $dataset)"
 		if [ $bootprop = "1" ]; then
-			/usr/local/sbin/iohyve start $name
+			# Check dataset depth, used to ignore replication targets with boot=1 set
+			# normally dataset = "$pool/iohyve/$name"
+			depth="$(printf "$dataset" | grep -o "/" | wc -l)"
+			
+			if [ "$depth" -eq 2 ]; then
+				printf "Starting $dataset\n"
+				/usr/local/sbin/iohyve start $name
+			else
+				printf "Skipping $dataset: Guest has non-standard path\n"
+			fi
 		fi
 	done
 }
