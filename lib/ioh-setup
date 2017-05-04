@@ -28,19 +28,19 @@ __setup() {
 
 	done
 
-	if [ -n "$( grep 'POPCNT' /var/run/dmesg.boot )" -o -n "$( grep 'POPCNT' /var/log/dmesg )" ]; then
-		if [ -n "$( grep 'CPU:' /var/run/dmesg.boot | grep 'Intel' )" -o -n "$( grep 'CPU:' /var/log/dmesg | grep 'Intel' )" ] && \
-			 [ -z "$( grep 'VT-x:' /var/run/dmesg.boot | grep 'UG' )" -o -z "$( grep 'VT-x:' /var/log/dmesg | grep 'UG' )" ]; then
-			echo "Your CPU does not seem to fully support bhyve. Missing UG feature on Intel CPU, please upgrade to 5600 series."
-			echo "You may only be able to boot one bhyve guest on your machine at a time."
-			echo "Other restrictions may apply."
-		fi
-	else
-		echo "Your CPU does not seem to support bhyve."
-		echo "For AMD CPUs this means RVI. For Intel CPUs this means EPT."
-		echo "This may not end well for you."
-		echo "Other restrictions may apply."
-	fi
+#	if [ -n "$( grep 'POPCNT' /var/run/dmesg.boot )" -o -n "$( grep 'POPCNT' /var/log/dmesg )" ]; then
+#		if [ -n "$( grep 'CPU:' /var/run/dmesg.boot | grep 'Intel' )" -o -n "$( grep 'CPU:' /var/log/dmesg | grep 'Intel' )" ] && \
+#			 [ -z "$( grep 'VT-x:' /var/run/dmesg.boot | grep 'UG' )" -o -z "$( grep 'VT-x:' /var/log/dmesg | grep 'UG' )" ]; then
+#			echo "Your CPU does not seem to fully support bhyve. Missing UG feature on Intel CPU, please upgrade to 5600 series."
+#			echo "You may only be able to boot one bhyve guest on your machine at a time."
+#			echo "Other restrictions may apply."
+#		fi
+#	else
+#		echo "Your CPU does not seem to support bhyve."
+#		echo "For AMD CPUs this means RVI. For Intel CPUs this means EPT."
+#		echo "This may not end well for you."
+#		echo "Other restrictions may apply."
+#	fi
 
 	# Run commands in correct order, so that the kernel modules are loaded
 	# before the network is setup
