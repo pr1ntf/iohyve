@@ -218,9 +218,18 @@ __guest_create() {
 
 # Install guest
 __guest_install() {
+	# Check if vmm and nmdm modules are running
+	if ! $(kldstat -q -m vmm); then
+		echo "Kernel module vmmm not loaded, use iohyve setup kmod=1 to load it."
+		echo "Guest will likely not boot until it's loaded."
+	fi
+	if ! $(kldstat -q -m nmdm); then
+		echo "Kernel module nmdm not loaded."
+		echo "If you intend to use serial console, use iohyve setup kmod=1 to load it."
+	fi
 	local name="$2"
 	local iso="$3"
-
+	
 	if [ -z "$iso" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tinstall <name> <ISO>\n"
@@ -518,6 +527,15 @@ __guest_prepare() {
 
 # Start guest (combine load and boot)
 __guest_start() {
+	# Check if vmm and nmdm modules are running
+	if ! $(kldstat -q -m vmm); then
+		echo "Kernel module vmmm not loaded, use iohyve setup kmod=1 to load it."
+		echo "Guest will likely not boot until it's loaded."
+	fi
+	if ! $(kldstat -q -m nmdm); then
+		echo "Kernel module nmdm not loaded."
+		echo "If you intend to use serial console, use iohyve setup kmod=1 to load it."
+	fi
 	local name="$2"
 	if [ -z "$name" ]; then
 		printf "missing argument\nusage:\n"
