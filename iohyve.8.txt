@@ -183,37 +183,7 @@ delete		Deletes all data for the guest.
 set		Sets ZFS properties for guests one at a time
 		Usage: 'iohyve set <name> <property=value> ...' where
 		<name> is the name of the guest operating system.
-		Properties:
-		ram=512M or ram=2G (M for megabytes, G for gigabtyes)
-		cpu=1 (number of cpu cores)
-		con=nmdm0 (where to attach null modem console)
-		tap=tap[n](,tap[n]) (tap device for virtio-net)
-			[n] is a generic number to specify the tap
-			interface to use.
-			Specify a list of taps separated by comma for
-			multiple tap interfaces.
-			Single tap: iohyve set [name] tap=tap0
-			Multiple tap : iohyve set [name] tap=tap0,tap1,tap2,tap3
-		size=size of block device
-		mac_tap[n]=[MAC Address]
-			[n] is a generic number to specify the tap interface
-			to use.
-			Forces a specific MAC address to be attached to the
-			network adapter in the guest OS. iohyve does not check
-			for a valid MAC address, so double check the property.
-		sectorsize=[Size]
-			[Size] is the sectorsize in kilobyte for the disk attached to the guest.
-			Only used for uefi guests. See "sectorsize" in bhyve(8)
-				Examples: "sectorsize=512"
-		pcidev:[n]=<spec>
-			Generic way to add devices to the guest.
-			[n] is a generic random number or string
-			<spec> defines a virtual device added to the guest
-			by using a bhyve -s argument without the pcislot
-			or function argument. PCI slot numbers are assigned
-			automatically by iohyve.
-				Examples: "pcidev:1=passthru,2/0/0"
-				"pcidev:2=ahci-hd,/some/place/disk.img"
+		See PROPERTIES for a list of properties you can set.
 
 get		Gets ZFS properties for guests one at a time
 		Usage: 'iohyve get <name> <prop>' where <name> is the name
@@ -317,6 +287,58 @@ console		Consoles into a guest operating system. Utilizes nmdm(4) and
 conreset	Ends all console sessions for when things get weird.
 
 help		General usage help.
+
+PROPERTIES
+ram=N			Defaults to 512M (Use M for megabytes, G for gigabytes)
+cpu=N			Number of cpu cores. Defaults to 1.
+con=nmdmN		Where to attach null modem console (ex: nmdm4)
+tap=tap[N](,tap[N])	(tap device for virtio-net)
+			[n] is a generic number to specify the tap interface to use.
+			Specify a list of taps separated by comma for multiple tap interfaces.
+			Single tap: iohyve set [name] tap=tap0
+			Multiple tap : iohyve set [name] tap=tap0,tap1,tap2,tap3
+size=N			Size of block device
+mac_tap[N]=[MAC Addr]	[N] is a generic number to specify the tap interface to use.
+			Forces a specific MAC address to be attached to the
+			network adapter in the guest OS. iohyve does not check
+			for a valid MAC address, so double check the property.
+sectorsize=[N]		[N] is the sectorsize in kilobyte for the disk attached to the guest.
+			Only used for uefi guests. See "sectorsize" in bhyve(8)
+			Examples: "sectorsize=512"
+pcidev:[n]=<spec>	Generic way to add devices to the guest.
+			[n] is a generic random number or string
+			<spec> defines a virtual device added to the guest
+			by using a bhyve -s argument without the pcislot
+			or function argument. PCI slot numbers are assigned
+			automatically by iohyve.
+			Examples: "pcidev:1=passthru,2/0/0"
+			"pcidev:2=ahci-hd,/some/place/disk.img"
+template=[YES|NO]	Set to YES to stop iohyve from starting, renaming, and deleting a guest. 
+boot=[0|1]		Set to "1" to start guest on boot if using rcboot.
+bhyve_path=[path]	Set the path to a custom binary of bhyve if it's not in /usr/sbin/bhyve
+			Defaults to /usr/sbin/bhyve
+UTC=[YES|NO]		Set to "YES" to set the bhyve clock to UTC. On by default. 
+loader=[loadername]	Default is bhyveload. Use grub-bhyve to boot using grub2-bhyve if installed.
+			Set to uefi to use UEFI booting. (Requires fw to be set)
+fw=[firmware]		The firmware to use when booting via UEFI. See cpfw and fetchfw for more info.
+os=[osname]		If using the grub-bhyve loader you can specify an os type to automatically 
+			boot some OS's. Choices are openbsd57, openbsd58, openbsd59, openbsd60, 
+			openbsd61, netbsd, debian (non-LVM), d8lvm (LVM installs), centos6, 
+			centos7(non-XFS), ubuntu (LVM installs, non-LVM use debian), arch and custom.
+			Choosing custom means your device.map and grub.cfg are in your guest dataset
+			on the host (ex: /iohyve/bsdguest/device.map and /iohyve/bsdguest/grub.cfg).
+vnc=[YES|NO]		Change to YES to use the bhyve fbuf UEFI firmware which uses VNC over TCP. 
+			Special UEFI firmware is required for this, and can be found in ports. 
+vnc_wait=[YES|NO]	Tells bhyve not to boot the guest until a connections is established via VNC.
+vnc_tablet[YESS|NO]		Tells bhyve to use the XHCI Tablet Touch Interface that makes the mouse 
+			behave better on some OS's. Does not work on all OS's. 
+vnc_ip=[ip addr]	IP Address to bind the TCP VNC server to. 127.0.0.1 by default.
+vnc_port[N]		TCP Port to bind the VNC server to.
+vnc_w=[N]		Width of console (See Below)
+vnc_h=[N]		Height of console (See Below)
+Video Modes		Currently, bhyve only support the following video modes (w x h)
+			1920 x 1200, 1920 x 1080, 1600 x 1200, 1600 x 900, 1280 x 1024, 1280 x 720, 
+			1024 x 768, 800 x 600, and 640 x 480
 
 EXAMPLES
 
