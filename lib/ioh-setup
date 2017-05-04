@@ -8,6 +8,13 @@ __setup() {
 	local kmodval
 	local netval
 
+	# Exit with help output if setup has no arguments
+	if [ -z "$@" ]; then
+		echo "Please specify setup parameters."
+		echo "Usage: 'iohyve setup <pool=poolname> [kmod=0|1] [net=iface]'"
+		echo "See man page for details."
+		exit 1
+	fi
 	for arg in $args; do
 		local prop="$(echo $arg | cut -d '=' -f1)"
 		local val="$(echo $arg | cut -d '=' -f2)"
