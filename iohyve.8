@@ -556,6 +556,7 @@ You can change guest properties by using \fIset\fP:
 \fBiohyve\fP \fIset\fP bsdguest description="FreeBSD is awesome"
 .PP
 You can also \fIset\fP multiple properties at once:
+.PP
 \fBiohyve\fP \fIset\fP bsdguest ram=512M cpu=1 \fIboot\fP=1
 .PP
 Get a specific guest property:
@@ -569,7 +570,9 @@ Get all guest properties:
 Install an OpenBSD guest:
 .PP
 \fBiohyve\fP \fIset\fP obsdguest loader=grub-bhyve os=openbsd59
+.PP
 \fBiohyve\fP \fIinstall\fP obsdguest install59.iso
+.PP
 \fBiohyve\fP \fIconsole\fP obsdguest
 .PP
 Take a snapshot of a guest:

@@ -342,86 +342,89 @@ Video Modes		Currently, bhyve only support the following video modes (w x h)
 
 EXAMPLES
 
-Setup iohyve zpool named tank:
+	Setup iohyve zpool named tank:
+	
+	iohyve setup pool=tank
+	
+	Fetch FreeBSD install ISO for later:
+	
+	iohyve fetchiso ftp://ftp.freebsd.org/.../10.2/FreeBSD....iso
+	
+	Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
+	
+	iohyve create bsdguest 8G
+	
+	List ISO's:
+	
+	iohyve isolist
+	
+	Install the FreeBSD guest bsdguest:
+	
+	iohyve install bsdguest FreeBSD-10.2-RELEASE-amd64-bootonly.iso
+	
+	Console into the intallation:
+	
+	iohyve console bsdguest
+	
+	Once installation is done, exit console (~~.) and destroy guest:
+	
+	iohyve destroy bsdguest
+	
+	Now that the guest is installed, it can be started like usual:
+	
+	iohyve start bsdguest
+	
+	Some guest os's can be gracefully stopped:
+	
+	iohyve stop bsdguest
+	
+	List all guests created with:
+	
+	iohyve list
+	
+	You can change guest properties by using set:
+	
+	iohyve set bsdguest description="FreeBSD is awesome"
+	
+	You can also set multiple properties at once:
+	
+	iohyve set bsdguest ram=512M cpu=1 boot=1
+	
+	Get a specific guest property:
+	
+	iohyve get bsdguest ram
 
-iohyve setup pool=tank
-
-Fetch FreeBSD install ISO for later:
-
-iohyve fetchiso ftp://ftp.freebsd.org/.../10.2/FreeBSD....iso
-
-Create a new FreeBSD guest named bsdguest on console nmdm0 with an 8Gigabyte virtual HDD:
-
-iohyve create bsdguest 8G
-
-List ISO's:
-
-iohyve isolist
-
-Install the FreeBSD guest bsdguest:
-
-iohyve install bsdguest FreeBSD-10.2-RELEASE-amd64-bootonly.iso
-
-Console into the intallation:
-
-iohyve console bsdguest
-
-Once installation is done, exit console (~~.) and destroy guest:
-
-iohyve destroy bsdguest
-
-Now that the guest is installed, it can be started like usual:
-
-iohyve start bsdguest
-
-Some guest os's can be gracefully stopped:
-
-iohyve stop bsdguest
-
-List all guests created with:
-
-iohyve list
-
-You can change guest properties by using set:
-
-iohyve set bsdguest description="FreeBSD is awesome"
-
-You can also set multiple properties at once:
-iohyve set bsdguest ram=512M cpu=1 boot=1
-
-Get a specific guest property:
-
-iohyve get bsdguest ram
-
-Get all guest properties:
-
-iohyve getall bsdguest
-
-Install an OpenBSD guest:
-
-iohyve set obsdguest loader=grub-bhyve os=openbsd59
-iohyve install obsdguest install59.iso
-iohyve console obsdguest
-
-Take a snapshot of a guest:
-
-iohyve snap bsdguest@beforeupdate
-
-Roll back to a previous snapshot:
-
-iohyve roll bsdguest@beforeupdate
-
-List all snapshots in iohyve:
-
-iohyve snaplist
-
-Make an independent clone of a guest:
-
-iohyve clone bsdguest dolly
-
-Make a guest a template so you cannot be started, renamed, or deleted:
-
-iohyve set bsdguest template=YES
+	Get all guest properties:
+	
+	iohyve getall bsdguest
+	
+	Install an OpenBSD guest:
+	
+	iohyve set obsdguest loader=grub-bhyve os=openbsd59
+	
+	iohyve install obsdguest install59.iso
+	
+	iohyve console obsdguest
+	
+	Take a snapshot of a guest:
+	
+	iohyve snap bsdguest@beforeupdate
+	
+	Roll back to a previous snapshot:
+	
+	iohyve roll bsdguest@beforeupdate
+	
+	List all snapshots in iohyve:
+	
+	iohyve snaplist
+	
+	Make an independent clone of a guest:
+	
+	iohyve clone bsdguest dolly
+	
+	Make a guest a template so you cannot be started, renamed, or deleted:
+	
+	iohyve set bsdguest template=YES
 
 AUTHOR
 Trent -- @pr1ntf
