@@ -318,6 +318,12 @@ __guest_load() {
 		*${test_for_wire_memory}*) local wire_memory="-S" ;;
 		*) local wire_memory="" ;;
 	esac
+	# Check for loader already present as a zombie
+	if [ ! -z $(pgrep -f "ioh-$name") ]; then
+		echo "This guest appears to be already running/loaded."
+		echo "Use stop, destroy, or forcekill to remove zombie processes."
+		exit 1
+	fi
 	if [ $loader = "grub-bhyve" ]; then
 		echo "GRUB Process does not run in background...."
 		echo "If your terminal appears to be hanging, check iohyve console $name in second terminal to complete GRUB process..."
