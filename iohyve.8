@@ -440,6 +440,17 @@ Examples: "pcidev:1=passthru,2/0/0"
 "pcidev:2=ahci-hd,/some/place/disk.img"
 .TP
 .B
+bargs=[bargs_text]
+You can specify differnt bhyve arguments using bargs. 
+Separate each argument with and underscore (_)
+(ex: bargs=\fB-A_-H_-P\fP will use the \fB-A\fP, \fB-H\fP, and \fB-P\fP flags when launching bhyve)
+.TP
+.B
+description=[text]
+Give guest a description. Place text between two double quotes ("text")
+(ex: description="This is my string I use to describe this guest.")
+.TP
+.B
 template=[YES|NO]
 Set to YES to \fIstop\fP \fBiohyve\fP from starting, renaming, and deleting a guest. 
 .TP

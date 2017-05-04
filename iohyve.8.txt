@@ -313,6 +313,11 @@ pcidev:[n]=<spec>	Generic way to add devices to the guest.
 			automatically by iohyve.
 			Examples: "pcidev:1=passthru,2/0/0"
 			"pcidev:2=ahci-hd,/some/place/disk.img"
+bargs=[bargs_text]	You can specify differnt bhyve arguments using bargs. 
+			Separate each argument with and underscore (_)
+			(ex: bargs=-A_-H_-P will use the -A, -H, and -P flags when launching bhyve)
+description=[text]	Give guest a description. Place text between two double quotes ("text")
+			(ex: description="This is my string I use to describe this guest.")
 template=[YES|NO]	Set to YES to stop iohyve from starting, renaming, and deleting a guest. 
 boot=[0|1]		Set to "1" to start guest on boot if using rcboot.
 bhyve_path=[path]	Set the path to a custom binary of bhyve if it's not in /usr/sbin/bhyve
