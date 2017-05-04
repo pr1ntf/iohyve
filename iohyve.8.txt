@@ -31,7 +31,7 @@ iohyve set <name> <property=value> ...
 iohyve get <name> <prop>
 iohyve rmprop [-f] <name> <property>
 iohyve getall <name>
-iohyve add <name> <size> [pool]
+iohyve add <name> <size>
 iohyve remove [-f] <name> <diskN>
 iohyve resize <name> <diskN> <size>
 iohyve disks <name>
@@ -201,11 +201,10 @@ getall		Gets all the ZFS properties for a guest
 		of the guest operating system.
 
 add		Adds a new disk to the guest.
-		Usage: 'iohyve add <name> <size> [pool]' where <name> is
+		Usage: 'iohyve add <name> <size>' where <name> is
 		the name of the guest, <size> is the size of the
 		virtual block device in '16G' format where the capital G
-		signifies gigabytes. If pool is specified, the disk gets
-		added on that pool
+		signifies gigabytes.
 
 remove		Removes a disk from the guest. Cannot be disk0.
 		Usage: 'iohyve remove <name> <diskN>' where <name> is

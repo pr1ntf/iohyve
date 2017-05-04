@@ -88,7 +88,7 @@ set <name> <property=value> ...
 get <name> <prop>
 rmprop [-f] <name> <property>
 getall <name>
-add <name> <size> [pool]
+add <name> <size>
 remove [-f] <name> <diskN>
 resize <name> <diskN> <size>
 disks <name>

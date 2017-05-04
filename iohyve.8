@@ -35,7 +35,7 @@
 \fBiohyve\fP \fIget\fP <name> <prop>
 \fBiohyve\fP \fIrmprop\fP [\fB-f\fP] <name> <property>
 \fBiohyve\fP \fIgetall\fP <name>
-\fBiohyve\fP \fIadd\fP <name> <size> [\fIpool\fP]
+\fBiohyve\fP \fIadd\fP <name> <size>
 \fBiohyve\fP \fIremove\fP [\fB-f\fP] <name> <diskN>
 \fBiohyve\fP \fIresize\fP <name> <diskN> <size>
 \fBiohyve\fP \fIdisks\fP <name>
@@ -271,11 +271,10 @@ of the guest operating system.
 .B
 \fIadd\fP
 Adds a new disk to the guest.
-Usage: '\fBiohyve\fP \fIadd\fP <name> <size> [\fIpool\fP]' where <name> is
+Usage: '\fBiohyve\fP \fIadd\fP <name> <size>' where <name> is
 the name of the guest, <size> is the size of the
 virtual block device in '16G' format where the capital G
-signifies gigabytes. If \fIpool\fP is specified, the disk gets
-added on that \fIpool\fP
+signifies gigabytes.
 .TP
 .B
 \fIremove\fP
