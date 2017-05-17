@@ -473,7 +473,10 @@ Set to uefi to use UEFI booting. (Requires fw to be \fIset\fP)
 .TP
 .B
 fw=[firmware]
-The firmware to use when booting via UEFI. See \fIcpfw\fP and \fIfetchfw\fP for more \fIinfo\fP.
+The firmware to use when booting via UEFI. See \fIcpfw\fP and \fIfetchfw\fP for more \fIinfo\fP
+on adding firmware to \fBiohyve\fP. If you installed the systutils/bhyve-uefi
+package or port, you must run \fBiohyve\fP \fIcpfw\fP /usr/local/share/uefi-firmware/BHYVE_UEFI.fd
+and \fIset\fP fw=BHYVE_UEFI.fd (view installed fw with \fBiohyve\fP \fIfwlist\fP).
 .TP
 .B
 os=[osname]

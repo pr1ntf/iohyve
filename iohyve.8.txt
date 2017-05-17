@@ -324,7 +324,10 @@ bhyve_path=[path]	Set the path to a custom binary of bhyve if it's not in /usr/s
 UTC=[YES|NO]		Set to "YES" to set the bhyve clock to UTC. On by default. 
 loader=[loadername]	Default is bhyveload. Use grub-bhyve to boot using grub2-bhyve if installed.
 			Set to uefi to use UEFI booting. (Requires fw to be set)
-fw=[firmware]		The firmware to use when booting via UEFI. See cpfw and fetchfw for more info.
+fw=[firmware]		The firmware to use when booting via UEFI. See cpfw and fetchfw for more info
+			on adding firmware to iohyve. If you installed the systutils/bhyve-uefi
+			package or port, you must run iohyve cpfw /usr/local/share/uefi-firmware/BHYVE_UEFI.fd
+			and set fw=BHYVE_UEFI.fd (view installed fw with iohyve fwlist).
 os=[osname]		If using the grub-bhyve loader you can specify an os type to automatically 
 			boot some OS's. Choices are openbsd57, openbsd58, openbsd59, openbsd60, 
 			openbsd61, netbsd, debian (non-LVM), d8lvm (LVM installs), centos6, 
