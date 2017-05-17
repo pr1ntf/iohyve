@@ -9,7 +9,7 @@ __guest_list() {
 	fi
 	(
 	printf "%s^%s^%s^%s^%s\n" "Guest" "VMM?" "Running" "rcboot?" "Description"
-	local guests="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | tr '\t' ',')"
+	local guests="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | tr '\t' ',')"
 	for guest in $guests; do
 		local dataset="$(echo $guest | cut -f1 -d,)"
 		local name="$(echo $guest | cut -f2 -d,)"
@@ -54,7 +54,7 @@ __guest_info() {
 		pager="more"
 	fi
 	# Poll to see what pools have active guests
-	local guests="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | tr '\t' ',')"
+	local guests="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | tr '\t' ',')"
 
 	( # Begining of very large table of output.
 	# Print common header
@@ -167,10 +167,10 @@ __guest_info() {
 # Create guest
 __guest_create() {
 	local name="$2"
-	local pool="${4-$(zfs get -H -s local,received -o name -t filesystem iohyve:name | head -n1 | cut -f1 -d/)}"
+	local pool="${4-$(zfs get -H -s local,received -o name -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | head -n1 | cut -f1 -d/)}"
 	local size="$3"
 	if [ -z "$pool" ]; then
-		local pool="$(zfs list -H | grep /iohyve/ISO | grep -v /iohyve/ISO/ | cut -f1 -d/ |tail -n1)"
+		local pool="$(zfs list -H | cut -d '/' -f-3 | grep /iohyve/ISO | grep -v /iohyve/ISO/ | cut -f1 -d/ |tail -n1)"
 	fi
 	if [ -z "$size" ]; then
 		printf "missing argument\nusage:\n"
@@ -180,7 +180,7 @@ __guest_create() {
 	local description="$(date)"
 
 	# Check if guest with this name already exists
-	if [ -n "$(zfs get -H -o value -s local,received -t filesystem iohyve:name | grep ^$name$)" ]; then
+	if [ -n "$(zfs get -H -o value -s local,received -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep ^$name$)" ]; then
 		echo "Error: Guest with this name already exists"
 		exit 1
 	fi
@@ -241,7 +241,7 @@ __guest_install() {
 		return 1
 	fi
 
-	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$name$" | cut -f1)"
 	local mountpoint="$(zfs get -H -o value mountpoint $dataset)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	# Check if guest is a template
@@ -302,8 +302,8 @@ __guest_load() {
 		return 1
 	fi
 
-	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | grep "$(printf 'disk0\t')$name$" | cut -f1)}"
-	local dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	local disk="${3-$(zfs get -H -t volume -o name,value iohyve:name | cut -d '/' -f-4 | grep iohyve | grep "$(printf 'disk0\t')$name$" | cut -f1)}"
+	local dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
@@ -467,7 +467,7 @@ __guest_boot() {
 	#   2 = always persist (start again even if guest is powering off)
 	local runmode="$2"
 	local pci="$3"
-	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -517,7 +517,7 @@ __guest_boot() {
 
 __guest_prepare() {
 	local name="$1"
-	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$name$" | cut -f1)"
 	local pci="$(__zfs_get_pcidev_conf $dataset)"
 	# Setup tap if needed
 	__tap_setup $dataset
@@ -557,7 +557,7 @@ __guest_start() {
 	local flag="$3"
 	local pci=""
 	local runmode="1"
-	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$name$" | cut -f1)"
 	local loader="$(zfs get -H -o value iohyve:loader $dataset)"
 	# Check if guest is template
 	local template="$(zfs get -H -o value iohyve:template $dataset)"
@@ -614,7 +614,7 @@ __guest_uefi() {
 		return 1
 	fi
 
-	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	local dataset="$(zfs get -H -s local,received -o name,value -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$name$" | cut -f1)"
 	local ram="$(zfs get -H -o value iohyve:ram $dataset)"
 	local con="$(zfs get -H -o value iohyve:con $dataset)"
 	local cpu="$(zfs get -H -o value iohyve:cpu $dataset)"
@@ -773,7 +773,7 @@ __guest_rename() {
 		return 1
 	fi
 
-	local dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | grep "$(printf '\t')$name$" | cut -f1)"
+	local dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$name$" | cut -f1)"
 	# Check if guest is template
 	local template="$(zfs get -H -o value iohyve:template $dataset)"
 	if [ $template = "YES" ]; then
@@ -802,7 +802,7 @@ __guest_delete() {
 			return 1
 		fi
 
-		local target_dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | grep "$(printf '\t')$flagtwo$" | cut -f1)"
+		local target_dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$flagtwo$" | cut -f1)"
 		# Check if guest is template
 		local template="$(zfs get -H -o value iohyve:template $target_dataset)"
 		if [ $template = "YES" ]; then
@@ -829,7 +829,7 @@ __guest_delete() {
 			return 1
 		fi
 
-		local target_dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | grep "$(printf '\t')$flagone$" | cut -f1)"
+		local target_dataset="$(zfs get -H -o name,value -s local,received -t filesystem iohyve:name | cut -d '/' -f-3 | grep iohyve | grep "$(printf '\t')$flagone$" | cut -f1)"
 		# Check if guest is template
 		local template="$(zfs get -H -o value iohyve:template $target_dataset)"
 		if [ $template = "YES" ]; then
@@ -860,5 +860,5 @@ __guest_get_bhyve_cmd() {
 }
 
 __guest_exist() {
-	zfs get -H -s local,received -o value iohyve:name | grep ^$1$ > /dev/null
+	zfs get -H -s local,received -o name,value iohyve:name | cut -d '/' -f-3 | grep iohyve | cut -f2 | grep ^$1$ > /dev/null
 }

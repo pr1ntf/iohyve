@@ -8,7 +8,7 @@ __zfs_set() {
 		printf "\tset <name> <property=value> ...\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | cut -d '/' -f-3 | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	shift 2
 	for arg in "$@"; do
 		local prop="$(echo $arg | cut -d '=' -f1)"
@@ -37,7 +37,7 @@ __zfs_get() {
 		printf "\tget <name> <prop>\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | cut -d '/' -f-3 | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	echo "Getting $name prop $prop..."
 	zfs get -H -o value iohyve:$prop $pool/iohyve/$name
 }
@@ -55,7 +55,7 @@ __zfs_rmprop() {
 		fi
 		echo "Removing $flagthree from $flagtwo"
 		echo "I hope you picked the right property. Removing the wrong one can lead to bad things."
-		local pool="$(zfs list -H -t volume | grep $flagtwo | cut -d '/' -f 1 | head -n1)"
+		local pool="$(zfs list -H -t volume | cut -d '/' -f-3 | grep $flagtwo | cut -d '/' -f 1 | head -n1)"
 		zfs inherit  -r iohyve:$flagthree $pool/iohyve/$flagtwo
 	else
 		if [ -z "$flagtwo" ]; then
@@ -63,7 +63,7 @@ __zfs_rmprop() {
 			printf "\trmpci [-f] <name> <pcidev:N>\n"
 			exit 1
 		fi
-		local pool="$(zfs list -H -t volume | grep $flagone | cut -d '/' -f 1 | head -n1)"
+		local pool="$(zfs list -H -t volume | cut -d '/' -f-3 | grep $flagone | cut -d '/' -f 1 | head -n1)"
 		echo "Warning: Deleting the wrong property can lead to bad things."
 		read -p "Are you sure you want to remove $flagtwo [Y/N]? " an </dev/tty
 		case "$an" in
@@ -83,7 +83,7 @@ __zfs_getall() {
 		printf "\tgetall <name>\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | cut -d '/' -f-4 | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Getting $name iohyve properties..."
 	zfs get -o property,value all $pool/iohyve/$name | grep iohyve: | sort | sed -e 's/iohyve://g'
 }
@@ -97,7 +97,7 @@ __zfs_snapguest() {
 		printf "\tsnap <name>@<snap>\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | cut -d '/' -f-4 | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	echo "Taking snapshot $fullsnap"
 	# Check if guest exists
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -111,14 +111,14 @@ __zfs_snapguest() {
 __zfs_rollguest() {
 	local fullsnap="$2"
 	local name="$(echo $fullsnap | cut -d '@' -f1)"
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | cut -d '/' -f-4 | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	local snap="$(echo $fullsnap | cut -d '@' -f2)"
 	if [ -z "$snap" ] || [ -z "$(echo $fullsnap | grep '@')" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\troll <name>@<snap>\n"
 		exit 1
 	fi
-	local disklist="$(zfs list -H | grep iohyve/$name | grep disk | cut -f1 | cut -d '/' -f4-)"
+	local disklist="$(zfs list -H | cut -d '/' -f-4 | grep iohyve/$name | grep disk | cut -f1 | cut -d '/' -f4-)"
 	# Check if guest exists
 	echo "Rolling back to $fullsnap"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -155,7 +155,7 @@ __zfs_cloneguest() {
 	fi
 
 	local description="$(date | sed -e 's/ /_/g')"
-	local pool="$(zfs list -H -t volume | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local pool="$(zfs list -H -t volume | cut -d '/' -f-4 | grep iohyve/$name | grep disk0 | cut -d '/' -f 1 | head -n1)"
 	# Check if guest exists
 	echo "Cloning $name to $cname"
 	if [ -d /iohyve/$pool/$name ] || [ -d /iohyve/$name ]; then
@@ -192,8 +192,8 @@ __zfs_exportguest() {
 		printf "\texport <name>\n"
 		exit 1
 	fi
-	local pool="$(zfs list -H -t volume | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
-	local disklist="$(zfs list -H | grep iohyve | grep $name | grep disk | \
+	local pool="$(zfs list -H -t volume | cut -d '/' -f-4 | grep $name | grep disk0 | cut -d '/' -f 1 | head -n1)"
+	local disklist="$(zfs list -H | cut -d '/' -f-4 | grep iohyve | grep $name | grep disk | \
 				cut -f1 | cut -d '/' -f4-)"
 	# Check if guest exists
 	echo "Exporting $name. Note this may take some time depending on the size."
@@ -229,7 +229,7 @@ __zfs_exportguest() {
 
 # List all the snapshots
 __zfs_snaplist() {
-	zfs list -H -t snap | grep iohyve | grep -v disk | cut -f1 | cut -d '/' -f3
+	zfs list -H -t snap | cut -d '/' -f-3 | grep iohyve | grep '@' | grep -v disk | cut -f1 | cut -d '/' -f3
 }
 
 # Get PCI device config from zfs
@@ -238,7 +238,8 @@ __zfs_get_pcidev_conf() {
 	local oldifs=$IFS
 	#local pci
 	IFS=$'\n'
-	for pcidev in $(zfs get -H -o property,value all $pool | grep iohyve:pcidev: | sort )
+	# only display results of "filesystems" skipping properties on independent snapshots/volumes (many if autosnap enabled)
+	for pcidev in $(zfs get -H -o property,value -t filesystem all $pool | grep iohyve:pcidev: | sort )
 	do
 		echo $pcidev | cut -f2-
 	done
