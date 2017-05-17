@@ -324,7 +324,10 @@ bhyve_path=[path]	Set the path to a custom binary of bhyve if it's not in /usr/s
 UTC=[YES|NO]		Set to "YES" to set the bhyve clock to UTC. On by default. 
 loader=[loadername]	Default is bhyveload. Use grub-bhyve to boot using grub2-bhyve if installed.
 			Set to uefi to use UEFI booting. (Requires fw to be set)
-fw=[firmware]		The firmware to use when booting via UEFI. See cpfw and fetchfw for more info.
+fw=[firmware]		The firmware to use when booting via UEFI. See cpfw and fetchfw for more info
+			on adding firmware to iohyve. If you installed the systutils/bhyve-uefi
+			package or port, you must run iohyve cpfw /usr/local/share/uefi-firmware/BHYVE_UEFI.fd
+			and set fw=BHYVE_UEFI.fd (view installed fw with iohyve fwlist).
 os=[osname]		If using the grub-bhyve loader you can specify an os type to automatically 
 			boot some OS's. Choices are openbsd57, openbsd58, openbsd59, openbsd60, 
 			openbsd61, netbsd, debian (non-LVM), d8lvm (LVM installs), centos6, 
@@ -334,7 +337,7 @@ os=[osname]		If using the grub-bhyve loader you can specify an os type to automa
 vnc=[YES|NO]		Change to YES to use the bhyve fbuf UEFI firmware which uses VNC over TCP. 
 			Special UEFI firmware is required for this, and can be found in ports. 
 vnc_wait=[YES|NO]	Tells bhyve not to boot the guest until a connections is established via VNC.
-vnc_tablet[YESS|NO]		Tells bhyve to use the XHCI Tablet Touch Interface that makes the mouse 
+vnc_tablet[YES|NO]	Tells bhyve to use the XHCI Tablet Touch Interface that makes the mouse 
 			behave better on some OS's. Does not work on all OS's. 
 vnc_ip=[ip addr]	IP Address to bind the TCP VNC server to. 127.0.0.1 by default.
 vnc_port[N]		TCP Port to bind the VNC server to.
