@@ -138,6 +138,10 @@ __parse_cmd () {
 				__zfs_rmprop "$@"
 				exit
 				;;
+			rmsnap)
+				__zfs_rmsnap "$@"
+				exit
+				;;
 			getall)
 				__zfs_getall "$@"
 				exit
