@@ -37,6 +37,7 @@ iohyve resize <name> <diskN> <size>
 iohyve disks <name>
 iohyve snap <name>@<snap>
 iohyve roll <name>@<snap>
+iohyve rmsnap [-f] <name>@<snap>
 iohyve clone [-r] <name> <clonename>
 iohyve export <name>
 iohyve snaplist
@@ -234,6 +235,12 @@ roll		Rollback guest to a snapshot.
 		Usage: 'iohyve roll <name>@<snap>' where <name> is the
 		name of the guest and <snap> is what you would
 		like to name the snapshot.
+
+rmsnap		Removes a snapshot of a guest
+		Usage: 'iohyve rmsnap <name>@<snap>' where <name> is the name
+		of the guest operating system. <snap> is the snapshot
+		you want removed. Use with caution. If [-f] is supplied
+		before the <name>, there is no prompt to remove.
 
 clone		Clone a guest. Note that this will clone all of the properties.
 		If you want to use the clone and the original guest at the
