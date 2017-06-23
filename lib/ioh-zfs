@@ -8,6 +8,10 @@ __zfs_set() {
 		printf "\tset <name> <property=value> ...\n"
 		exit 1
 	fi
+	if ! __guest_exist $name; then
+		echo "Guest $name doesn't exist!"
+		return 1
+	fi
 	local pool="$(zfs list -H -t volume | cut -d '/' -f-3 | grep iohyve/$name | cut -d '/' -f 1 | head -n1)"
 	shift 2
 	for arg in "$@"; do
