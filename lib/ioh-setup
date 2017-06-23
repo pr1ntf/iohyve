@@ -57,6 +57,13 @@ __setup() {
 
 __setup_pool() {
 	local pool="$1"
+	zpool status $pool > /dev/null
+	local poolstatus="$?"
+	if [ "$poolstatus" -gt 0 ]; then
+		echo "There are errors with the pool or pool name."
+		echo "Please check the zpool status"
+		exit 1
+	fi
 	if ! zfs list ${pool}/iohyve > /dev/null 2>&1; then
 		echo "Setting up iohyve pool..."
 		zfs create $pool/iohyve
