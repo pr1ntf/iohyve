@@ -1,5 +1,5 @@
 NAME
-iohyve(8) - bhyve manager/launcher v0.7.8 "I'd Rather be in the Delta Quadrant Edition"
+iohyve(8) - bhyve manager/launcher v0.7.9 "I Believe in You, You Can Do the Thing Edition"
 
 SYNOPSIS
 iohyve version
