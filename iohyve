@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# iohyve v0.7.8 2017/03/05 "I'd Rather be in the Delta Quadrant Edition"
+# iohyve v0.7.9 2017/06/26 "I Believe in You, You Can Do the Thing Edition"
 
 # Set proper path thanks to iocage
 PATH=${PATH}:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
@@ -29,7 +29,7 @@ fi
 
 # Show version
 __version() {
-	echo "iohyve v0.7.8G 2017/03/05 I'd Rather be in the Delta Quadrant Edition"
+	echo "iohyve v0.7.9 2017/06/26 I Believe in You, You Can Do the Thing Edition"
 }
 
 # Print help page

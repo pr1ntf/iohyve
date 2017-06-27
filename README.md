@@ -1,5 +1,5 @@
-# iohyve v0.7.8
-"I'd Rather be in the Delta Quadrant Edition"
+# iohyve v0.7.9
+"I Believe in You, You Can Do the Thing Edition"
 
 FreeBSD bhyve manager utilizing ZFS and other FreeBSD tools.
 *Everything is fine.*
