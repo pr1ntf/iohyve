@@ -172,9 +172,13 @@ __setup_bridge() {
 		local lastbridge=$(echo $allbridges | tr ' ' '\n' | tail -n1 | cut -c7- )
 
 		for bridge in $allbridges; do
-			local bridgetest=$('ifconfig' $bridge | grep "member: $iface")
-			if [ -n "$bridgetest" ]; then
-				bridgeif=$bridge
+			if [ "$bridge" = "$iface" ]; then
+				bridgeif=$iface
+			else
+				local bridgetest=$('ifconfig' $bridge | grep "member: $iface")
+				if [ -n "$bridgetest" ]; then
+					bridgeif=$bridge
+				fi
 			fi
 		done
 
