@@ -229,7 +229,7 @@ __guest_install() {
 	fi
 	local name="$2"
 	local iso="$3"
-	
+
 	if [ -z "$iso" ]; then
 		printf "missing argument\nusage:\n"
 		printf "\tinstall <name> <ISO>\n"
@@ -474,6 +474,7 @@ __guest_boot() {
 	local persist="$(zfs get -H -o value iohyve:persist $dataset)"
 	local bargexist="$(zfs get -H -o value iohyve:bargs $dataset)"
 	local bargs="$(echo $bargexist | sed -e 's/_/ /g')"
+	local utc="$(zfs get -H -o value iohyve:utc $dataset)"
 	# Check if bhyve path is set, set default if not
 	local bhyve_path="$(zfs get -H -o value iohyve:bhyve_path $dataset)"
 	if [ "$bhyve_path" = "-" ]; then
@@ -490,7 +491,12 @@ __guest_boot() {
 		while [ $runstate = "1" ]
 		do
 			__guest_load "$name" "/dev/zvol/$dataset/disk0"
-			$bhyve_path -c $cpu $bargs -m $ram $pci_args -lcom1,/dev/${con}A ioh-$name &
+			if [ $utc = "YES" ]; then
+				utcline="-u"
+			else
+				utcline=""
+			fi
+			$bhyve_path -c $cpu $bargs -m $ram $pci_args $utcline -lcom1,/dev/${con}A ioh-$name &
 			local vmpid=$!
 			wait $vmpid
 			vmrc=$?
