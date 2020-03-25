@@ -46,9 +46,13 @@ __tap_setup() {
 		fi
 		if [ -n "$tap" ] && [ "$tap" != "-" ] && [ -n "$bridgeif" ]; then
 			local tapif="$(ifconfig -l | tr ' ' '\n' | grep -F -w $tap)"
+			local mtu="$(ifconfig $bridgeif | egrep -io 'mtu [0-9]+' | cut -d ' ' -f 2)"
 			if [ -z "$tapif" ]; then
 				# create tap interface
 				ifconfig $tap create descr "iohyve-$name-$iface"
+				if [ -n "$mtu" ] ; then
+					ifconifg $tap mtu $mtu
+				fi
 				ifconfig $bridgeif addm $tap
 			fi
 		fi
