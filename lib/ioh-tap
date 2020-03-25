@@ -50,7 +50,7 @@ __tap_setup() {
 			if [ -z "$tapif" ]; then
 				# create tap interface
 				ifconfig $tap create descr "iohyve-$name-$iface"
-				if [ -n "$mtu" ] ; then
+				if [ -n "$mtu" ]; then
 					ifconifg $tap mtu $mtu
 				fi
 				ifconfig $bridgeif addm $tap
