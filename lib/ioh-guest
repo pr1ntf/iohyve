@@ -319,7 +319,7 @@ __guest_load() {
 		*) local wire_memory="" ;;
 	esac
 	# Check for loader already present as a zombie
-	if [ ! -z $(pgrep -f "ioh-$name") ]; then
+	if [ ! -z $(pgrep -xf "bhyve: ioh-$name") ]; then
 		echo "This guest appears to be already running/loaded."
 		echo "Use stop, destroy, or forcekill to remove zombie processes."
 		exit 1
